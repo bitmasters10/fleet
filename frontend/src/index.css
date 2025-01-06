@@ -1,0 +1,24 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+
+:root {
+  font-family: 'Poppins', sans-serif;
+  color-scheme: light dark;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Default background for light mode */
+body {
+  background-color: #F0F4FB;
+}
+
+/* Background for dark mode automatically handled by Tailwind's dark mode class */
+body {
+  @apply dark:bg-gray-950; /* Dark mode background using Tailwind */
+}
