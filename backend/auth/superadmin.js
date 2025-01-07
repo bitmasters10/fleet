@@ -6,6 +6,7 @@ const { v4: uuidv4 } = require('uuid');
 const express = require('express');
 const Router = express.Router();
 const session = require('express-session');
+// eslint-disable-next-line no-unused-vars
 const MySQLStore = require('express-mysql-session')(session);
 async function idmake(table, column) {
     let id = uuidv4();
@@ -76,6 +77,15 @@ passport.deserializeUser((id, done) => {
         done(null, rows[0]);
     });
 });
+Router.get('/check-auth', (req, res) => {
+    console.log('Session:', req.session); // Log session data
+    if (req.isAuthenticated()) {
+      res.json({ user: req.user });
+    } else {
+      res.status(401).json({ message: "Authentication failed" });
+    }
+  });
+  
 
 Router.post('/register', (req, res, next) => {
     passport.authenticate('super-admin-local-register', (err, user, info) => {

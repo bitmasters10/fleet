@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 const express = require('express');
 const session = require('express-session');
 const MySQLStore = require('express-mysql-session')(session);
@@ -18,12 +19,18 @@ const db=require("./db")
 const driver = require('./auth/driver'); 
 
 const app = express();
+
+
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, '/views'));
-
+app.use(cors({
+    origin: 'http://localhost:5173', // your frontend's URL
+    credentials: true,  // Allows cookies to be sent
+  }));
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 app.use(express.static('public'));
+
 const sessionStore = new MySQLStore({}, db.promise());
 
 const sessionMiddleware = session({ 
@@ -37,7 +44,7 @@ app.use(sessionMiddleware);
 
 app.use(passport.initialize());
 app.use(passport.session());
-app.use(cors());
+
 
 app.use('/driver-auth', require('./auth/driver'));
 app.use('/admin-auth', require('./auth/admin'));

@@ -1,17 +1,15 @@
 import { useState } from "react";
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "../../contexts/AuthContext";
 
-// eslint-disable-next-line react/prop-types
-export default function Login({ setIsAuthenticated }) {
+export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const navigate = useNavigate();
 
-  // Hardcoded credentials
-  const hardcodedEmail = "user@example.com";
-  const hardcodedPassword = "password123";
+  const { login } = useAuth(); // Extract the login function from AuthContext
+  const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -20,13 +18,13 @@ export default function Login({ setIsAuthenticated }) {
       setError("");
       setLoading(true);
 
-      // Compare with hardcoded credentials
-      if (email === hardcodedEmail && password === hardcodedPassword) {
-        setIsAuthenticated(true);
-        navigate("/dashboard");  // Redirect to dashboard
+      // Call the login function from AuthContext
+      const success = await login(email, password);
+
+      if (success) {
+        navigate("/dashboard"); // Redirect to the dashboard if login is successful
       } else {
         setError("Failed to sign in. Please check your credentials.");
-        navigate("/login");  // Redirect back to login if incorrect
       }
     } catch (err) {
       setError("An error occurred. Please try again.");
@@ -43,15 +41,14 @@ export default function Login({ setIsAuthenticated }) {
           src="/undraw.svg"
           width={200}
           height={200}
-          className=" z-50 w-80 h-80 px-30 md:h-full md:w-90 md:h-90 lg:w-96 lg:h-96 lg:mt-28 xl:w-[30vw] xl:h-[30vh] xl:mt-36"
-          alt="fds"
+          className="z-50 w-80 h-80 px-30 md:h-full md:w-90 md:h-90 lg:w-96 lg:h-96 lg:mt-28 xl:w-[30vw] xl:h-[30vh] xl:mt-36"
+          alt="Illustration"
         />
       </Background>
 
       <form
         onSubmit={handleSubmit}
-        action=""
-        className="w-full container-sm px-7 mt-[90px] md:mt-[180px] lg:pt-[50px]  md:w-full lg:mt-0 lg:rounded-r-2xl lg:px-16 lg:py:9 xl:w-[60vw] lg:shadow-[0px_0px_9px_0px_rgba(194,194,194,1)] lg:bg-white dark:lg:bg-slate-900"
+        className="w-full container-sm px-7 mt-[90px] md:mt-[180px] lg:pt-[50px] md:w-full lg:mt-0 lg:rounded-r-2xl lg:px-16 lg:py:9 xl:w-[60vw] lg:shadow-[0px_0px_9px_0px_rgba(194,194,194,1)] lg:bg-white dark:lg:bg-slate-900"
       >
         <Heading heading="Login" />
         {error && (
@@ -60,7 +57,7 @@ export default function Login({ setIsAuthenticated }) {
 
         <InpFieldLay>
           <Radio />
-          <Email email={email} onEmail={setEmail} error={error} />
+          <Email email={email} onEmail={setEmail} />
           <Password password={password} onPassword={setPassword} />
           <Button loading={loading} />
         </InpFieldLay>
@@ -68,7 +65,6 @@ export default function Login({ setIsAuthenticated }) {
     </Lay>
   );
 }
-
 // eslint-disable-next-line react/prop-types
 function Button({ loading }) {
   return (
@@ -83,15 +79,7 @@ function Button({ loading }) {
         {loading ? "Logging in..." : "Login"}
       </button>
 
-      <p className="text-sm font-light text-gray-500 dark:text-gray-400">
-        Dont have an account yet?{" "}
-        <Link
-          to="/signup"
-          className="font-medium text-primary-600 hover:underline dark:text-primary-500 underline"
-        >
-          Signup
-        </Link>
-      </p>
+     
     </>
   );
 }

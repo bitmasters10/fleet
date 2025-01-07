@@ -1,24 +1,20 @@
 import { useState } from "react";
+import { useAuth } from "../contexts/AuthContext";
 
 // eslint-disable-next-line react/prop-types
-export default function Navbar({isAuthenticated, setIsAuthenticated}) {
+export default function Navbar({ isAuthenticated }) {
   const [isProfile, setIsProfile] = useState(false);
- 
 
+  const { logout } = useAuth();
   function toggleProfile() {
     setIsProfile(!isProfile);
-  }
-
-  function handleSignOut() {
-    setIsAuthenticated(false);
-    // You might want to clear any authentication tokens or session data here
   }
 
   return (
     <nav className="bg-white w-full border-gray-200 dark:bg-gray-900 top-0 z-50 sticky shadow-sm">
       <div className="xl:max-w-[95%] max-w-screen-full flex flex-wrap items-center justify-between mx-auto p-4">
         <a href="#" className="flex items-center space-x-3 rtl:space-x-reverse">
-          <img src="/icon.jpg" width={60}  height={20} alt="fwes" />
+          <img src="/icon.jpg" width={60} height={20} alt="fwes" />
         </a>
         <div className="flex items-center md:order-2 space-x-3 md:space-x-0 rtl:space-x-reverse">
           <button
@@ -65,14 +61,16 @@ export default function Navbar({isAuthenticated, setIsAuthenticated}) {
                   <a
                     href="/login"
                     className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 dark:text-gray-200 dark:hover:text-white"
-                    onClick={handleSignOut}
+                    onClick={logout}
                   >
                     Sign out
                   </a>
                 </li>
               </ul>
             </div>
-          ) : <div></div>}
+          ) : (
+            <div></div>
+          )}
         </div>
       </div>
     </nav>
