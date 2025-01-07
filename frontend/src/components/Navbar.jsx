@@ -15,7 +15,7 @@ export default function Navbar({isAuthenticated, setIsAuthenticated}) {
   }
 
   return (
-    <nav className="bg-white w-full border-gray-200 dark:bg-gray-900 top-0 z-50 block shadow-sm">
+    <nav className="bg-white w-full border-gray-200 dark:bg-gray-900 top-0 z-50 sticky shadow-sm">
       <div className="xl:max-w-[95%] max-w-screen-full flex flex-wrap items-center justify-between mx-auto p-4">
         <a href="#" className="flex items-center space-x-3 rtl:space-x-reverse">
           <img src="/icon.jpg" width={60}  height={20} alt="fwes" />
