@@ -1,4 +1,3 @@
-const multer = require('multer');
 const passport = require('passport');
 const LocalStrategy = require('passport-local').Strategy;
 const bcrypt = require('bcryptjs');
@@ -8,14 +7,6 @@ const express = require('express');
 const Router = express.Router();
 const session = require('express-session');
 const MySQLStore = require('express-mysql-session')(session);
-
-const storage = multer.memoryStorage(); 
-const upload = multer({ storage }).fields([
-    { name: 'adharcard', maxCount: 1 }, 
-    { name: 'pancard', maxCount: 1 }  
-]);
-
-
 async function idmake(table, column) {
     let id = uuidv4();
     const query = `SELECT * FROM ${table} WHERE ${column} = ?`;
@@ -36,46 +27,36 @@ async function idmake(table, column) {
         });
     });
 }
-
-passport.use('driver-local-register', new LocalStrategy({
+passport.use('super-admin-local-register', new LocalStrategy({
     usernameField: 'email',
     passwordField: 'password',
     passReqToCallback: true
 }, async (req, email, password, done) => {
-    const { name, phone_no, gender, license_no } = req.body;
+    const { aname} = req.body;
 
     try {
        
-        const driverId = await idmake('DRIVER', 'DRIVER_ID');
+        const Id = await idmake('fleetSuperAdmin', 'aid');
         const hashedPassword = await bcrypt.hash(password, 10);
 
 
-        const adharcard = req.files?.adharcard ? req.files.adharcard[0].buffer : null;
-        const pancard = req.files?.pancard ? req.files.pancard[0].buffer : null;
+      
 
-        const newDriver = {
-            DRIVER_ID: driverId,
-            NAME: name,
-            EMAIL_ID: email,
-            GENDER: gender,
-            PHONE_NO: phone_no,
-            PASS: hashedPassword,
-            LICENSE_NO: license_no,
-            ADHARCARD: adharcard, 
-            PANCARD: pancard    
+        const newAdmin = {
+            aid: Id,
+            aname: aname,
+            email: email,
+            pass: hashedPassword,
+          
         };
 
      
-        db.query('INSERT INTO DRIVER SET ?', newDriver, (err) => {
+        db.query('INSERT INTO fleetSuperAdmin SET ?', newAdmin, (err) => {
             if (err) return done(err);
             return done(null, { 
-                DRIVER_ID: newDriver.DRIVER_ID, 
-                NAME: newDriver.NAME, 
-                EMAIL_ID: newDriver.EMAIL_ID, 
-                GENDER: newDriver.GENDER, 
-                PHONE_NO: newDriver.PHONE_NO, 
-                PASS: newDriver.PASS, 
-                LICENSE_NO: newDriver.LICENSE_NO 
+                aid: Id,
+                aname: aname,
+                email: email,
             });
         });
     } catch (err) {
@@ -84,59 +65,20 @@ passport.use('driver-local-register', new LocalStrategy({
     }
 
 }));
-
-
-passport.use('driver-local-login', new LocalStrategy({
-    usernameField: 'email',
-    passwordField: 'password'
-}, (email, password, done) => {
-    
-    db.query('SELECT * FROM DRIVER WHERE EMAIL_ID = ?', [email], async (err, rows) => {
-        if (err) return done(err);
-
-        if (rows.length === 0) {
-            return done(null, false, { message: 'No user found with this email.' });
-        }
-
-        const user = rows[0];
-
-        const isMatch = await bcrypt.compare(password, user.PASS);
-        if (!isMatch) {
-            return done(null, false, { message: 'Incorrect password.' });
-        }
-
-        return done(null, user);
-    });
-}));
-
-
 passport.serializeUser((user, done) => {
-    done(null, user.DRIVER_ID);
+    console.log('Serializing user:', user);
+    done(null, user.aid);
 });
 
-
 passport.deserializeUser((id, done) => {
-    db.query('SELECT * FROM DRIVER WHERE DRIVER_ID = ?', [id], (err, rows) => {
+    db.query('SELECT * FROM fleetSuperAdmin WHERE aid = ?', [id], (err, rows) => {
         if (err) return done(err);
         done(null, rows[0]);
     });
 });
 
-
-function logout(req, res) {
-    req.logout((err) => {
-        if (err) {
-            console.error('Error logging out:', err);
-            return res.status(500).json({ success: false, message: 'Logout failed.' });
-        }
-        res.status(200).json({ success: true, message: 'Successfully logged out.' });
-    });
-}
-Router.post('/logout', (req, res) => {
-    logout(req, res);
-});
-Router.post('/register', upload, (req, res, next) => {
-    passport.authenticate('driver-local-register', (err, user, info) => {
+Router.post('/register', (req, res, next) => {
+    passport.authenticate('super-admin-local-register', (err, user, info) => {
         if (err) {
             console.error(err);
             return res.status(500).json({ success: false, message: 'An error occurred during registration.' });
@@ -151,8 +93,34 @@ Router.post('/register', upload, (req, res, next) => {
     })(req, res, next);
 });
 
+passport.use('super-admin-local-login', new LocalStrategy({
+    usernameField: 'email',
+    passwordField: 'password'
+}, (email, password, done) => {
+    
+    db.query("SELECT * FROM fleetSuperAdmin WHERE email = ?", [email], async (err, rows) => {
+        
+        if (err) return done(err);
+
+        if (rows.length === 0) {
+            return done(null, false, { message: 'No user found with this email.' });
+        }
+
+        const user = rows[0];
+console.log(user.pass+"&"+password)
+const isMatch = await bcrypt.compare(password, user.pass);
+console.log('Hashed password from DB:', user.pass);
+console.log('Password entered:', password);
+console.log('Password match result:', isMatch);
+        if (!isMatch) {
+            return done(null, false, { message: 'Incorrect password.' });
+        }
+
+        return done(null, user);
+    });
+}));
 Router.post('/login', (req, res, next) => {
-    passport.authenticate('driver-local-login', (err, user, info) => {
+    passport.authenticate('super-admin-local-login', (err, user, info) => {
         if (err) {
        
             return res.status(500).json({ success: false, message: 'Internal server error', error: err });
@@ -165,15 +133,25 @@ Router.post('/login', (req, res, next) => {
 
         req.logIn(user, (loginErr) => {
             if (loginErr) {
-           
+                console.error('Error in req.logIn:', loginErr);
                 return res.status(500).json({ success: false, message: 'Login failed', error: loginErr });
             }
-           
+            console.log('Login successful:', user);
             return res.status(200).json({ success: true, message: 'Login successful', user: user });
         });
     })(req, res, next);
 });
+function logout(req, res) {
+    req.logout((err) => {
+        if (err) {
+            console.error('Error logging out:', err);
+            return res.status(500).json({ success: false, message: 'Logout failed.' });
+        }
+        res.status(200).json({ success: true, message: 'Successfully logged out.' });
+    });
+}
 
-
-
+Router.post('/logout', (req, res) => {
+    logout(req, res);
+});
 module.exports = Router;

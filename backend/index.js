@@ -24,8 +24,24 @@ app.set('views', path.join(__dirname, '/views'));
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 app.use(express.static('public'));
+const sessionStore = new MySQLStore({}, db.promise());
 
-app.use('/driver', require('./auth/driver'));
+const sessionMiddleware = session({ 
+    secret: 'your-secret-key', 
+    resave: false, 
+    saveUninitialized: false, 
+    store: sessionStore 
+});
+
+app.use(sessionMiddleware);
+
+app.use(passport.initialize());
+app.use(passport.session());
+app.use(cors());
+
+app.use('/driver-auth', require('./auth/driver'));
+app.use('/admin-auth', require('./auth/admin'));
+app.use('/Sadmin-auth', require('./auth/superadmin'));
 
 app.post('/api/events', (req, res) => {
     const eventDetails = req.body;
