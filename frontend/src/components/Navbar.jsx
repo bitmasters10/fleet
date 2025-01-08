@@ -9,13 +9,13 @@ export default function Navbar({ isAuthenticated }) {
   // Safely destructure with fallback values
   const email = user?.email || "";
   const name = user?.aname || "User";
-
+  const role = user?.role|| "";
   function toggleProfile() {
     setIsProfile((prev) => !prev);
   }
 
   function handleLogout() {
-    if (email === "admin@example.com") {
+    if (role === "superadmin") {
       logout();
     } else {
       logoutAdmin();
