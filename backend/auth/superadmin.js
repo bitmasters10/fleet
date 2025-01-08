@@ -8,6 +8,17 @@ const Router = express.Router();
 const session = require('express-session');
 // eslint-disable-next-line no-unused-vars
 const MySQLStore = require('express-mysql-session')(session);
+function isSuperAdmin(req, res, next) {
+  
+    if (req.isAuthenticated() && req.user.role === 'superadmin') {
+        console.log('Role verified:', req.user.role);
+        return next(); // Proceed if authenticated and role is superadmin
+    }
+    console.log('Authentication or role failed:', req.user);
+    return res.status(401).json({ message: "Unauthorized access." });
+}
+
+
 async function idmake(table, column) {
     let id = uuidv4();
     const query = `SELECT * FROM ${table} WHERE ${column} = ?`;
@@ -77,13 +88,14 @@ passport.deserializeUser((id, done) => {
         done(null, rows[0]);
     });
 });
-Router.get("/test",(req,res)=>{
-    if(req.isAuthenticated()&& req.user.role === 'superadmin'){
-        res.json({ user: req.user });
-    }
-    else {
-        res.status(401).json({ message: "Authentication failed" });
-      }
+Router.get("/test",isSuperAdmin,(req,res)=>{
+    // if(req.isAuthenticated()&& req.user.role === 'superadmin'){
+    //     res.json({ user: req.user });
+    // }
+    // else {
+    //     res.status(401).json({ message: "Authentication failed" });
+    //   }
+    res.json({message:"sab sahi hai"})
 })
 Router.get('/check-auth', (req, res) => {
     console.log('Session:', req.session); // Log session data

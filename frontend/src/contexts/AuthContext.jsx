@@ -11,7 +11,7 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        const response = await fetch("http://localhost:3000/Sadmin-auth/test", {
+        const response = await fetch("http://localhost:3000/Sadmin-auth/check-auth", {
           credentials: "include", // Include cookies for session management
         });
         console.log('Auth check response:', response);
