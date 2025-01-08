@@ -10,12 +10,18 @@ const session = require('express-session');
 
 function isSuperAdmin(req, res, next) {
   
-    if (req.isAuthenticated() && req.user.role === 'superadmin') {
-        console.log('Role verified:', req.user.role);
-        return next(); // Proceed if authenticated and role is superadmin
+    if (!req.isAuthenticated() || !req.user) {
+        console.log('User is not authenticated');
+        return res.status(401).json({ message: "Unauthorized access." });
     }
-    console.log('Authentication or role failed:', req.user);
-    return res.status(401).json({ message: "Unauthorized access." });
+
+    if (req.user.role !== 'superadmin') {
+        console.log('User role is not superadmin:', req.user.role);
+        return res.status(403).json({ message: "Forbidden: You are not a superadmin." });
+    }
+
+    console.log('Role verified:', req.user.role);
+    return next(); // Proceed if authenticated and role is superadmin
 }
 
 
@@ -98,11 +104,18 @@ Router.get("/test",isSuperAdmin,(req,res)=>{
     res.json({message:"sab sahi hai"})
 })
 Router.get('/check-auth', (req, res) => {
-    console.log('Session:', req.session); // Log session data
+    console.log('Session:', req.session); // Log session data for debugging
     if (req.isAuthenticated()) {
-      res.json({ user: req.user });
+        res.status(200).json({
+            success: true,
+            message: 'User is authenticated',
+            user: req.user
+        });
     } else {
-      res.status(401).json({ message: "Authentication failed" });
+        res.status(401).json({
+            success: false,
+            message: 'Authentication failed. Please login.'
+        });
     }
   });
   

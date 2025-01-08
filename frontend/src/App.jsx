@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
+import { BrowserRouter as Router, Route, Routes, Navigate } from "react-router-dom";
 import Navbar from "./components/Navbar";
 import Sidebar from "./components/Sidebar";
 
@@ -15,6 +15,7 @@ import Login from "./pages/Auth/Login";
 
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import AppLayout from "./pages/AppLayout";
+import { AdminProvider } from "./contexts/AdminContext";
 
 // PrivateRoute Component to protect routes
 // eslint-disable-next-line react/prop-types
@@ -39,10 +40,29 @@ const NavbarWrapper = () => {
 
   return <Navbar isAuthenticated={isAuthenticated}/>;
 };
+
+
+// eslint-disable-next-line react/prop-types
+const SuperAdminRoute = ({ children }) => {
+  const { user, isAuthenticated } = useAuth();
+
+  if (!isAuthenticated) {
+    return <Navigate to="/login" />;
+  }
+
+  if (user.role !== "superadmin") {
+    return <Navigate to="/unauthorized" />;
+  }
+
+  return children;
+};
+
+
 function App() {
   return (
     <Router>
       <AuthProvider>
+        <AdminProvider>
         {/* Navbar is always visible */}
         <NavbarWrapper />
 
@@ -83,9 +103,9 @@ function App() {
               <Route
                 path="/admin"
                 element={
-                  <PrivateRoute>
+                  <SuperAdminRoute>
                     <Admin title="Admin" track="Manage" />
-                  </PrivateRoute>
+                    </SuperAdminRoute>
                 }
               />
               <Route
@@ -131,9 +151,11 @@ function App() {
             </Routes>
           </div>
         </AppLayout>
+        </AdminProvider>
       </AuthProvider>
     </Router>
   );
 }
+
 
 export default App;

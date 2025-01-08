@@ -2,13 +2,21 @@ const express = require('express');
 const Router = express.Router();
 const db = require('../db');
 function isSuperAdmin(req, res, next) {
-  
-    if (req.isAuthenticated() && req.user.role === 'superadmin') {
-        console.log('Role verified:', req.user.role);
-        return next(); // Proceed if authenticated and role is superadmin
+    console.log('Session:', req.session); // Log session data
+    console.log('User:', req.user); // Log the user object
+
+    if (!req.isAuthenticated() || !req.user) {
+        console.log('User is not authenticated');
+        return res.status(401).json({ message: "Unauthorized access." });
     }
-    console.log('Authentication or role failed:', req.user);
-    return res.status(401).json({ message: "Unauthorized access." });
+
+    if (req.user.role !== 'superadmin') {
+        console.log('User role is not superadmin:', req.user.role);
+        return res.status(403).json({ message: "Forbidden: You are not a superadmin." });
+    }
+
+    console.log('Role verified:', req.user.role);
+    return next(); // Proceed if authenticated and role is superadmin
 }
 Router.get("/admins",isSuperAdmin,async(req,res)=>{
     try{
@@ -53,9 +61,9 @@ Router.delete("/admin/:id",isSuperAdmin,async(req,res)=>{
 
 Router.patch('/admin/:id', isSuperAdmin,(req, res) => {
     const { id } = req.params;
-    const { username, email } = req.body;
+    const { aname, email } = req.body;
     const query = 'UPDATE fleetAdmin SET aname = ?, email = ? WHERE aid = ?';
-    db.query(query, [username, email, id], (err, results) => {
+    db.query(query, [aname, email, id], (err, results) => {
         if (err) {
             console.error('Error updating user:', err);
             res.status(500).send('Server Error');
