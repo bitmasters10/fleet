@@ -1,12 +1,12 @@
 import { createContext, useContext, useState, useEffect } from "react";
-
+import axios from "axios";
 const AuthContext = createContext();
 
 // eslint-disable-next-line react/prop-types
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-
+  const [isLoading, setIsLoading] = useState(false);
   // Check authentication status when component mounts
   useEffect(() => {
     const checkAuth = async () => {
@@ -58,6 +58,19 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const loginAdmin = async (email, password) => {
+    try {
+      setIsLoading(true);
+      const response = await axios.post("http://localhost:3000/admin-auth/login", { email, password });
+      setUser(response.data.user);
+      setIsAuthenticated(true);
+      return { success: true };
+    } catch (error) {
+      return { success: false, message: error.response?.data?.message || "Login failed." };
+    } finally {
+      setIsLoading(false);
+    }
+  };
   const register = async (registrationData) => {
     try {
       const response = await fetch("http://localhost:3000/Sadmin-auth/register", {
@@ -80,6 +93,18 @@ export const AuthProvider = ({ children }) => {
       throw err;
     }
   };
+  const registerAdmin = async (aname, email, password) => {
+    try {
+      setIsLoading(true);
+      const response = await axios.post("http://localhost:3000/admin-auth/register", { aname, email, password });
+      setUser(response.data.user);
+      return { success: true };
+    } catch (error) {
+      return { success: false, message: error.response?.data?.message || "Registration failed." };
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const logout = async () => {
     try {
@@ -99,9 +124,21 @@ export const AuthProvider = ({ children }) => {
       throw err;
     }
   };
-
+  const logoutAdmin = async () => {
+    try {
+      setIsLoading(true);
+      await axios.post("http://localhost:3000/admin-auth/logout");
+      setUser(null);
+      return { success: true };
+    // eslint-disable-next-line no-unused-vars
+    } catch (error) {
+      return { success: false, message: "Logout failed." };
+    } finally {
+      setIsLoading(false);
+    }
+  };
   return (
-    <AuthContext.Provider value={{ user, isAuthenticated, login, logout, register }}>
+    <AuthContext.Provider value={{ user, isAuthenticated, login, logout, register,loginAdmin, logoutAdmin, registerAdmin, isLoading }}>
       {children}
     </AuthContext.Provider>
   );

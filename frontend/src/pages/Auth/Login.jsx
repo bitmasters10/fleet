@@ -7,27 +7,28 @@ export default function Login() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-
-  const { login } = useAuth(); // Extract the login function from AuthContext
+  const [value , setValue] = useState("Admin")
+  const { login , loginAdmin } = useAuth(); // Extract the login function from AuthContext
   const navigate = useNavigate();
-
+ 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     try {
-      setError("");
-      setLoading(true);
-
-      // Call the login function from AuthContext
-      const success = await login(email, password);
-
+      let success;
+      if (value === "SAdmin") {
+        success = await login(email, password);
+      } else if (value === "Admin") {
+        success = await loginAdmin(email, password);
+      }
+    
       if (success) {
-        navigate("/dashboard"); // Redirect to the dashboard if login is successful
+        navigate("/dashboard");
       } else {
-        setError("Failed to sign in. Please check your credentials.");
+        throw new Error("Failed to sign in. Please check your credentials.");
       }
     } catch (err) {
-      setError("An error occurred. Please try again.");
+      setError(err.message || "An error occurred. Please try again.");
       console.error(err);
     } finally {
       setLoading(false);
@@ -56,7 +57,7 @@ export default function Login() {
         )}
 
         <InpFieldLay>
-          <Radio />
+          <Radio value={value} onRadio={setValue} />
           <Email email={email} onEmail={setEmail} />
           <Password password={password} onPassword={setPassword} />
           <Button loading={loading} />
@@ -178,7 +179,8 @@ function Password({ password, onPassword }) {
   );
 }
 
-function Radio() {
+// eslint-disable-next-line react/prop-types
+function Radio({ onRadio}) {
   return (
     <div className="flex justify-between">
       <div className="flex items-center ps-4 border border-[#FF6500] rounded dark:border-gray-700 w-72 rounded-r-none">
@@ -186,7 +188,8 @@ function Radio() {
           defaultChecked
           id="bordered-radio-1"
           type="radio"
-          value=""
+          value="Admin"
+          onChange={(e)=> onRadio(e.target.value)}
           name="bordered-radio"
           className="w-4 h-4   text-gray-900 bg-gray-100 border-[#FF6500] focus:ring-white dark:focus:ring-transparent dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
         />
@@ -201,7 +204,9 @@ function Radio() {
         <input
           id="bordered-radio-2"
           type="radio"
-          value=""
+          value="SAdmin"
+          onChange={(e)=> onRadio(e.target.value)}
+
           name="bordered-radio"
           className=" w-4 h-4 text-black bg-gray-100 border-gray-300 focus:ring-white dark:focus:ring-transparent dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
         />
