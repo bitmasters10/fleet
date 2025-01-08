@@ -6,6 +6,7 @@ export default function Sidebar() {
   const [isOpen, setIsOpen] = useState(false);
   const sidebarRef = useRef(null);
   const { user } = useAuth();
+  console.log(user)
   const email = user?.email || "";
   function toggle() {
     setIsOpen(!isOpen);

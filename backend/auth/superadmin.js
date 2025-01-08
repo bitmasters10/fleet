@@ -77,6 +77,14 @@ passport.deserializeUser((id, done) => {
         done(null, rows[0]);
     });
 });
+Router.get("/test",(req,res)=>{
+    if(req.isAuthenticated()&& req.user.role === 'superadmin'){
+        res.json({ user: req.user });
+    }
+    else {
+        res.status(401).json({ message: "Authentication failed" });
+      }
+})
 Router.get('/check-auth', (req, res) => {
     console.log('Session:', req.session); // Log session data
     if (req.isAuthenticated()) {
@@ -125,7 +133,7 @@ console.log('Password match result:', isMatch);
         if (!isMatch) {
             return done(null, false, { message: 'Incorrect password.' });
         }
-
+         user.role="superadmin"
         return done(null, user);
     });
 }));
