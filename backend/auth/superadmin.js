@@ -7,7 +7,7 @@ const express = require('express');
 const Router = express.Router();
 const session = require('express-session');
 // eslint-disable-next-line no-unused-vars
-const MySQLStore = require('express-mysql-session')(session);
+
 function isSuperAdmin(req, res, next) {
   
     if (req.isAuthenticated() && req.user.role === 'superadmin') {

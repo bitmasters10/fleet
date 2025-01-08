@@ -49,6 +49,7 @@ app.use(passport.session());
 app.use('/driver-auth', require('./auth/driver'));
 app.use('/admin-auth', require('./auth/admin'));
 app.use('/Sadmin-auth', require('./auth/superadmin'));
+app.use('/Sadmin', require('./routes/admin'));
 
 app.post('/api/events', (req, res) => {
     const eventDetails = req.body;
