@@ -125,48 +125,48 @@ function CreateForm({ addAdmin, setShowCreateForm }) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-      <div className="bg-gray-100 p-6 rounded-md shadow-md w-full lg:w-[90%] mx-auto relative">
+      <div className="bg-gray-100 dark:bg-gray-800 p-6 rounded-md shadow-md w-full lg:w-[90%] mx-auto relative">
         <button
           onClick={() => setShowCreateForm(false)}
-          className="absolute top-4 right-4 text-black text-2xl dark:text-white"
+          className="absolute top-4 right-4 text-black dark:text-white text-2xl"
         >
           &times;
         </button>
-        <h3 className="text-lg font-semibold mb-4">Create Admin</h3>
+        <h3 className="text-lg font-semibold mb-4 text-gray-700 dark:text-gray-200">Create Admin</h3>
         <form onSubmit={handleSubmit}>
           <div className="mb-4">
-            <label className="block mb-1">Name</label>
+            <label className="block mb-1 text-gray-700 dark:text-gray-300">Name</label>
             <input
               type="text"
               value={formData.aname}
               onChange={(e) => setFormData({ ...formData, aname: e.target.value })}
-              className="w-full p-2 border rounded"
+              className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200"
               required
             />
           </div>
           <div className="mb-4">
-            <label className="block mb-1">Email</label>
+            <label className="block mb-1 text-gray-700 dark:text-gray-300">Email</label>
             <input
               type="email"
               value={formData.email}
               onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-              className="w-full p-2 border rounded"
+              className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200"
               required
             />
           </div>
           <div className="mb-4">
-            <label className="block mb-1">Password</label>
+            <label className="block mb-1 text-gray-700 dark:text-gray-300">Password</label>
             <input
               type="password"
               value={formData.password}
               onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-              className="w-full p-2 border rounded"
+              className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200"
               required
             />
           </div>
           <button
             type="submit"
-            className="bg-blue-600 text-white px-4 py-2 rounded"
+            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-400"
           >
             Create
           </button>
@@ -174,6 +174,7 @@ function CreateForm({ addAdmin, setShowCreateForm }) {
       </div>
     </div>
   );
+  
 }
 
 // Edit Form Component in Modal
@@ -191,50 +192,53 @@ function EditForm({ admin, updateAdmin, setEditingAdmin }) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-      <div className="bg-gray-100 p-6 rounded-md shadow-md w-full lg:w-[90%] mx-auto relative">
+      <div className="bg-gray-100 dark:bg-gray-800 p-6 rounded-md shadow-md w-full lg:w-[90%] mx-auto relative">
         <button
           onClick={() => setEditingAdmin(null)}
           className="absolute top-4 right-4 text-black dark:text-white"
         >
           &times;
         </button>
-        <h3 className="text-lg font-semibold mb-4">Edit Admin</h3>
+        <h3 className="text-lg font-semibold mb-4 text-gray-700 dark:text-gray-200">Edit Admin</h3>
         <form onSubmit={handleSubmit}>
           <div className="mb-4">
-            <label className="block mb-1">Name</label>
+            <label className="block mb-1 text-gray-700 dark:text-gray-300">Name</label>
             <input
               type="text"
               value={formData.aname}
               onChange={(e) => setFormData({ ...formData, aname: e.target.value })}
-              className="w-full p-2 border rounded"
+              className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200"
               required
             />
           </div>
           <div className="mb-4">
-            <label className="block mb-1">Email</label>
+            <label className="block mb-1 text-gray-700 dark:text-gray-300">Email</label>
             <input
               type="email"
               value={formData.email}
               onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-              className="w-full p-2 border rounded"
+              className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200"
               required
             />
           </div>
           <div className="mb-4">
-            <label className="block mb-1">Password (optional)</label>
+            {/* <label className="block mb-1 text-gray-700 dark:text-gray-300">Password (optional)</label>
             <input
               type="password"
               value={formData.password}
               onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-              className="w-full p-2 border rounded"
-            />
+              className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200"
+            /> */}
           </div>
-          <button type="submit" className="bg-green-600 text-white px-4 py-2 rounded">
+          <button
+            type="submit"
+            className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 dark:bg-green-500 dark:hover:bg-green-400"
+          >
             Update
           </button>
           <button
             type="button"
-            className="bg-gray-400 text-white px-4 py-2 rounded ml-2"
+            className="bg-gray-400 text-white px-4 py-2 rounded ml-2 hover:bg-gray-500 dark:bg-gray-600 dark:hover:bg-gray-500"
             onClick={() => setEditingAdmin(null)}
           >
             Cancel
@@ -243,6 +247,7 @@ function EditForm({ admin, updateAdmin, setEditingAdmin }) {
       </div>
     </div>
   );
+  
 }
 
 function AddButton({showCreateForm,setShowCreateForm}){
