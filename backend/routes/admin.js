@@ -22,7 +22,7 @@ Router.get("/admins",isSuperAdmin,async(req,res)=>{
         })
 
     }catch(err){
-        console.error('Error during registration:', err);
+        console.error('Error during retive:', err);
     }
    
 })
