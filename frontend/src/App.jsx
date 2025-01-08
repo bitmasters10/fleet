@@ -52,7 +52,7 @@ function App() {
           <div className="max-w-screen-2xl mx-auto">
             <Routes>
               {/* Public Routes */}
-              <Route path="/login" element={<Login />} />
+              <Route path="/" element={<Login />} />
               
 
               {/* Protected Routes */}
