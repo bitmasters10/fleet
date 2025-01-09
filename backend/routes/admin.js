@@ -64,5 +64,10 @@ Router.patch('/admin/:id', isSuperAdmin,(req, res) => {
         return res.status(200).json({message:"update doene",res:results})
     });
 });
+Router.patch("/admin/:id",isSuperAdmin,(req,res)=>{
+    const {pass}=req.body
+    const{id}=req.params
+    const q="UPDATE fleetAdmin SET aname = ?, email = ? WHERE aid = ?"
+})
 
 module.exports = Router;
