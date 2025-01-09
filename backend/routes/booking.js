@@ -3,6 +3,26 @@ const Router = express.Router();
 const db = require("../db");
 const { v4: uuidv4 } = require('uuid');
 
+async function idmake(table, column) {
+  let id = uuidv4();
+  
+  const query = `SELECT * FROM ${table} WHERE ${column} = ?`;
+
+  return new Promise((resolve, reject) => {
+    db.query(query, [id], (err, rows) => {
+      if (err) {
+        console.error("Error executing query:", err);
+        return reject(err);
+      }
+
+      if (rows.length === 0) {
+        return resolve(id);
+      } else {
+        idmake(table, column).then(resolve).catch(reject);
+      }
+    });
+  });
+}
 
 function isAdmin(req, res, next) {
     console.log('Session:', req.session); // Log session data
@@ -42,19 +62,73 @@ function isAdmin(req, res, next) {
       });
     });
   }
-Router.get("/available-books",isAdmin,(req,res)=>{
-    const q="select o.user_id,o.capacity,o.datetime,o.product_name  from success2 s join orders o on s.order_id=o.oreder_id where s.order_status=? and s.fleet_status=?"
-    try{
-        db.query(q,["Success","waiting"], (err, rows) => {
+  Router.get("/available-books", isAdmin, (req, res) => {
+    const q = `
+        SELECT 
+            o.user_id, o.capacity, o.datetime, o.product_name 
+        FROM 
+            success2 s 
+        JOIN 
+            orders o 
+        ON 
+            REPLACE(s.order_id, 'order_id=', '') = o.order_id 
+        WHERE 
+            s.order_status = ? AND s.fleet_status = ?
+    `;
+    try {
+        db.query(q, ["order_status=Success", "waiting"], (err, rows) => {
             if (err) {
-              console.error("Error executing query:", err);
-              return res.status(500).send("Server Error");
+                console.error("Error executing query:", err);
+                return res.status(500).send("Server Error");
             }
             return res.status(200).json(rows);
-          });
-
-    }catch(err){
-        console.log(err)
+        });
+    } catch (err) {
+        console.log(err);
     }
-})  
+});
+
+Router.get("/test",(req,res)=>{
+  const q = `
+  SELECT order_id from success2 where fleet_status=? and order_status=? 
+`;
+try {
+  db.query(q,["waiting","order_status=Success"], (err, rows) => {
+      if (err) {
+          console.error("Error executing query:", err);
+          return res.status(500).send("Server Error");
+      }
+      return res.status(200).json(rows);
+  });
+} catch (err) {
+  console.log(err);
+}
+
+})
+Router.post("/add-package",async(req,res)=>{
+  const {pid,name,places,duration}=req.body
+  const Id = await idmake("fleetSuperAdmin", "aid");
+  let newCar = {
+    CAR_ID: Id,
+    PROD_ID: pid,
+    NAME: name,
+    PLACES: places,
+    DURATION: duration,
+   
+  };
+  try {
+    db.query('INSERT INTO PACKAGE SET ?', newCar, (err, rows) => {
+      if (err) {
+        console.error("Error executing query:", err);
+        return res.status(500).send("Server Error");
+      }
+      return res.status(200).json({message:"new car added",results:rows});
+    });
+  } catch (err) {
+    console.error("Error during registration:", err);
+  }
+
+})
+
+
 module.exports = Router;
