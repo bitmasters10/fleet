@@ -1,6 +1,6 @@
 
 // eslint-disable-next-line react/prop-types
-export default function Input({title}) {
+export default function Input({title , searchQuery, setSearchQuery}) {
     return (
       <div className="mx-9 flex  items-center     ">
         <div className="flex  px-4 py-3 rounded-3xl  w-full  border-2 bg-white dark:bg-gray-900 border-[#FF6500]   overflow-hidden max-sm:max-w-screen-sm my-9 font-[sans-serif]">
@@ -15,6 +15,8 @@ export default function Input({title}) {
           <input
             type="email"
             placeholder={`Search ${title}`}
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
             className="w-full outline-none  text-gray-600 bg-white  dark:bg-gray-900 dark:text-white  text-sm"
           />
         </div>

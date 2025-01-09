@@ -8,6 +8,23 @@ const Router = express.Router();
 const session = require('express-session');
 // eslint-disable-next-line no-unused-vars
 const MySQLStore = require('express-mysql-session')(session);
+
+function isSuperAdmin(req, res, next) {
+  
+    if (!req.isAuthenticated() || !req.user) {
+        console.log('User is not authenticated');
+        return res.status(401).json({ message: "Unauthorized access." });
+    }
+
+    if (req.user.role !== 'superadmin') {
+        console.log('User role is not superadmin:', req.user.role);
+        return res.status(403).json({ message: "Forbidden: You are not a superadmin." });
+    }
+
+    console.log('Role verified:', req.user.role);
+    return next(); // Proceed if authenticated and role is superadmin
+}
+
 async function idmake(table, column) {
     let id = uuidv4();
     const query = `SELECT * FROM ${table} WHERE ${column} = ?`;
@@ -78,7 +95,7 @@ passport.deserializeUser((id, done) => {
     });
 });
 
-Router.post('/register', (req, res, next) => {
+Router.post('/register', isSuperAdmin, (req, res, next) => {
     passport.authenticate('admin-local-register', (err, user, info) => {
         if (err) {
             console.error(err);
@@ -86,7 +103,6 @@ Router.post('/register', (req, res, next) => {
         }
 
         if (!user) {
-           
             return res.status(400).json({ success: false, message: info.message || 'Registration failed.' });
         }
 

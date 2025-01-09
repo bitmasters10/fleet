@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
+import { BrowserRouter as Router, Route, Routes} from "react-router-dom";
 import Navbar from "./components/Navbar";
 import Sidebar from "./components/Sidebar";
 
@@ -15,6 +15,8 @@ import Login from "./pages/Auth/Login";
 
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import AppLayout from "./pages/AppLayout";
+import { AdminProvider } from "./contexts/AdminContext";
+import { VehicleProvider } from "./contexts/VehicleContext";
 
 // PrivateRoute Component to protect routes
 // eslint-disable-next-line react/prop-types
@@ -39,10 +41,16 @@ const NavbarWrapper = () => {
 
   return <Navbar isAuthenticated={isAuthenticated}/>;
 };
+
+
+
+
 function App() {
   return (
     <Router>
       <AuthProvider>
+        <AdminProvider>
+          <VehicleProvider>
         {/* Navbar is always visible */}
         <NavbarWrapper />
 
@@ -52,7 +60,7 @@ function App() {
           <div className="max-w-screen-2xl mx-auto">
             <Routes>
               {/* Public Routes */}
-              <Route path="/login" element={<Login />} />
+              <Route path="/" element={<Login />} />
               
 
               {/* Protected Routes */}
@@ -85,7 +93,7 @@ function App() {
                 element={
                   <PrivateRoute>
                     <Admin title="Admin" track="Manage" />
-                  </PrivateRoute>
+                    </PrivateRoute>
                 }
               />
               <Route
@@ -131,9 +139,12 @@ function App() {
             </Routes>
           </div>
         </AppLayout>
+        </VehicleProvider>
+        </AdminProvider>
       </AuthProvider>
     </Router>
   );
 }
+
 
 export default App;

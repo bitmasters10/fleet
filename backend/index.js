@@ -34,10 +34,15 @@ app.use(express.static('public'));
 const sessionStore = new MySQLStore({}, db.promise());
 
 const sessionMiddleware = session({ 
-    secret: 'your-secret-key', 
-    resave: false, 
-    saveUninitialized: false, 
-    store: sessionStore 
+    secret: 'your-secret-key',
+    resave: false,
+    saveUninitialized: false, // Avoid storing empty sessions
+    cookie: { 
+        secure: false,
+        httpOnly: true, // Prevent client-side access to cookies
+        maxAge: 3600000 // Session expires after 1 hour
+    },
+    store: sessionStore, // Use MySQL session store
 });
 
 app.use(sessionMiddleware);
