@@ -2,8 +2,29 @@ const express = require("express");
 const Router = express.Router();
 const db = require("../db");
 const { v4: uuidv4 } = require('uuid');
+
+
+function isAdmin(req, res, next) {
+  console.log('Session:', req.session); // Log session data
+  console.log('User:', req.user); // Log the user object
+
+  if (!req.isAuthenticated() || !req.user) {
+      console.log('User is not authenticated');
+      return res.status(401).json({ message: "Unauthorized access." });
+  }
+
+  if (req.user.role !== 'admin') {
+      console.log('User role is not admin:', req.user.role);
+      return res.status(403).json({ message: "Forbidden: You are not a admin." });
+  }
+
+  console.log('Role verified:', req.user.role);
+  return next(); // Proceed if authenticated and role is superadmin
+}
+
 async function idmake(table, column) {
   let id = uuidv4();
+  
   const query = `SELECT * FROM ${table} WHERE ${column} = ?`;
 
   return new Promise((resolve, reject) => {
@@ -22,7 +43,7 @@ async function idmake(table, column) {
   });
 }
 
-Router.post("/create-car", async (req, res) => {
+Router.post("/create-car",isAdmin, async (req, res) => {
   const { CAR_NO, COLOR, CAR_TYPE,MODEL_NAME, COMPANY_NAME,SEATING_CAPACITY } = req.body;
   const Id = await idmake("fleetSuperAdmin", "aid");
   let newCar = {
@@ -47,7 +68,7 @@ Router.post("/create-car", async (req, res) => {
   }
 });
 
-Router.get("/cars", async (req, res) => {
+Router.get("/cars",isAdmin, async (req, res) => {
   try {
     db.query("SELECT * FROM CARS ", (err, rows) => {
       if (err) {
@@ -60,7 +81,7 @@ Router.get("/cars", async (req, res) => {
     console.error("Error during retrive:", err);
   }
 });
-Router.get("/car/:id", async (req, res) => {
+Router.get("/car/:id",isAdmin, async (req, res) => {
   const { id } = req.params;
   const query = "SELECT * FROM CARS WHERE CAR_ID = ?;";
   db.query(query, [id], (err, results) => {
@@ -72,7 +93,7 @@ Router.get("/car/:id", async (req, res) => {
     return res.status(200).json(results);
   });
 });
-Router.delete("/car/:id", async (req, res) => {
+Router.delete("/car/:id", isAdmin,async (req, res) => {
   const { id } = req.params;
   const query = "delete FROM CARS WHERE car_ID = ?;";
   db.query(query, [id], (err, results) => {
@@ -85,7 +106,7 @@ Router.delete("/car/:id", async (req, res) => {
   });
 });
 
-Router.patch("/car/:id", (req, res) => {
+Router.patch("/car/:id", isAdmin,(req, res) => {
   const { id } = req.params;
   const { CAR_NO, COLOR, CAR_TYPE,MODEL_NAME, COMPANY_NAME,SEATING_CAPACITY,STATUS } = req.body;
   const query = "UPDATE CARS SET 	CAR_NO=?,	CAR_TYPE=?	,MODEL_NAME= ?	,COLOR=?	,COMPANY_NAME=?	,SEATING_CAPACITY=?	,STATUS=?	WHERE CAR_ID = ?";
@@ -98,7 +119,7 @@ Router.patch("/car/:id", (req, res) => {
     return res.status(200).json({ message: "update doene", res: results });
   });
 });
-Router.patch("/car-status/:id", (req, res) => {
+Router.patch("/car-status/:id",isAdmin, (req, res) => {
   const { id } = req.params;
   const { STATUS } = req.body;
   const query = "UPDATE CARS SET 	STATUS=?	WHERE CAR_ID = ?";
