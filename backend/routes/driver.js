@@ -55,7 +55,7 @@ Router.get("/drivers",isAdmin, async (req, res) => {
     console.error("Error during retrive:", err);
   }
 });
-Router.get("/car/:id",isAdmin, async (req, res) => {
+Router.get("/driver/:id",isAdmin, async (req, res) => {
   const { id } = req.params;
   const query = "SELECT * FROM DRIVER WHERE DRIVER_ID = ?;";
   db.query(query, [id], (err, results) => {
@@ -67,7 +67,7 @@ Router.get("/car/:id",isAdmin, async (req, res) => {
     return res.status(200).json(results);
   });
 });
-Router.delete("/car/:id", isAdmin,async (req, res) => {
+Router.delete("/driver/:id", isAdmin,async (req, res) => {
   const { id } = req.params;
   const query = "delete FROM DRIVER WHERE DRIVER_ID = ?;";
   db.query(query, [id], (err, results) => {
@@ -80,10 +80,10 @@ Router.delete("/car/:id", isAdmin,async (req, res) => {
   });
 });
 
-Router.patch("/car/:id", isAdmin,(req, res) => {
+Router.patch("/driver/:id", isAdmin,(req, res) => {
   const { id } = req.params;
   const { NAME, EMAIL_ID, LICENSE_NO } = req.body;
-  const query = "UPDATE CARS SET NAME =?, EMAIL_ID=?, LICENSE_NO=?	WHERE DRIVER_ID = ?";
+  const query = "UPDATE DRIVER SET NAME =?, EMAIL_ID=?, LICENSE_NO=?	WHERE DRIVER_ID = ?";
   db.query(query, [NAME, EMAIL_ID, LICENSE_NO, id], (err, results) => {
     if (err) {
       console.error("Error updating user:", err);

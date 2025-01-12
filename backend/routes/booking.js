@@ -121,7 +121,40 @@ Router.post("/add-package",async(req,res)=>{
 
 })
 Router.post("/create-book",(req,res)=>{
-  const {	TIMING,	PICKUP_LOC,	CAR_ID,	USER_ID,	BOOK_NO,	DATE,	NO_OF_PASSENGER,	PACKAGE_ID,	DROP_LOC,	AC_NONAC,	stat,	END_TIME,	VID}=req.body
+  const {	TIMING,	PICKUP_LOC,	CAR_ID,	USER_ID,	BOOK_NO,	DATE,	NO_OF_PASSENGER,	PACKAGE_ID,	DROP_LOC,	AC_NONAC,	stat,	END_TIME,	VID,DRIVER_ID}=req.body
+  db.query("select * from BOOKING where CAR_ID=? AND DRIVER_ID=? AND TIMING=? AND END_TIME=?",[CAR_ID,DRIVER_ID,TIMING,END_TIME],(err,rows)=>{
+    if(err){
+      return res.status(500).send("Server Error");
+    }
+    if(rows.length>0){
+      return res.status(409).json({ error: "Booking already exists for the specified time and car/driver" });
+    }
+    let ID=idmake("BOOKING","BOOK_ID")
+    const newBook={
+      TIMING,	
+      PICKUP_LOC,
+      	CAR_ID,	
+        USER_ID,
+        	BOOK_NO,
+          	DATE,
+            	NO_OF_PASSENGER,
+              	PACKAGE_ID,
+                	DROP_LOC,
+                  	AC_NONAC,	
+                    stat,
+                    	END_TIME,	
+                      VID,
+                      DRIVER_ID,
+                      BOOK_ID:ID
+                    
+    }
+    db.query(" INSERT INTO CARS SET ?",newBook,(err,rows)=>{
+      if(err){
+        return res.status(500).send("Server Error");
+      }
+      return res.status(200).json({message:"new book added",results:rows});
+    })
+  })
 })
 
 
