@@ -93,17 +93,17 @@ Router.patch("/driver/:id", isAdmin,(req, res) => {
     return res.status(200).json({ message: "update doene", res: results });
   });
 });
-Router.patch("/car-status/:id",isAdmin, (req, res) => {
-  const { id } = req.params;
-  const { STATUS } = req.body;
-  const query = "UPDATE CARS SET 	STATUS=?	WHERE CAR_ID = ?";
-  db.query(query, [STATUS,id], (err, results) => {
-    if (err) {
-      console.error("Error updating user:", err);
-      res.status(500).send("Server Error");
-      return;
-    }
-    return res.status(200).json({ message: "update doene", res: results });
-  });
-});
+// Router.patch("/car-status/:id",isAdmin, (req, res) => {
+//   const { id } = req.params;
+//   const { STATUS } = req.body;
+//   const query = "UPDATE CARS SET 	STATUS=?	WHERE CAR_ID = ?";
+//   db.query(query, [STATUS,id], (err, results) => {
+//     if (err) {
+//       console.error("Error updating user:", err);
+//       res.status(500).send("Server Error");
+//       return;
+//     }
+//     return res.status(200).json({ message: "update doene", res: results });
+//   });
+// });
 module.exports = Router;
