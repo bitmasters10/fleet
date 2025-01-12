@@ -163,7 +163,20 @@ Router.post("/create-book",async(req,res)=>{
 })
 
 Router.get("/bookings",(req,res)=>{
-  
+  try{
+    db.query('SELECT * FROM BOOKING ', (err, rows) => {
+        if (err) {
+            console.error('Error executing query:', err);
+            return  res.status(500).send('Server Error')
+
+        }
+        return res.status(200).json(rows)
+    })
+
+}catch(err){
+    console.error('Error during retive:', err);
+}
+
 })
 
 
