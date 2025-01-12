@@ -57,6 +57,7 @@ app.use('/Sadmin-auth', require('./auth/superadmin'));
 app.use('/Sadmin', require('./routes/admin'));
 app.use('/admin', require('./routes/car'));
 app.use('/admin', require('./routes/booking'));
+app.use('/admin', require('./routes/driver'));
 
 app.post('/api/events', (req, res) => {
     const eventDetails = req.body;

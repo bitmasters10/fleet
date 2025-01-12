@@ -10,8 +10,8 @@ function isAdmin(req, res, next) {
       return res.status(401).json({ message: "Unauthorized access." });
   }
 
-  if (req.user.role !== 'superadmin') {
-      console.log('User role is not superadmin:', req.user.role);
+  if (req.user.role !== 'admin') {
+      console.log('User role is not admin:', req.user.role);
       return res.status(403).json({ message: "Forbidden: You are not a superadmin." });
   }
 

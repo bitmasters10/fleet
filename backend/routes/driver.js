@@ -10,7 +10,7 @@ function isAdmin(req, res, next) {
       return res.status(401).json({ message: "Unauthorized access." });
   }
 
-  if (req.user.role !== 'superadmin') {
+  if (req.user.role !== 'admin') {
       console.log('User role is not superadmin:', req.user.role);
       return res.status(403).json({ message: "Forbidden: You are not a superadmin." });
   }
@@ -44,7 +44,7 @@ async function idmake(table, column) {
 
 Router.get("/drivers",isAdmin, async (req, res) => {
   try {
-    db.query("SELECT * FROM DRIVER ", (err, rows) => {
+    db.query("SELECT DRIVER_ID,NAME, EMAIL_ID, LICENSE_NO,GENDER FROM DRIVER ", (err, rows) => {
       if (err) {
         console.error("Error executing query:", err);
         return res.status(500).send("Server Error");
@@ -82,9 +82,9 @@ Router.delete("/car/:id", isAdmin,async (req, res) => {
 
 Router.patch("/car/:id", isAdmin,(req, res) => {
   const { id } = req.params;
-  const { CAR_NO, COLOR, CAR_TYPE,MODEL_NAME, COMPANY_NAME,SEATING_CAPACITY,STATUS } = req.body;
-  const query = "UPDATE CARS SET 	CAR_NO=?,	CAR_TYPE=?	,MODEL_NAME= ?	,COLOR=?	,COMPANY_NAME=?	,SEATING_CAPACITY=?	,STATUS=?	WHERE CAR_ID = ?";
-  db.query(query, [CAR_NO, COLOR, CAR_TYPE,MODEL_NAME, COMPANY_NAME,SEATING_CAPACITY,STATUS, id], (err, results) => {
+  const { NAME, EMAIL_ID, LICENSE_NO } = req.body;
+  const query = "UPDATE CARS SET NAME =?, EMAIL_ID=?, LICENSE_NO=?	WHERE DRIVER_ID = ?";
+  db.query(query, [NAME, EMAIL_ID, LICENSE_NO, id], (err, results) => {
     if (err) {
       console.error("Error updating user:", err);
       res.status(500).send("Server Error");
