@@ -65,13 +65,23 @@ function isAdmin(req, res, next) {
   Router.get("/available-books", isAdmin, (req, res) => {
     const q = `
         SELECT 
-            o.user_id, o.capacity, o.datetime, o.product_name 
+            o.user_id, 
+            o.capacity, 
+            o.datetime, 
+            o.product_name, 
+            p.PID AS package_id,
+            s.id
+            p.PLACES
         FROM 
-            success2 s 
+            success2 s
         JOIN 
             orders o 
         ON 
-            REPLACE(s.order_id, 'order_id=', '') = o.order_id 
+            REPLACE(s.order_id, 'order_id=', '') = o.order_id
+        JOIN 
+            PACKAGE p
+        ON 
+            o.product_name = p.name
         WHERE 
             s.order_status = ? AND s.fleet_status = ?
     `;
@@ -109,7 +119,7 @@ Router.post("/add-package",async(req,res)=>{
   const {pid,name,places,duration}=req.body
   const Id = await idmake("fleetSuperAdmin", "aid");
   let newCar = {
-    CAR_ID: Id,
+    PID: Id,
     PROD_ID: pid,
     NAME: name,
     PLACES: places,
@@ -122,12 +132,15 @@ Router.post("/add-package",async(req,res)=>{
         console.error("Error executing query:", err);
         return res.status(500).send("Server Error");
       }
-      return res.status(200).json({message:"new car added",results:rows});
+      return res.status(200).json({message:"package",results:rows});
     });
   } catch (err) {
     console.error("Error during registration:", err);
   }
 
+})
+Router.post("/create-book",(req,res)=>{
+  const {	TIMING,	PICKUP_LOC,	CAR_ID,	USER_ID,	BOOK_NO,	DATE,	NO_OF_PASSENGER,	PACKAGE_ID,	DROP_LOC,	AC_NONAC,	stat,	END_TIME,	VID}=req.body
 })
 
 
