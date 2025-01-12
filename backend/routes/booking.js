@@ -143,12 +143,9 @@ Router.post("/create-book", async (req, res) => {
         return res.status(500).send("Server Error");
       }
       if (rows.length > 0) {
-        return res
-          .status(409)
-          .json({
-            error:
-              "Booking already exists for the specified time and car/driver",
-          });
+        return res.status(409).json({
+          error: "Booking already exists for the specified time and car/driver",
+        });
       }
 
       const newBook = {
