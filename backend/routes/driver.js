@@ -40,34 +40,11 @@ async function idmake(table, column) {
   });
 }
 
-Router.post("/create-car",isAdmin, async (req, res) => {
-  const { CAR_NO, COLOR, CAR_TYPE,MODEL_NAME, COMPANY_NAME,SEATING_CAPACITY } = req.body;
-  const Id = await idmake("fleetSuperAdmin", "aid");
-  let newCar = {
-    CAR_ID: Id,
-    CAR_NO: CAR_NO,
-    CAR_TYPE: CAR_TYPE,
-    MODEL_NAME: MODEL_NAME,
-    COLOR: COLOR,
-    COMPANY_NAME: COMPANY_NAME,
-    SEATING_CAPACITY: SEATING_CAPACITY,
-  };
-  try {
-    db.query('INSERT INTO CARS SET ?', newCar, (err, rows) => {
-      if (err) {
-        console.error("Error executing query:", err);
-        return res.status(500).send("Server Error");
-      }
-      return res.status(200).json({message:"new car added",results:rows});
-    });
-  } catch (err) {
-    console.error("Error during registration:", err);
-  }
-});
 
-Router.get("/cars",isAdmin, async (req, res) => {
+
+Router.get("/drivers",isAdmin, async (req, res) => {
   try {
-    db.query("SELECT * FROM CARS ", (err, rows) => {
+    db.query("SELECT * FROM DRIVER ", (err, rows) => {
       if (err) {
         console.error("Error executing query:", err);
         return res.status(500).send("Server Error");
@@ -80,7 +57,7 @@ Router.get("/cars",isAdmin, async (req, res) => {
 });
 Router.get("/car/:id",isAdmin, async (req, res) => {
   const { id } = req.params;
-  const query = "SELECT * FROM CARS WHERE CAR_ID = ?;";
+  const query = "SELECT * FROM DRIVER WHERE DRIVER_ID = ?;";
   db.query(query, [id], (err, results) => {
     if (err) {
       console.error("Error fetching user:", err);
@@ -92,7 +69,7 @@ Router.get("/car/:id",isAdmin, async (req, res) => {
 });
 Router.delete("/car/:id", isAdmin,async (req, res) => {
   const { id } = req.params;
-  const query = "delete FROM CARS WHERE car_ID = ?;";
+  const query = "delete FROM DRIVER WHERE DRIVER_ID = ?;";
   db.query(query, [id], (err, results) => {
     if (err) {
       console.error("Error fetching user:", err);
