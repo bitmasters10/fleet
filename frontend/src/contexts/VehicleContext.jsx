@@ -18,11 +18,15 @@ export const VehicleProvider = ({ children }) => {
   const [vehicleDetails, setVehicleDetails] = useState(null);
   const [loading, setLoading] = useState(false);
 
+  const axiosInstance = axios.create({
+    baseURL: "http://localhost:3000", // Replace with your backend base URL
+    withCredentials: true, // Important: This ensures that cookies (session) are included in requests
+  });
   // Fetch all cars from the API
   const fetchVehicles = async () => {
     setLoading(true);
     try {
-      const response = await axios.get("http://localhost:3000/admin/cars");
+      const response = await axiosInstance.get("/admin/cars");
       setVehicles(response.data);
     } catch (error) {
       console.error("Error fetching cars:", error);
@@ -35,7 +39,7 @@ export const VehicleProvider = ({ children }) => {
   const fetchVehicleById = async (id) => {
     setLoading(true);
     try {
-      const response = await axios.get(`http://localhost:3000/admin/car/${id}`);
+      const response = await axiosInstance.get(`/admin/car/${id}`);
       setVehicleDetails(response.data);
     } catch (error) {
       console.error("Error fetching car:", error);
@@ -47,7 +51,7 @@ export const VehicleProvider = ({ children }) => {
   // Add a new car
   const addVehicle = async (carData) => {
     try {
-      const response = await axios.post("http://localhost:3000/admin/create-car", carData);
+      const response = await axiosInstance.post("/admin/create-car", carData);
       setVehicles((prevVehicle) => [...prevVehicle, response.data.results]);
     } catch (error) {
       console.error("Error adding car:", error);
@@ -58,8 +62,8 @@ export const VehicleProvider = ({ children }) => {
   const updateVehicle = async (updatedVehicle) => {
     try {
       // Use updatedVehicle for the request body
-      const response = await axios.patch(
-        `http://localhost:3000/admin/car/${updatedVehicle.CAR_ID}`, // Use the CAR_ID from updatedVehicle
+      const response = await axiosInstance.patch(
+        `/admin/car/${updatedVehicle.CAR_ID}`, // Use the CAR_ID from updatedVehicle
         updatedVehicle // Pass the updated vehicle data as the body of the request
       );
   
@@ -78,7 +82,7 @@ export const VehicleProvider = ({ children }) => {
   // Delete a car
   const deleteVehicle = async (id) => {
     try {
-      await axios.delete(`http://localhost:3000/admin/car/${id}`);
+      await axiosInstance.delete(`/admin/car/${id}`);
       setVehicles((prevVehicles) => prevVehicles.filter((car) => car.CAR_ID !== id));
     } catch (error) {
       console.error("Error deleting car:", error);
