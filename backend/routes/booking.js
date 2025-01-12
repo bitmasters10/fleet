@@ -1,11 +1,11 @@
 const express = require("express");
 const Router = express.Router();
 const db = require("../db");
-const { v4: uuidv4 } = require('uuid');
+const { v4: uuidv4 } = require("uuid");
 
 async function idmake(table, column) {
   let id = uuidv4();
-  
+
   const query = `SELECT * FROM ${table} WHERE ${column} = ?`;
 
   return new Promise((resolve, reject) => {
@@ -25,26 +25,25 @@ async function idmake(table, column) {
 }
 
 function isAdmin(req, res, next) {
-    console.log('Session:', req.session); // Log session data
-    console.log('User:', req.user); // Log the user object
-  
-    if (!req.isAuthenticated() || !req.user) {
-        console.log('User is not authenticated');
-        return res.status(401).json({ message: "Unauthorized access." });
-    }
-  
-    if (req.user.role !== 'admin') {
-        console.log('User role is not admin:', req.user.role);
-        return res.status(403).json({ message: "Forbidden: You are not a admin." });
-    }
-  
-    console.log('Role verified:', req.user.role);
-    return next(); // Proceed if authenticated and role is superadmin
+  console.log("Session:", req.session); // Log session data
+  console.log("User:", req.user); // Log the user object
+
+  if (!req.isAuthenticated() || !req.user) {
+    console.log("User is not authenticated");
+    return res.status(401).json({ message: "Unauthorized access." });
   }
-  
-  
-  Router.get("/available-books", isAdmin, (req, res) => {
-    const q = `
+
+  if (req.user.role !== "admin") {
+    console.log("User role is not admin:", req.user.role);
+    return res.status(403).json({ message: "Forbidden: You are not a admin." });
+  }
+
+  console.log("Role verified:", req.user.role);
+  return next(); // Proceed if authenticated and role is superadmin
+}
+
+Router.get("/available-books", isAdmin, (req, res) => {
+  const q = `
         SELECT 
             o.user_id, 
             o.capacity, 
@@ -66,38 +65,37 @@ function isAdmin(req, res, next) {
         WHERE 
             s.order_status = ? AND s.fleet_status = ?
     `;
-    try {
-        db.query(q, ["order_status=Success", "waiting"], (err, rows) => {
-            if (err) {
-                console.error("Error executing query:", err);
-                return res.status(500).send("Server Error");
-            }
-            return res.status(200).json(rows);
-        });
-    } catch (err) {
-        console.log(err);
-    }
+  try {
+    db.query(q, ["order_status=Success", "waiting"], (err, rows) => {
+      if (err) {
+        console.error("Error executing query:", err);
+        return res.status(500).send("Server Error");
+      }
+      return res.status(200).json(rows);
+    });
+  } catch (err) {
+    console.log(err);
+  }
 });
 
-Router.get("/test",(req,res)=>{
+Router.get("/test", (req, res) => {
   const q = `
   SELECT order_id from success2 where fleet_status=? and order_status=? 
 `;
-try {
-  db.query(q,["waiting","order_status=Success"], (err, rows) => {
+  try {
+    db.query(q, ["waiting", "order_status=Success"], (err, rows) => {
       if (err) {
-          console.error("Error executing query:", err);
-          return res.status(500).send("Server Error");
+        console.error("Error executing query:", err);
+        return res.status(500).send("Server Error");
       }
       return res.status(200).json(rows);
-  });
-} catch (err) {
-  console.log(err);
-}
-
-})
-Router.post("/add-package",async(req,res)=>{
-  const {pid,name,places,duration}=req.body
+    });
+  } catch (err) {
+    console.log(err);
+  }
+});
+Router.post("/add-package", async (req, res) => {
+  const { pid, name, places, duration } = req.body;
   const Id = await idmake("fleetSuperAdmin", "aid");
   let newCar = {
     PID: Id,
@@ -105,102 +103,97 @@ Router.post("/add-package",async(req,res)=>{
     NAME: name,
     PLACES: places,
     DURATION: duration,
-   
   };
   try {
-    db.query('INSERT INTO PACKAGE SET ?', newCar, (err, rows) => {
+    db.query("INSERT INTO PACKAGE SET ?", newCar, (err, rows) => {
       if (err) {
         console.error("Error executing query:", err);
         return res.status(500).send("Server Error");
       }
-      return res.status(200).json({message:"package",results:rows});
+      return res.status(200).json({ message: "package", results: rows });
     });
   } catch (err) {
     console.error("Error during registration:", err);
   }
-
-})
-Router.post("/create-book",async(req,res)=>{
-  let ID= await idmake("BOOKING","BOOK_ID")
-  const {	TIMING,	PICKUP_LOC,	CAR_ID,	USER_ID,	BOOK_NO,	DATE,	NO_OF_PASSENGER,	PACKAGE_ID,	DROP_LOC,	AC_NONAC,	stat,	END_TIME,	VID,DRIVER_ID}=req.body
-  db.query("select * from BOOKING where CAR_ID=? AND DRIVER_ID=? AND TIMING=? AND END_TIME=?",[CAR_ID,DRIVER_ID,TIMING,END_TIME],(err,rows)=>{
-    if(err){
-      console.log(err)
-      return res.status(500).send("Server Error");
-    }
-    if(rows.length>0){
-      return res.status(409).json({ error: "Booking already exists for the specified time and car/driver" });
-    }
-  
-    const newBook={
-      BOOK_ID:ID,
-      TIMING,	
-      PICKUP_LOC,
-      	CAR_ID,	
-        USER_ID,
-        	BOOK_NO,
-          	DATE,
-            	NO_OF_PASSENGER,
-              	PACKAGE_ID,
-                	DROP_LOC,
-                  	AC_NONAC,	
-                    stat,
-                    	END_TIME,	
-                      VID,
-                      DRIVER_ID,
-                    
-                    
-    }
-    console.log(ID)
-    db.query(" INSERT INTO BOOKING SET ?",newBook,(err,rows)=>{
-      if(err){
-        console.log(err)
+});
+Router.post("/create-book", async (req, res) => {
+  let ID = await idmake("BOOKING", "BOOK_ID");
+  const {
+    TIMING,
+    PICKUP_LOC,
+    CAR_ID,
+    USER_ID,
+    BOOK_NO,
+    DATE,
+    NO_OF_PASSENGER,
+    PACKAGE_ID,
+    DROP_LOC,
+    AC_NONAC,
+    stat,
+    END_TIME,
+    VID,
+    DRIVER_ID,
+  } = req.body;
+  db.query(
+    "select * from BOOKING where CAR_ID=? AND DRIVER_ID=? AND TIMING=? AND END_TIME=?",
+    [CAR_ID, DRIVER_ID, TIMING, END_TIME],
+    (err, rows) => {
+      if (err) {
+        console.log(err);
         return res.status(500).send("Server Error");
       }
-      db.query("update success2 set fleeet_status=? where id=?",["done",VID],(err,rows)=>{
-        if(err){
+      if (rows.length > 0) {
+        return res
+          .status(409)
+          .json({
+            error:
+              "Booking already exists for the specified time and car/driver",
+          });
+      }
+
+      const newBook = {
+        BOOK_ID: ID,
+        TIMING,
+        PICKUP_LOC,
+        CAR_ID,
+        USER_ID,
+        BOOK_NO,
+        DATE,
+        NO_OF_PASSENGER,
+        PACKAGE_ID,
+        DROP_LOC,
+        AC_NONAC,
+        stat,
+        END_TIME,
+        VID,
+        DRIVER_ID,
+      };
+      console.log(ID);
+      db.query(" INSERT INTO BOOKING SET ?", newBook, (err, rows) => {
+        if (err) {
+          console.log(err);
           return res.status(500).send("Server Error");
         }
-        return res.status(200).json({message:"new book added",results:rows});
-      })
-     
-    })
-  })
-})
-
-Router.get("/bookings",(req,res)=>{
-  try{
-    db.query('SELECT * FROM BOOKING ', (err, rows) => {
-        if (err) {
-            console.error('Error executing query:', err);
-            return  res.status(500).send('Server Error')
-
-        }
-        return res.status(200).json(rows)
-    })
-
-}catch(err){
-    console.error('Error during retive:', err);
-}
-
-})
-Router.delete("/booking/:id",(req,res)=>{
-const {id}=req.params
-
-})
-Router.patch("/booking/:id",(req,res)=>{
-  const {id}=req.params
-  const {	TIMING,	PICKUP_LOC,	CAR_ID,	USER_ID,	BOOK_NO,	DATE,	NO_OF_PASSENGER,	PACKAGE_ID,	DROP_LOC,	AC_NONAC,	stat,	END_TIME,	VID,DRIVER_ID}=req.body
-  const query = "UPDATE DRIVER SET   TIMING=?, END_TIME=?	WHERE DRIVER_ID = ?";
-  db.query(query, [NAME, EMAIL_ID, LICENSE_NO, id], (err, results) => {
-    if (err) {
-      console.error("Error updating user:", err);
-      res.status(500).send("Server Error");
-      return;
+        return res
+          .status(200)
+          .json({ message: "new book added", results: rows });
+      });
     }
-    return res.status(200).json({ message: "update doene", res: results });
-  });
+  );
+});
 
-})
+Router.get("/bookings", (req, res) => {
+  try {
+    db.query("SELECT * FROM BOOKING ", (err, rows) => {
+      if (err) {
+        console.error("Error executing query:", err);
+        return res.status(500).send("Server Error");
+      }
+      return res.status(200).json(rows);
+    });
+  } catch (err) {
+    console.error("Error during retive:", err);
+  }
+});
 
 module.exports = Router;
