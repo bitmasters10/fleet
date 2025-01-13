@@ -4,7 +4,9 @@ const db = require("../db");
 const { v4: uuidv4 } = require('uuid');
 
 function isAdmin(req, res, next) {
-  
+  console.log('Session:', req.session); // Log session data
+  console.log('User:', req.user); // Log the user object
+
   if (!req.isAuthenticated() || !req.user) {
       console.log('User is not authenticated');
       return res.status(401).json({ message: "Unauthorized access." });

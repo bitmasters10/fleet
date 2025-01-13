@@ -6,7 +6,7 @@ const AuthContext = createContext();
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   // Check authentication status when component mounts
   useEffect(() => {
     const checkAuth = async () => {
@@ -61,17 +61,31 @@ export const AuthProvider = ({ children }) => {
 
   const loginAdmin = async (email, password) => {
     try {
-      setIsLoading(true);
-      const response = await axios.post("http://localhost:3000/admin-auth/login", { email, password });
-      setUser(response.data.user);
-      setIsAuthenticated(true);
-      return { success: true };
-    } catch (error) {
-      return { success: false, message: error.response?.data?.message || "Login failed." };
-    } finally {
-      setIsLoading(false);
+      const response = await fetch("http://localhost:3000/admin-auth/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include", // Important for session cookies
+        body: JSON.stringify({ email, password }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setUser(data.user);
+        setIsAuthenticated(true);
+        return data;
+      } else {
+        throw new Error(data.message || "Failed to login");
+      }
+    } catch (err) {
+      console.error("Login error:", err);
+      throw err;
     }
   };
+
+
   const register = async (registrationData) => {
     try {
       const response = await fetch("http://localhost:3000/Sadmin-auth/register", {
@@ -126,16 +140,21 @@ export const AuthProvider = ({ children }) => {
     }
   };
   const logoutAdmin = async () => {
-    try {
-      setIsLoading(true);
-      await axios.post("http://localhost:3000/admin-auth/logout");
-      setUser(null);
-      return { success: true };
-    // eslint-disable-next-line no-unused-vars
-    } catch (error) {
-      return { success: false, message: "Logout failed." };
-    } finally {
-      setIsLoading(false);
+   try {
+      const response = await fetch("http://localhost:3000/admin-auth/logout", {
+        method: "POST",
+        credentials: "include", // Ensure session cookies are cleared
+      });
+
+      if (response.ok) {
+        setUser(null);
+        setIsAuthenticated(false);
+      } else {
+        throw new Error("Failed to log out");
+      }
+    } catch (err) {
+      console.error("Logout error:", err);
+      throw err;
     }
   };
   return (

@@ -15,7 +15,6 @@ const upload = multer({ storage }).fields([
     { name: 'pancard', maxCount: 1 }  
 ]);
 
-
 async function idmake(table, column) {
     let id = uuidv4();
     const query = `SELECT * FROM ${table} WHERE ${column} = ?`;
