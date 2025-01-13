@@ -1,27 +1,31 @@
 const express = require("express");
 const Router = express.Router();
 const db = require("../db");
-const { v4: uuidv4 } = require('uuid');
+const { v4: uuidv4 } = require("uuid");
 
 function isAdmin(req, res, next) {
-  
+  console.log("Session:", req.session); // Log session data
+  console.log("User:", req.user); // Log the user object
+
   if (!req.isAuthenticated() || !req.user) {
-      console.log('User is not authenticated');
-      return res.status(401).json({ message: "Unauthorized access." });
+    console.log("User is not authenticated");
+    return res.status(401).json({ message: "Unauthorized access." });
   }
 
-  if (req.user.role !== 'admin') {
-      console.log('User role is not superadmin:', req.user.role);
-      return res.status(403).json({ message: "Forbidden: You are not a superadmin." });
+  if (req.user.role !== "admin") {
+    console.log("User role is not admin:", req.user.role);
+    return res
+      .status(403)
+      .json({ message: "Forbidden: You are not a superadmin." });
   }
 
-  console.log('Role verified:', req.user.role);
+  console.log("Role verified:", req.user.role);
   return next(); // Proceed if authenticated and role is superadmin
 }
 
 async function idmake(table, column) {
   let id = uuidv4();
-  
+
   const query = `SELECT * FROM ${table} WHERE ${column} = ?`;
 
   return new Promise((resolve, reject) => {
@@ -40,22 +44,23 @@ async function idmake(table, column) {
   });
 }
 
-
-
-Router.get("/drivers",isAdmin, async (req, res) => {
+Router.get("/drivers", isAdmin, async (req, res) => {
   try {
-    db.query("SELECT DRIVER_ID,NAME, EMAIL_ID, LICENSE_NO,GENDER FROM DRIVER ", (err, rows) => {
-      if (err) {
-        console.error("Error executing query:", err);
-        return res.status(500).send("Server Error");
+    db.query(
+      "SELECT DRIVER_ID,NAME, EMAIL_ID, LICENSE_NO,GENDER FROM DRIVER ",
+      (err, rows) => {
+        if (err) {
+          console.error("Error executing query:", err);
+          return res.status(500).send("Server Error");
+        }
+        return res.status(200).json(rows);
       }
-      return res.status(200).json(rows);
-    });
+    );
   } catch (err) {
     console.error("Error during retrive:", err);
   }
 });
-Router.get("/driver/:id",isAdmin, async (req, res) => {
+Router.get("/driver/:id", isAdmin, async (req, res) => {
   const { id } = req.params;
   const query = "SELECT * FROM DRIVER WHERE DRIVER_ID = ?;";
   db.query(query, [id], (err, results) => {
@@ -67,7 +72,7 @@ Router.get("/driver/:id",isAdmin, async (req, res) => {
     return res.status(200).json(results);
   });
 });
-Router.delete("/driver/:id", isAdmin,async (req, res) => {
+Router.delete("/driver/:id", isAdmin, async (req, res) => {
   const { id } = req.params;
   const query = "delete FROM DRIVER WHERE DRIVER_ID = ?;";
   db.query(query, [id], (err, results) => {
@@ -80,10 +85,11 @@ Router.delete("/driver/:id", isAdmin,async (req, res) => {
   });
 });
 
-Router.patch("/driver/:id", isAdmin,(req, res) => {
+Router.patch("/driver/:id", isAdmin, (req, res) => {
   const { id } = req.params;
   const { NAME, EMAIL_ID, LICENSE_NO } = req.body;
-  const query = "UPDATE DRIVER SET NAME =?, EMAIL_ID=?, LICENSE_NO=?	WHERE DRIVER_ID = ?";
+  const query =
+    "UPDATE DRIVER SET NAME =?, EMAIL_ID=?, LICENSE_NO=?	WHERE DRIVER_ID = ?";
   db.query(query, [NAME, EMAIL_ID, LICENSE_NO, id], (err, results) => {
     if (err) {
       console.error("Error updating user:", err);
@@ -98,6 +104,19 @@ Router.patch("/driver/:id", isAdmin,(req, res) => {
 //   const { STATUS } = req.body;
 //   const query = "UPDATE CARS SET 	STATUS=?	WHERE CAR_ID = ?";
 //   db.query(query, [STATUS,id], (err, results) => {
+//     if (err) {
+//       console.error("Error updating user:", err);
+//       res.status(500).send("Server Error");
+//       return;
+//     }
+//     return res.status(200).json({ message: "update doene", res: results });
+//   });
+// });
+// Router.patch("/car-status/:id", isAdmin, (req, res) => {
+//   const { id } = req.params;
+//   const { STATUS } = req.body;
+//   const query = "UPDATE CARS SET 	STATUS=?	WHERE CAR_ID = ?";
+//   db.query(query, [STATUS, id], (err, results) => {
 //     if (err) {
 //       console.error("Error updating user:", err);
 //       res.status(500).send("Server Error");
