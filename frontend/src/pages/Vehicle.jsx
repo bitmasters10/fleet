@@ -23,7 +23,7 @@ export default function Vehicle({ title, track }) {
   
   useEffect(() => {
     fetchVehicles();
-  }, []);
+  }, [fetchVehicles]);
 
   return (
     <div>

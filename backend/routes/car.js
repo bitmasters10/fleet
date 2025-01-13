@@ -4,14 +4,16 @@ const db = require("../db");
 const { v4: uuidv4 } = require('uuid');
 
 function isAdmin(req, res, next) {
-  
+  console.log('Session:', req.session); // Log session data
+  console.log('User:', req.user); // Log the user object
+
   if (!req.isAuthenticated() || !req.user) {
       console.log('User is not authenticated');
       return res.status(401).json({ message: "Unauthorized access." });
   }
 
   if (req.user.role !== 'admin') {
-      console.log('User role is not admin:', req.user.role);
+      console.log('User role is not superadmin:', req.user.role);
       return res.status(403).json({ message: "Forbidden: You are not a superadmin." });
   }
 

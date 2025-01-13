@@ -17,6 +17,7 @@ import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import AppLayout from "./pages/AppLayout";
 import { AdminProvider } from "./contexts/AdminContext";
 import { VehicleProvider } from "./contexts/VehicleContext";
+import { DriverProvider } from "./contexts/DriverContext";
 
 // PrivateRoute Component to protect routes
 // eslint-disable-next-line react/prop-types
@@ -51,6 +52,7 @@ function App() {
       <AuthProvider>
         <AdminProvider>
           <VehicleProvider>
+            <DriverProvider>
         {/* Navbar is always visible */}
         <NavbarWrapper />
 
@@ -139,6 +141,7 @@ function App() {
             </Routes>
           </div>
         </AppLayout>
+        </DriverProvider>
         </VehicleProvider>
         </AdminProvider>
       </AuthProvider>
