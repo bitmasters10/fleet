@@ -143,12 +143,9 @@ Router.post("/create-book", async (req, res) => {
         return res.status(500).send("Server Error");
       }
       if (rows.length > 0) {
-        return res
-          .status(409)
-          .json({
-            error:
-              "Booking already exists for the specified time and car/driver",
-          });
+        return res.status(409).json({
+          error: "Booking already exists for the specified time and car/driver",
+        });
       }
 
       const newBook = {
@@ -174,9 +171,19 @@ Router.post("/create-book", async (req, res) => {
           console.log(err);
           return res.status(500).send("Server Error");
         }
-        return res
-          .status(200)
-          .json({ message: "new book added", results: rows });
+        db.query(
+          "update success2 set fleet_status=? where id=?",
+          ["done", VID],
+          (err, rows) => {
+            if (err) {
+              console.log(err);
+              return res.status(500).send("Server Error");
+            }
+            return res
+              .status(200)
+              .json({ message: "new book added", results: rows });
+          }
+        );
       });
     }
   );
@@ -194,6 +201,25 @@ Router.get("/bookings", (req, res) => {
   } catch (err) {
     console.error("Error during retive:", err);
   }
+});
+
+Router.patch("/booking/:id", (req, res) => {
+  const { id } = req.params;
+  const {
+    TIMING,
+    
+    END_TIME,
+   
+  } = req.body;
+  const query = "UPDATE BOOKING SET   TIMING=?, END_TIME=?	WHERE BOOK_ID = ?";
+  db.query(query, [TIMING, END_TIME, id], (err, rows) => {
+    if (err) {
+      console.error("Error updating user:", err);
+
+      return res.status(500).send("Server Error");
+    }
+    return res.status(200).json({ message: "new book added", results: rows });
+  });
 });
 
 module.exports = Router;
