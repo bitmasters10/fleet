@@ -222,4 +222,5 @@ Router.patch("/booking/:id", (req, res) => {
   });
 });
 
+
 module.exports = Router;
