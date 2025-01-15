@@ -99,30 +99,41 @@ Router.patch("/driver/:id", isAdmin, (req, res) => {
     return res.status(200).json({ message: "update doene", res: results });
   });
 });
-// Router.patch("/car-status/:id",isAdmin, (req, res) => {
-//   const { id } = req.params;
-//   const { STATUS } = req.body;
-//   const query = "UPDATE CARS SET 	STATUS=?	WHERE CAR_ID = ?";
-//   db.query(query, [STATUS,id], (err, results) => {
-//     if (err) {
-//       console.error("Error updating user:", err);
-//       res.status(500).send("Server Error");
-//       return;
-//     }
-//     return res.status(200).json({ message: "update doene", res: results });
-//   });
-// });
-// Router.patch("/car-status/:id", isAdmin, (req, res) => {
-//   const { id } = req.params;
-//   const { STATUS } = req.body;
-//   const query = "UPDATE CARS SET 	STATUS=?	WHERE CAR_ID = ?";
-//   db.query(query, [STATUS, id], (err, results) => {
-//     if (err) {
-//       console.error("Error updating user:", err);
-//       res.status(500).send("Server Error");
-//       return;
-//     }
-//     return res.status(200).json({ message: "update doene", res: results });
-//   });
-// });
+Router.get("/avail-drivers", (req, res) => {
+  const { date, start_time, end_time } = req.body;
+
+  if (!date || !start_time || !end_time) {
+    return res.status(400).send("All parameters (date, start_time, end_time) are required.");
+  }
+
+  const q = `
+    SELECT c.DRIVER_ID
+    FROM DRIVER c 
+    LEFT JOIN BOOKING b 
+    ON c.DRIVER_ID = b.DRIVER_ID 
+    WHERE b.DRIVER_ID IS NULL 
+    OR (
+      b.DATE != ? 
+      OR NOT (
+        (? >= b.TIMING AND ? < b.END_TIME) OR 
+        (? > b.TIMING AND ? <= b.END_TIME) OR 
+        (? <= b.TIMING AND ? >= b.END_TIME)
+      )
+    )
+  `;
+
+  try {
+    db.query(q, [date, start_time, end_time, start_time, end_time, start_time, end_time], (err, rows) => {
+      if (err) {
+        console.error("Error executing query:", err);
+        return res.status(500).send("Server Error");
+      }
+      return res.status(200).json(rows);
+    });
+  } catch (err) {
+    console.error("Error during retrieve:", err);
+    return res.status(500).send("Unexpected Server Error");
+  }
+});
+
 module.exports = Router;
