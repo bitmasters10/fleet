@@ -50,7 +50,7 @@ Router.get("/available-books", isAdmin, (req, res) => {
             o.datetime, 
             o.product_name, 
             p.PID AS package_id,
-            s.id
+            s.id,
             p.PLACES
         FROM 
             success2 s
@@ -134,6 +134,7 @@ Router.post("/create-book", async (req, res) => {
     VID,
     DRIVER_ID,
   } = req.body;
+  
   db.query(
     "select * from BOOKING where CAR_ID=? AND DRIVER_ID=? AND TIMING=? AND END_TIME=?",
     [CAR_ID, DRIVER_ID, TIMING, END_TIME],
