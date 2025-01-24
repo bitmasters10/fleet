@@ -159,7 +159,6 @@ function TableManage({ drivers = [], setEditingDriver, deleteDriver }) {
     </div>
   );
 }
-
 function CreateForm({ addDriver, setShowCreateForm }) {
   const [formData, setFormData] = useState({
     name: "",
@@ -167,6 +166,8 @@ function CreateForm({ addDriver, setShowCreateForm }) {
     password: "",
     license_no: "",
     gender: "",
+    adharcard: null,
+    pancard: null,
   });
 
   const handleSubmit = (e) => {
@@ -178,6 +179,9 @@ function CreateForm({ addDriver, setShowCreateForm }) {
       password: "",
       license_no: "",
       gender: "",
+      adharcard: null,
+      pancard: null,
+      phone_no:null
     });
     setShowCreateForm(false);
   };
@@ -265,6 +269,48 @@ function CreateForm({ addDriver, setShowCreateForm }) {
               required
             />
           </div>
+          <div className="mb-4">
+            <label className="block mb-1 text-gray-700 dark:text-gray-300">
+             
+
+             
+            </label>
+            <input type="text" name="phone_no" placeholder="Phone Number"  phone number
+              value={formData.phone_no}
+              onChange={(e) =>
+                setFormData({ ...formData, phone_no: e.target.value })
+              }
+              className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200"
+              required></input></div>
+          
+          {/* Aadhaar Card Upload */}
+          <div className="mb-4">
+            <label className="block mb-1 text-gray-700 dark:text-gray-300">
+              Aadhaar Card
+            </label>
+            <input
+              type="file"
+              onChange={(e) =>
+                setFormData({ ...formData, adharcard: e.target.files[0] })
+              }
+              className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200"
+            />
+          </div>
+
+          {/* PAN Card Upload */}
+          <div className="mb-4">
+            <label className="block mb-1 text-gray-700 dark:text-gray-300">
+              PAN Card
+            </label>
+            <input
+              type="file"
+              onChange={(e) =>
+                setFormData({ ...formData, pancard: e.target.files[0] })
+              }
+              className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200"
+            />
+          </div>
+
           <button
             type="submit"
             className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-400"
@@ -276,6 +322,7 @@ function CreateForm({ addDriver, setShowCreateForm }) {
     </div>
   );
 }
+
 
 // Edit Form Component in Modal
 function EditForm({ driver, updateDriver, setEditingDriver }) {
