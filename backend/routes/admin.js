@@ -34,6 +34,7 @@ Router.get("/admins",isSuperAdmin,async(req,res)=>{
     }
    
 })
+
 Router.get("/admin/:id",isSuperAdmin,async(req,res)=>{
     const { id } = req.params;
     const query = "SELECT * FROM fleetAdmin WHERE aid = ?;";

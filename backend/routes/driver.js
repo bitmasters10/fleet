@@ -103,7 +103,9 @@ Router.get("/avail-drivers", (req, res) => {
   const { date, start_time, end_time } = req.body;
 
   if (!date || !start_time || !end_time) {
-    return res.status(400).send("All parameters (date, start_time, end_time) are required.");
+    return res
+      .status(400)
+      .send("All parameters (date, start_time, end_time) are required.");
   }
 
   const q = `
@@ -123,13 +125,17 @@ Router.get("/avail-drivers", (req, res) => {
   `;
 
   try {
-    db.query(q, [date, start_time, end_time, start_time, end_time, start_time, end_time], (err, rows) => {
-      if (err) {
-        console.error("Error executing query:", err);
-        return res.status(500).send("Server Error");
+    db.query(
+      q,
+      [date, start_time, end_time, start_time, end_time, start_time, end_time],
+      (err, rows) => {
+        if (err) {
+          console.error("Error executing query:", err);
+          return res.status(500).send("Server Error");
+        }
+        return res.status(200).json(rows);
       }
-      return res.status(200).json(rows);
-    });
+    );
   } catch (err) {
     console.error("Error during retrieve:", err);
     return res.status(500).send("Unexpected Server Error");

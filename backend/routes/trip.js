@@ -44,34 +44,62 @@ function isAdmin(req, res, next) {
 
 
 Router.post("/create-trip", async (req, res) => {
-  let ID = await idmake("TRIP", "TRIP_ID");
-  const {
-    
-  
-    BOOK_NO,
-   
-   
-    BOOK_ID,
-    ROUTE
-    
-  } = req.body;
-  var otp = Math.floor(1000 + Math.random() * 9000);
-  
-  const START_TIME=Date().getHours()+""+Date().getMinutes()
-  const trip={
-START_TIME:START_TIME,
-TRIP_ID:ID,
-BOOK_ID:BOOK_ID,
-BOOK_NO:BOOK_NO,
-ROUTE:ROUTE,
-OTP:otp,
-STAT:"JUST",
-ROOM_ID:BOOK_ID
-  }
-  
-  
-});
+  try {
+    let ID = await idmake("TRIP", "TRIP_ID");
+    const { BOOK_NO, BOOK_ID, ROUTE, date } = req.body;
+    const id = req.user.DRIVER_ID;
+    const otp = Math.floor(1000 + Math.random() * 9000); // Generate a random OTP
+    const START_TIME = new Date().getHours() + "" + new Date().getMinutes(); // Get current time
 
+    // Trip object to insert
+    const trip = {
+      START_TIME,
+      TRIP_ID: ID,
+      BOOK_ID,
+      BOOK_NO,
+      ROUTE,
+      OTP: otp,
+      STAT: "JUST",
+      ROOM_ID: BOOK_ID,
+      date,
+      DRIVER_ID: id,
+    };
+
+    // Update the BOOKING table
+    const updateBookingQuery = "UPDATE BOOKING SET stat = ? WHERE BOOK_ID = ?";
+    db.query(updateBookingQuery, ["TRIP", BOOK_ID], (err) => {
+      if (err) {
+        console.error("Error updating BOOKING:", err);
+        return res.status(500).json({ error: "Database update failed" });
+      }
+
+      // Insert into TRIP table
+      const insertTripQuery = "INSERT INTO TRIP SET ?";
+      db.query(insertTripQuery, trip, (err) => {
+        if (err) {
+          console.error("Error inserting into TRIP:", err);
+          return res.status(500).json({ error: "Database insertion failed" });
+        }
+
+        // Retrieve the newly created trip record
+        const selectTripQuery = "SELECT * FROM TRIP WHERE TRIP_ID = ?";
+        db.query(selectTripQuery, [ID], (err, results) => {
+          if (err) {
+            console.error("Error retrieving trip record:", err);
+            return res.status(500).json({ error: "Failed to retrieve trip record" });
+          }
+
+          // Send the created trip record back to the client
+          return res.status(201).json({ message: "Trip created successfully", trip: results[0] });
+        });
+      });
+    });
+  } catch (error) {
+    console.error("Error in trip creation:", error);
+    return res.status(500).json({ error: "Internal server error" });
+  }
+});
+ 
 Router.get("/bookings", (req, res) => {
   try {
     db.query("SELECT * FROM BOOKING ", (err, rows) => {
