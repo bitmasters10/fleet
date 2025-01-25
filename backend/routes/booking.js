@@ -42,7 +42,7 @@ function isAdmin(req, res, next) {
   return next(); // Proceed if authenticated and role is superadmin
 }
 
-Router.get("/available-books", isAdmin, (req, res) => {
+Router.get("/available-books", (req, res) => {
   const q = `
         SELECT 
             o.user_id, 
@@ -51,7 +51,9 @@ Router.get("/available-books", isAdmin, (req, res) => {
             o.product_name, 
             p.PID AS package_id,
             s.id,
-            p.PLACES
+            p.PLACES,
+            p.DURATION
+
         FROM 
             success2 s
         JOIN 
