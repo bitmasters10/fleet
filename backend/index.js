@@ -59,6 +59,8 @@ app.use('/admin', require('./routes/car'));
 app.use('/admin', require('./routes/booking'));
 app.use('/admin', require('./routes/driver'));
 app.use('/driver', require('./routes/driver_app'));
+app.use('/admin', require('./routes/img'));
+app.use('/admin', require('./routes/user'));
 
 app.post('/api/events', (req, res) => {
     const eventDetails = req.body;

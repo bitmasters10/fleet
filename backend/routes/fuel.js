@@ -2,6 +2,7 @@ const express = require("express");
 const Router = express.Router();
 const db = require("../db");
 const { v4: uuidv4 } = require("uuid");
+const multer = require('multer');
 async function idmake(table, column) {
   let id = uuidv4();
 
@@ -22,8 +23,8 @@ async function idmake(table, column) {
     });
   });
 }
-const multer = require("multer");
-const path = require("path");
+
+const path = require("path"); 
 const fs = require("fs");
 
 // Multer setup for photo uploads

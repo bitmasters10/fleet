@@ -100,9 +100,9 @@ Router.post("/create-trip", async (req, res) => {
   }
 });
  
-Router.get("/bookings", (req, res) => {
+Router.get("/trips", (req, res) => {
   try {
-    db.query("SELECT * FROM BOOKING ", (err, rows) => {
+    db.query("SELECT * FROM TRIP ", (err, rows) => {
       if (err) {
         console.error("Error executing query:", err);
         return res.status(500).send("Server Error");
@@ -114,24 +114,31 @@ Router.get("/bookings", (req, res) => {
   }
 });
 
-Router.patch("/booking/:id", (req, res) => {
-  const { id } = req.params;
-  const {
-    TIMING,
-    
-    END_TIME,
-   
-  } = req.body;
-  const query = "UPDATE BOOKING SET   TIMING=?, END_TIME=?	WHERE BOOK_ID = ?";
-  db.query(query, [TIMING, END_TIME, id], (err, rows) => {
-    if (err) {
-      console.error("Error updating user:", err);
 
+Router.get("/location",(req,res)=>{
+  function formatDate() {
+    date=new Date();
+    const day = String(date.getDate()).padStart(2, '0'); // Get day and add leading zero if needed
+    const month = String(date.getMonth() + 1).padStart(2, '0'); // Get month (0-indexed) and add leading zero
+    const year = date.getFullYear(); // Get year
+  
+    return `${day}-${month}-${year}`;
+  }
+  
+  const currentDate = formatDate()
+const q="select ROOM_ID FROM TRIP where date=?"
+try {
+  db.query(q,[currentDate], (err, rows) => {
+    if (err) {
+      console.error("Error executing query:", err);
       return res.status(500).send("Server Error");
     }
-    return res.status(200).json({ message: "new book added", results: rows });
+    return res.status(200).json(rows);
   });
-});
-
+} catch (err) {
+  console.error("Error during retive:", err);
+}
+  
+})
 
 module.exports = Router;

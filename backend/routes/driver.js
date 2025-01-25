@@ -141,5 +141,8 @@ Router.get("/avail-drivers", (req, res) => {
     return res.status(500).send("Unexpected Server Error");
   }
 });
-
+Router.get("phone/:id",(req,res)=>{
+  const {id}=req.params
+  
+})
 module.exports = Router;

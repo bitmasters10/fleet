@@ -191,6 +191,70 @@ Router.post("/create-book", async (req, res) => {
     }
   );
 });
+Router.post("/create-mannual-book", async (req, res) => {
+  let ID = await idmake("BOOKING", "BOOK_ID");
+  const {
+    TIMING,
+    PICKUP_LOC,
+    CAR_ID,
+    USER_ID,
+    BOOK_NO,
+    DATE,
+    NO_OF_PASSENGER,
+    PACKAGE_ID,
+    DROP_LOC,
+    AC_NONAC,
+    stat,
+    END_TIME,
+    
+    DRIVER_ID,
+  } = req.body;
+  
+  db.query(
+    "select * from BOOKING where CAR_ID=? AND DRIVER_ID=? AND TIMING=? AND END_TIME=?",
+    [CAR_ID, DRIVER_ID, TIMING, END_TIME],
+    (err, rows) => {
+      if (err) {
+        console.log(err);
+        return res.status(500).send("Server Error");
+      }
+      if (rows.length > 0) {
+        return res.status(409).json({
+          error: "Booking already exists for the specified time and car/driver",
+        });
+      }
+
+      const newBook = {
+        BOOK_ID: ID,
+        TIMING,
+        PICKUP_LOC,
+        CAR_ID,
+        USER_ID,
+        BOOK_NO,
+        DATE,
+        NO_OF_PASSENGER,
+        PACKAGE_ID,
+        DROP_LOC,
+        AC_NONAC,
+        stat,
+        END_TIME,
+        
+        DRIVER_ID,
+      };
+      console.log(ID);
+      db.query(" INSERT INTO BOOKING SET ?", newBook, (err, rows) => {
+        if (err) {
+          console.log(err);
+          return res.status(500).send("Server Error");
+        }
+        return res
+              .status(200)
+              .json({ message: "new book added", results: rows });
+        
+      });
+    }
+  );
+});
 
 Router.get("/bookings", (req, res) => {
   try {
@@ -238,5 +302,19 @@ Router.get("/bookings",(req,res)=>{
     console.error("Error during retrive:", err);
   }
 })
+Router.get("/packages", (req, res) => {
+  try {
+    db.query("SELECT * FROM PACKAGE ", (err, rows) => {
+      if (err) {
+        console.error("Error executing query:", err);
+        return res.status(500).send("Server Error");
+      }
+      return res.status(200).json(rows);
+    });
+  } catch (err) {
+    console.error("Error during retive:", err);
+  }
+});
+
 
 module.exports = Router;
