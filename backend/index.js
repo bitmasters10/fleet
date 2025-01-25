@@ -24,9 +24,10 @@ const app = express();
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, '/views'));
 app.use(cors({
-    origin: 'http://localhost:5173', // your frontend's URL
+    origin: ['http://localhost:5173', 'http://127.0.0.1:5500'], // Array of allowed origins
     credentials: true,  // Allows cookies to be sent
   }));
+  
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 app.use(express.static('public'));

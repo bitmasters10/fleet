@@ -99,7 +99,7 @@ Router.patch("/driver/:id", isAdmin, (req, res) => {
     return res.status(200).json({ message: "update doene", res: results });
   });
 });
-Router.get("/avail-drivers", (req, res) => {
+Router.post("/avail-drivers", (req, res) => {
   const { date, start_time, end_time } = req.body;
 
   if (!date || !start_time || !end_time) {
@@ -109,7 +109,8 @@ Router.get("/avail-drivers", (req, res) => {
   }
 
   const q = `
-    SELECT c.DRIVER_ID
+    SELECT c.DRIVER_ID,
+    c.NAME
     FROM DRIVER c 
     LEFT JOIN BOOKING b 
     ON c.DRIVER_ID = b.DRIVER_ID 
@@ -143,6 +144,6 @@ Router.get("/avail-drivers", (req, res) => {
 });
 Router.get("phone/:id",(req,res)=>{
   const {id}=req.params
-  
+
 })
 module.exports = Router;

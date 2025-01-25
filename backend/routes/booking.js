@@ -204,7 +204,7 @@ Router.post("/create-mannual-book", async (req, res) => {
     PACKAGE_ID,
     DROP_LOC,
     AC_NONAC,
-    stat,
+    
     END_TIME,
     
     DRIVER_ID,
@@ -236,11 +236,12 @@ Router.post("/create-mannual-book", async (req, res) => {
         PACKAGE_ID,
         DROP_LOC,
         AC_NONAC,
-        stat,
+        stat:"READY",
         END_TIME,
         
         DRIVER_ID,
       };
+      console.log(newBook)
       console.log(ID);
       db.query(" INSERT INTO BOOKING SET ?", newBook, (err, rows) => {
         if (err) {
