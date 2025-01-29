@@ -60,7 +60,7 @@ passport.use('user-local-register', new LocalStrategy({
             mobile_no,
             sex,
             email: email,
-            pass: hashedPassword,
+            password: hashedPassword,
         };
 
         // Insert new user into the database
