@@ -99,7 +99,7 @@ Router.patch("/driver/:id", isAdmin, (req, res) => {
     return res.status(200).json({ message: "update doene", res: results });
   });
 });
-Router.post("/avail-drivers", (req, res) => {
+Router.post("/avail-drivers",isAdmin, (req, res) => {
   const { date, start_time, end_time } = req.body;
 
   if (!date || !start_time || !end_time) {
@@ -142,8 +142,10 @@ Router.post("/avail-drivers", (req, res) => {
     return res.status(500).send("Unexpected Server Error");
   }
 });
-Router.get("phone/:id",(req,res)=>{
-  const {id}=req.params
+Router.post("myloc",(req,res)=>{
+  const {lat,long}=req.body
+  const id=req.user.DRIVER_ID;
+  const q="UPDATE DRIVER SET LATITUDE=?,LONGITUDE=?"
 
 })
 module.exports = Router;

@@ -131,7 +131,7 @@ Router.patch("/car-status/:id",isAdmin, (req, res) => {
     return res.status(200).json({ message: "update doene", res: results });
   });
 });
-Router.post("/avail-cars", (req, res) => {
+Router.post("/avail-cars", isAdmin, (req, res) => {
   const { date, start_time, end_time } = req.body;
   console.log(date,start_time,end_time)
 

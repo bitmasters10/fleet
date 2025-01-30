@@ -1,243 +1,280 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Manual Booking Form</title>
-  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      margin: 20px;
-    }
-    h2 {
-      text-align: center;
-    }
-    form {
-      max-width: 500px;
-      margin: auto;
-      padding: 20px;
-      border: 1px solid #ccc;
-      border-radius: 10px;
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    }
-    label {
-      font-weight: bold;
-      display: block;
-      margin-bottom: 5px;
-    }
-    input, select, button {
-      width: 100%;
-      padding: 10px;
-      margin-bottom: 15px;
-      border: 1px solid #ccc;
-      border-radius: 5px;
-    }
-    button {
-      background-color: #007BFF;
-      color: white;
-      cursor: pointer;
-    }
-    button:hover {
-      background-color: #0056b3;
-    }
-  </style>
-</head>
-<body>
-  <h2>Manual Booking Form</h2>
-  <form id="booking-form">
-    <label for="date">Date:</label>
-    <input type="date" id="date" name="date" required><br>
-
-    <label for="start_time">Start Time (24-hour format):</label>
-    <input type="time" id="start_time" name="start_time" required><br>
-
-    <label for="end_time">End Time:</label>
-    <input type="text" id="end_time" name="end_time" readonly><br>
-
-    <label for="pickup_loc">Pickup Location:</label>
-    <input type="text" id="pickup_loc" name="pickup_loc" required><br>
-
-    <label for="drop_loc">Drop Location:</label>
-    <input type="text" id="drop_loc" name="drop_loc" required><br>
-
-    <label for="car_id">Car ID:</label>
-    <select id="car_id" name="car_id" required>
-      <option value="">Select a car</option>
-    </select><br>
-
-    <label for="driver_id">Driver ID:</label>
-    <select id="driver_id" name="driver_id" required>
-      <option value="">Select a driver</option>
-    </select><br>
-
-    <label for="user_id">User ID:</label>
-    <input type="text" id="user_id" name="user_id" required><br>
-
-    <label for="book_no">Booking Number:</label>
-    <input type="text" id="book_no" name="book_no" required><br>
-
-    <label for="no_of_passenger">Number of Passengers:</label>
-    <input type="number" id="no_of_passenger" name="no_of_passenger" required><br>
-
-    <label for="package_id">Package ID:</label>
-    <select id="package_id" name="package_id" required>
-      <option value="">Select a package</option>
-    </select><br>
-
-    <label for="ac_nonac">AC/Non-AC:</label>
-    <select id="ac_nonac" name="ac_nonac" required>
-      <option value="">Select</option>
-      <option value="ac">AC</option>
-      <option value="nonac">Non-AC</option>
-    </select><br>
-
-    <button type="button" id="fetch-btn">Fetch Available Cars and Drivers</button>
-    <button type="submit">Submit</button>
-  </form>
-
-  <script>
-    const packageDropdown = document.getElementById('package_id');
-    const carDropdown = document.getElementById('car_id');
-    const driverDropdown = document.getElementById('driver_id');
-    const startTimeInput = document.getElementById('start_time');
-    const endTimeInput = document.getElementById('end_time');
-    const fetchBtn = document.getElementById('fetch-btn');
-    const bookingForm = document.getElementById('booking-form');
-
-    // Fetch packages and populate the dropdown
-    async function fetchPackages() {
-      try {
-        const response = await axios.get('http://localhost:3000/admin/packages');
-        const packages = response.data;
-        packages.forEach(pkg => {
-          const option = document.createElement('option');
-          option.value = pkg.PID;
-          option.textContent = `${pkg.NAME} (Duration: ${pkg.DURATION} hrs)`;
-          option.dataset.duration = pkg.DURATION; // Store duration for calculation
-          packageDropdown.appendChild(option);
-        });
-      } catch (error) {
-        console.error('Error fetching packages:', error);
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Manual Booking Form</title>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 20px;
       }
-    }
-
-    // Calculate end time based on start time and package duration
-    function calculateEndTime() {
-      const startTime = startTimeInput.value;
-      const selectedPackage = packageDropdown.options[packageDropdown.selectedIndex];
-      const duration = selectedPackage ? parseInt(selectedPackage.dataset.duration) : 0;
-
-      if (startTime && duration) {
-        const [hours, minutes] = startTime.split(':').map(Number);
-        const endTime = new Date();
-        endTime.setHours(hours + duration, minutes);
-        endTimeInput.value = `${endTime.getHours().toString().padStart(2, '0')}:${endTime.getMinutes().toString().padStart(2, '0')}`;
+      h2 {
+        text-align: center;
       }
-    }
+      form {
+        max-width: 500px;
+        margin: auto;
+        padding: 20px;
+        border: 1px solid #ccc;
+        border-radius: 10px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      }
+      label {
+        font-weight: bold;
+        display: block;
+        margin-bottom: 5px;
+      }
+      input,
+      select,
+      button {
+        width: 100%;
+        padding: 10px;
+        margin-bottom: 15px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+      }
+      button {
+        background-color: #007bff;
+        color: white;
+        cursor: pointer;
+      }
+      button:hover {
+        background-color: #0056b3;
+      }
+    </style>
+  </head>
+  <body>
+    <h2>Manual Booking Form</h2>
+    <form id="booking-form">
+      <label for="date">Date:</label>
+      <input type="date" id="date" name="date" required /><br />
 
-    // Format date to dd-mm-yyyy
-    function formatDateToDDMMYYYY(date) {
-      const d = new Date(date);
-      const day = String(d.getDate()).padStart(2, '0');
-      const month = String(d.getMonth() + 1).padStart(2, '0'); // Month is 0-indexed
-      const year = d.getFullYear();
-      return `${day}-${month}-${year}`;
-    }
+      <label for="start_time">Start Time (24-hour format):</label>
+      <input type="time" id="start_time" name="start_time" required /><br />
 
-    // Fetch available cars and drivers
-    async function fetchCarsAndDrivers() {
-      const date = formatDateToDDMMYYYY(document.getElementById('date').value);
-      const startTime = startTimeInput.value;
-      const endTime = endTimeInput.value;
+      <label for="end_time">End Time:</label>
+      <input type="text" id="end_time" name="end_time" readonly /><br />
 
-      if (!date || !startTime || !endTime) {
-        alert('All parameters (date, start_time, end_time) are required.');
-        return;
+      <label for="pickup_loc">Pickup Location:</label>
+      <input type="text" id="pickup_loc" name="pickup_loc" required /><br />
+
+      <label for="drop_loc">Drop Location:</label>
+      <input type="text" id="drop_loc" name="drop_loc" required /><br />
+
+      <label for="car_id">Car ID:</label>
+      <select id="car_id" name="car_id" required>
+        <option value="">Select a car</option></select
+      ><br />
+
+      <label for="driver_id">Driver ID:</label>
+      <select id="driver_id" name="driver_id" required>
+        <option value="">Select a driver</option></select
+      ><br />
+
+      <label for="user_id">User ID:</label>
+      <input type="text" id="user_id" name="user_id" required /><br />
+
+      <label for="book_no">Booking Number:</label>
+      <input type="text" id="book_no" name="book_no" required /><br />
+
+      <label for="no_of_passenger">Number of Passengers:</label>
+      <input
+        type="number"
+        id="no_of_passenger"
+        name="no_of_passenger"
+        required
+      /><br />
+
+      <label for="package_id">Package ID:</label>
+      <select id="package_id" name="package_id" required>
+        <option value="">Select a package</option></select
+      ><br />
+
+      <label for="ac_nonac">AC/Non-AC:</label>
+      <select id="ac_nonac" name="ac_nonac" required>
+        <option value="">Select</option>
+        <option value="ac">AC</option>
+        <option value="nonac">Non-AC</option></select
+      ><br />
+      <label for="mobile_no">mobile_no</label>
+      <input type="tel" id="mobile_no" name="mobile_no" required /><br />
+      <button type="button" id="fetch-btn">
+        Fetch Available Cars and Drivers
+      </button>
+      <button type="submit">Submit</button>
+    </form>
+
+    <script>
+      const packageDropdown = document.getElementById("package_id");
+      const carDropdown = document.getElementById("car_id");
+      const driverDropdown = document.getElementById("driver_id");
+      const startTimeInput = document.getElementById("start_time");
+      const endTimeInput = document.getElementById("end_time");
+      const fetchBtn = document.getElementById("fetch-btn");
+      const bookingForm = document.getElementById("booking-form");
+      const MOBILE_NO = document.getElementById("mobile_no");
+      // Fetch packages and populate the dropdown
+      async function fetchPackages() {
+        try {
+          const response = await axios.get(
+            "http://localhost:3000/admin/packages"
+          );
+          const packages = response.data;
+          packages.forEach((pkg) => {
+            const option = document.createElement("option");
+            option.value = pkg.PID;
+            option.textContent = `${pkg.NAME} (Duration: ${pkg.DURATION} hrs)`;
+            option.dataset.duration = pkg.DURATION; // Store duration for calculation
+            packageDropdown.appendChild(option);
+          });
+        } catch (error) {
+          console.error("Error fetching packages:", error);
+        }
       }
 
-      try {
-        // Fetch cars
-        const carResponse = await axios.post('http://localhost:3000/admin/avail-cars', {
-          date,
-          start_time: startTime,
-          end_time: endTime
-        });
-        carDropdown.innerHTML = '<option value="">Select a car</option>';
-        carResponse.data.forEach(car => {
-          const option = document.createElement('option');
-          option.value = car.CAR_ID;
-          option.textContent = `${car.MODEL_NAME} (Capacity: ${car.SEATING_CAPACITY})`;
-          option.dataset.capacity = car.SEATING_CAPACITY; // Store seating capacity
-          carDropdown.appendChild(option);
-        });
+      // Calculate end time based on start time and package duration
+      function calculateEndTime() {
+        const startTime = startTimeInput.value;
+        const selectedPackage =
+          packageDropdown.options[packageDropdown.selectedIndex];
+        const duration = selectedPackage
+          ? parseInt(selectedPackage.dataset.duration)
+          : 0;
 
-        // Fetch drivers
-        const driverResponse = await axios.post('http://localhost:3000/admin/avail-drivers', {
-          date,
-          start_time: startTime,
-          end_time: endTime
-        });
-        driverDropdown.innerHTML = '<option value="">Select a driver</option>';
-        driverResponse.data.forEach(driver => {
-          const option = document.createElement('option');
-          option.value = driver.DRIVER_ID;
-          option.textContent = driver.NAME; // Replace with actual driver info
-          driverDropdown.appendChild(option);
-        });
-
-        alert('Available cars and drivers fetched successfully!');
-      } catch (error) {
-        console.error('Error fetching cars or drivers:', error);
+        if (startTime && duration) {
+          const [hours, minutes] = startTime.split(":").map(Number);
+          const endTime = new Date();
+          endTime.setHours(hours + duration, minutes);
+          endTimeInput.value = `${endTime
+            .getHours()
+            .toString()
+            .padStart(2, "0")}:${endTime
+            .getMinutes()
+            .toString()
+            .padStart(2, "0")}`;
+        }
       }
-    }
 
-    // Handle form submission
-    bookingForm.addEventListener('submit', async (e) => {
-  e.preventDefault();
-  const formData = new FormData(bookingForm);
-  const data = Object.fromEntries(formData.entries());
-  data.DATE = formatDateToDDMMYYYY(data.date); // Format date before sending
-  data.TIMING = data.start_time;
-  data.END_TIME = endTimeInput.value;
+      // Format date to dd-mm-yyyy
+      function formatDateToDDMMYYYY(date) {
+        const d = new Date(date);
+        const day = String(d.getDate()).padStart(2, "0");
+        const month = String(d.getMonth() + 1).padStart(2, "0"); // Month is 0-indexed
+        const year = d.getFullYear();
+        return `${day}-${month}-${year}`;
+      }
 
-  const selectedCar = carDropdown.options[carDropdown.selectedIndex];
-  const seatingCapacity = selectedCar ? parseInt(selectedCar.dataset.capacity) : 0;
-  const noOfPassengers = parseInt(data.no_of_passenger);
+      // Fetch available cars and drivers
+      async function fetchCarsAndDrivers() {
+        const date = formatDateToDDMMYYYY(
+          document.getElementById("date").value
+        );
+        const startTime = startTimeInput.value;
+        const endTime = endTimeInput.value;
 
-  if (noOfPassengers > seatingCapacity) {
-    alert("Seating capacity is less, choose another car or make two bookings.");
-  } else {
-    try {
-      const response = await axios.post('http://localhost:3000/admin/create-mannual-book', {
-        TIMING: data.TIMING,
-        PICKUP_LOC: data.pickup_loc,
-        CAR_ID: data.car_id,
-        USER_ID: data.user_id,
-        BOOK_NO: data.book_no,
-        DATE: data.DATE,
-        NO_OF_PASSENGER: data.no_of_passenger,
-        PACKAGE_ID: data.package_id,
-        DROP_LOC: data.drop_loc,
-        AC_NONAC: data.ac_nonac,
-        END_TIME: data.END_TIME,
-        DRIVER_ID: data.driver_id
+        if (!date || !startTime || !endTime) {
+          alert("All parameters (date, start_time, end_time) are required.");
+          return;
+        }
+
+        try {
+          // Fetch cars
+          const carResponse = await axios.post(
+            "http://localhost:3000/admin/avail-cars",
+            {
+              date,
+              start_time: startTime,
+              end_time: endTime,
+            }
+          );
+          carDropdown.innerHTML = '<option value="">Select a car</option>';
+          carResponse.data.forEach((car) => {
+            const option = document.createElement("option");
+            option.value = car.CAR_ID;
+            option.textContent = `${car.MODEL_NAME} (Capacity: ${car.SEATING_CAPACITY})`;
+            option.dataset.capacity = car.SEATING_CAPACITY; // Store seating capacity
+            carDropdown.appendChild(option);
+          });
+
+          // Fetch drivers
+          const driverResponse = await axios.post(
+            "http://localhost:3000/admin/avail-drivers",
+            {
+              date,
+              start_time: startTime,
+              end_time: endTime,
+            }
+          );
+          driverDropdown.innerHTML =
+            '<option value="">Select a driver</option>';
+          driverResponse.data.forEach((driver) => {
+            const option = document.createElement("option");
+            option.value = driver.DRIVER_ID;
+            option.textContent = driver.NAME; // Replace with actual driver info
+            driverDropdown.appendChild(option);
+          });
+
+          alert("Available cars and drivers fetched successfully!");
+        } catch (error) {
+          console.error("Error fetching cars or drivers:", error);
+        }
+      }
+
+      // Handle form submission
+      bookingForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const formData = new FormData(bookingForm);
+        const data = Object.fromEntries(formData.entries());
+        data.DATE = formatDateToDDMMYYYY(data.date); // Format date before sending
+        data.TIMING = data.start_time;
+        data.END_TIME = endTimeInput.value;
+
+        const selectedCar = carDropdown.options[carDropdown.selectedIndex];
+        const seatingCapacity = selectedCar
+          ? parseInt(selectedCar.dataset.capacity)
+          : 0;
+        const noOfPassengers = parseInt(data.no_of_passenger);
+
+        if (noOfPassengers > seatingCapacity) {
+          alert(
+            "Seating capacity is less, choose another car or make two bookings."
+          );
+        } else {
+          try {
+            const response = await axios.post(
+              "http://localhost:3000/admin/create-mannual-book",
+              {
+                TIMING: data.TIMING,
+                PICKUP_LOC: data.pickup_loc,
+                CAR_ID: data.car_id,
+                USER_ID: data.user_id,
+                BOOK_NO: data.book_no,
+                DATE: data.DATE,
+                NO_OF_PASSENGER: data.no_of_passenger,
+                PACKAGE_ID: data.package_id,
+                DROP_LOC: data.drop_loc,
+                AC_NONAC: data.ac_nonac,
+                END_TIME: data.END_TIME,
+                DRIVER_ID: data.driver_id,
+                MOBILE_NO: MOBILE_NO,
+              }
+            );
+            alert("Booking created successfully!", MOBILE_NO);
+          } catch (error) {
+            console.error("Error creating booking:", error);
+          }
+        }
       });
-      alert('Booking created successfully!');
-    } catch (error) {
-      console.error('Error creating booking:', error);
-    }
-  }
-});
 
+      // Event Listeners
+      packageDropdown.addEventListener("change", calculateEndTime);
+      startTimeInput.addEventListener("input", calculateEndTime);
+      fetchBtn.addEventListener("click", fetchCarsAndDrivers);
 
-    // Event Listeners
-    packageDropdown.addEventListener('change', calculateEndTime);
-    startTimeInput.addEventListener('input', calculateEndTime);
-    fetchBtn.addEventListener('click', fetchCarsAndDrivers);
-
-    // Initialize the form
-    fetchPackages();
-  </script>
-</body>
+      // Initialize the form
+      fetchPackages();
+    </script>
+  </body>
 </html>

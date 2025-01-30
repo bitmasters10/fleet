@@ -88,7 +88,17 @@ export const DriverProvider = ({ children }) => {
       setError(err.message);
     }
   };
-
+  const fetchAvailableDrivers = async (date, start_time, end_time) => {
+    setLoading(true);
+    try {
+      const response = await axiosInstance.post("/avail-drivers", { date, start_time, end_time });
+      setDrivers(response.data);
+    } catch (error) {
+      console.error("Error fetching available drivers:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
   // Context value
   const value = {
     drivers,
@@ -97,6 +107,7 @@ export const DriverProvider = ({ children }) => {
     addDriver,
     fetchDrivers,
     deleteDriver,
+    fetchAvailableDrivers,
     updateDriver,
     fetchDriverById,
   };

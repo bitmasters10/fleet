@@ -44,29 +44,30 @@ function isAdmin(req, res, next) {
 
 Router.get("/available-books", (req, res) => {
   const q = `
-        SELECT 
-            o.user_id, 
-            o.capacity, 
-            o.datetime, 
-            o.product_name, 
-            p.PID AS package_id,
-            s.id,
-            p.PLACES,
-            p.DURATION
+    SELECT 
+        o.user_id, 
+        o.capacity, 
+        o.datetime, 
+        o.product_name, 
+        p.PID AS package_id,
+        s.id AS success_id,
+        p.PLACES,
+        p.DURATION,
+        u.mobile_no
+    FROM 
+        success2 s
+    JOIN 
+        orders o ON REPLACE(s.order_id, 'order_id=', '') = o.order_id
+    JOIN 
+        users u ON o.user_id = u.id
+    JOIN 
+        PACKAGE p ON o.product_name = p.name
+    WHERE 
+        s.order_status = ? AND s.fleet_status = ?
+`;
 
-        FROM 
-            success2 s
-        JOIN 
-            orders o 
-        ON 
-            REPLACE(s.order_id, 'order_id=', '') = o.order_id
-        JOIN 
-            PACKAGE p
-        ON 
-            o.product_name = p.name
-        WHERE 
-            s.order_status = ? AND s.fleet_status = ?
-    `;
+
+
   try {
     db.query(q, ["order_status=Success", "waiting"], (err, rows) => {
       if (err) {
@@ -131,10 +132,11 @@ Router.post("/create-book", async (req, res) => {
     PACKAGE_ID,
     DROP_LOC,
     AC_NONAC,
-    stat,
+  
     END_TIME,
     VID,
     DRIVER_ID,
+    mobile
   } = req.body;
   
   db.query(
@@ -163,10 +165,11 @@ Router.post("/create-book", async (req, res) => {
         PACKAGE_ID,
         DROP_LOC,
         AC_NONAC,
-        stat,
+        stat:"READY",
         END_TIME,
         VID,
         DRIVER_ID,
+        mobile_no:mobile
       };
       console.log(ID);
       db.query(" INSERT INTO BOOKING SET ?", newBook, (err, rows) => {
@@ -208,6 +211,7 @@ Router.post("/create-mannual-book", async (req, res) => {
     END_TIME,
     
     DRIVER_ID,
+    MOBILE_NO
   } = req.body;
   
   db.query(
@@ -238,9 +242,10 @@ Router.post("/create-mannual-book", async (req, res) => {
         AC_NONAC,
         stat:"READY",
         END_TIME,
-        
+        mobile_no:MOBILE_NO,
         DRIVER_ID,
       };
+      console.log(MOBILE_NO)
       console.log(newBook)
       console.log(ID);
       db.query(" INSERT INTO BOOKING SET ?", newBook, (err, rows) => {

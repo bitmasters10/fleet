@@ -18,6 +18,7 @@ import AppLayout from "./pages/AppLayout";
 import { AdminProvider } from "./contexts/AdminContext";
 import { VehicleProvider } from "./contexts/VehicleContext";
 import { DriverProvider } from "./contexts/DriverContext";
+import { BookingProvider } from "./contexts/BookingContext";
 
 // PrivateRoute Component to protect routes
 // eslint-disable-next-line react/prop-types
@@ -53,6 +54,7 @@ function App() {
         <AdminProvider>
           <VehicleProvider>
             <DriverProvider>
+              <BookingProvider>
         {/* Navbar is always visible */}
         <NavbarWrapper />
 
@@ -141,6 +143,7 @@ function App() {
             </Routes>
           </div>
         </AppLayout>
+        </BookingProvider>
         </DriverProvider>
         </VehicleProvider>
         </AdminProvider>
