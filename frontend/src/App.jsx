@@ -12,7 +12,7 @@ import Trip from "./pages/Trip";
 import Booking from "./pages/Booking";
 import Report from "./pages/Report";
 import Login from "./pages/Auth/Login";
-import CalendarPage from "./pages/Calendar";
+
 
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import AppLayout from "./pages/AppLayout";

@@ -1,82 +1,55 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useContext, useEffect } from "react";
 import Heading from "../components/Heading";
 import Input from "../components/Input";
+import { useBooking } from "../contexts/BookingContext";
+import { useDrivers } from "../contexts/DriverContext";
+import { useVehicle } from "../contexts/VehicleContext";
 
 // eslint-disable-next-line react/prop-types
 export default function Booking({ title, track }) {
+  const { 
+    bookings, 
+    loading, 
+    fetchBookings, 
+    createBooking 
+  } = useBooking();
+
+  const { fetchAvailableDrivers, drivers } = useDrivers();
+  const { fetchAvailableVehicles, vehicles } = useVehicle();
+
   const [showCreateForm, setShowCreateForm] = useState(false);
-  const [availableBooks, setAvailableBooks] = useState([]);
-  const [availableCars, setAvailableCars] = useState([]);
-  const [availableDrivers, setAvailableDrivers] = useState([]);
-  const [selectedCar, setSelectedCar] = useState(null);
-  const [selectedDriver, setSelectedDriver] = useState(null);
   const [bookingError, setBookingError] = useState(null);
 
-  // Fetch available books
-  useEffect(() => {
-    fetch("http://localhost:3000/admin/available-books")
-      .then((response) => response.json())
-      .then((data) => setAvailableBooks(data))
-      .catch((error) => console.error("Error fetching available books:", error));
-  }, []);
+  const date = "25-01-2025";
+  const start_time = "13:00";
+  const end_time = "17:00";
 
-  // Fetch available cars
+  // Fetch available drivers and vehicles using the context functions
   useEffect(() => {
-    fetch("http://localhost:3000/admin/avail-cars", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        date: "25-01-2025",
-        start_time: "13:00",
-        end_time: "17:00",
-      }),
-    })
-      .then((response) => response.json())
-      .then((data) => setAvailableCars(data))
-      .catch((error) => console.error("Error fetching available cars:", error));
-  }, []);
-
-  // Fetch available drivers
-  useEffect(() => {
-    fetch("http://localhost:3000/admin/avail-drivers", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        date: "25-01-2025",
-        start_time: "13:00",
-        end_time: "17:00",
-      }),
-    })
-      .then((response) => response.json())
-      .then((data) => setAvailableDrivers(data))
-      .catch((error) => console.error("Error fetching available drivers:", error));
+    fetchAvailableDrivers(date, start_time, end_time);
+    fetchAvailableVehicles(date, start_time, end_time);
   }, []);
 
   // Create booking logic
-  const createBooking = async (bookingData) => {
-    const { capacity, noOfPassenger } = bookingData;
+  const handleCreateBooking = async (bookingData) => {
+    const { NO_OF_PASSENGER, CAR_ID, DRIVER_ID, PACKAGE_ID } = bookingData;
 
-    if (noOfPassenger > capacity) {
+    // Validate the booking data
+    const selectedCar = vehicles.find(vehicle => vehicle.id === CAR_ID);
+    const selectedDriver = drivers.find(driver => driver.id === DRIVER_ID);
+
+    if (!selectedCar || !selectedDriver) {
+      setBookingError("Please select a valid car and driver.");
+      return;
+    }
+
+    if (NO_OF_PASSENGER > selectedCar.capacity) {
       setBookingError("The number of passengers exceeds available capacity!");
       return;
     }
 
-    try {
-      const response = await fetch("http://localhost:3000/admin/create-book", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(bookingData),
-      });
-
-      const result = await response.json();
-      if (result.success) {
-        alert("Booking created successfully!");
-      } else {
-        alert("Failed to create booking!");
-      }
-    } catch (error) {
-      console.error("Error creating booking:", error);
-    }
+    await createBooking({ ...bookingData, CAR_ID, DRIVER_ID, PACKAGE_ID });
+    alert("Booking created successfully!");
   };
 
   return (
@@ -89,18 +62,28 @@ export default function Booking({ title, track }) {
         </div>
 
         {showCreateForm && (
-          <CreateForm
-            availableBooks={availableBooks}
-            availableCars={availableCars}
-            availableDrivers={availableDrivers}
-            createBooking={createBooking}
-            setShowCreateForm={setShowCreateForm}
-            bookingError={bookingError}
-          />
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+            <div className="bg-gray-100 dark:bg-gray-800 p-6 rounded-md shadow-md w-full lg:w-[90%] mx-auto relative">
+              <button
+                onClick={() => setShowCreateForm(false)}
+                className="absolute top-4 right-4 text-black dark:text-white text-2xl"
+              >
+                &times;
+              </button>
+              <h3 className="text-lg font-semibold mb-4 text-gray-700 dark:text-gray-200">Create Booking</h3>
+              <CreateForm
+                availableCars={vehicles}
+                availableDrivers={drivers}
+                createBooking={handleCreateBooking}
+                setShowCreateForm={setShowCreateForm}
+                bookingError={bookingError}
+              />
+            </div>
+          </div>
         )}
 
         <Input title={title} />
-        <TableManage />
+        <TableManage bookings={bookings} loading={loading} />
       </div>
     </div>
   );
@@ -108,7 +91,6 @@ export default function Booking({ title, track }) {
 
 // CreateForm component
 function CreateForm({
-  availableBooks,
   availableCars,
   availableDrivers,
   createBooking,
@@ -155,99 +137,85 @@ function CreateForm({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-      <div className="bg-gray-100 dark:bg-gray-800 p-6 rounded-md shadow-md w-full lg:w-[90%] mx-auto relative">
-        <button onClick={() => setShowCreateForm(false)} className="absolute top-4 right-4 text-black dark:text-white text-2xl">
-          &times;
-        </button>
-        <h3 className="text-lg font-semibold mb-4 text-gray-700 dark:text-gray-200">Create Booking</h3>
-
-        {bookingError && <div className="text-red-500 mb-2">{bookingError}</div>}
-
-        <form onSubmit={handleSubmit}>
-          <div className="mb-4">
-            <label className="block text-gray-700 dark:text-gray-200">Car</label>
-            <select
-              name="CAR_ID"
-              className="mt-2 w-full p-2 border border-gray-300 rounded-md"
-              value={bookingData.CAR_ID}
-              onChange={handleCarSelection}
-            >
-              <option value="">Select Car</option>
-              {availableCars.map((car) => (
-                <option key={car.id} value={car.id}>
-                  {car.name}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div className="mb-4">
-            <label className="block text-gray-700 dark:text-gray-200">Driver</label>
-            <select
-              name="DRIVER_ID"
-              className="mt-2 w-full p-2 border border-gray-300 rounded-md"
-              value={bookingData.DRIVER_ID}
-              onChange={handleDriverSelection}
-            >
-              <option value="">Select Driver</option>
-              {availableDrivers.map((driver) => (
-                <option key={driver.id} value={driver.id}>
-                  {driver.name}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div className="mt-4">
-            <button type="submit" className="bg-green-500 text-white px-4 py-2 rounded shadow hover:bg-green-600">
-              Submit
-            </button>
-          </div>
-        </form>
+    <form onSubmit={handleSubmit}>
+      {bookingError && <div className="text-red-500 mb-2">{bookingError}</div>}
+      <div className="mb-4">
+        <label className="block text-gray-700 dark:text-gray-200">Car</label>
+        <select
+          name="CAR_ID"
+          className="mt-2 w-full p-2 border border-gray-300 rounded-md"
+          value={bookingData.CAR_ID}
+          onChange={handleCarSelection}
+        >
+          <option value="">Select Car</option>
+          {availableCars.map((car) => (
+            <option key={car.id} value={car.id}>
+              {car.name}
+            </option>
+          ))}
+        </select>
       </div>
-    </div>
+
+      <div className="mb-4">
+        <label className="block text-gray-700 dark:text-gray-200">Driver</label>
+        <select
+          name="DRIVER_ID"
+          className="mt-2 w-full p-2 border border-gray-300 rounded-md"
+          value={bookingData.DRIVER_ID}
+          onChange={handleDriverSelection}
+        >
+          <option value="">Select Driver</option>
+          {availableDrivers.map((driver) => (
+            <option key={driver.id} value={driver.id}>
+              {driver.name}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      <div className="mt-4">
+        <button type="submit" className="bg-green-500 text-white px-4 py-2 rounded shadow hover:bg-green-600">
+          Submit
+        </button>
+      </div>
+    </form>
   );
 }
 
 // TableManage component
-function TableManage() {
+function TableManage({ bookings, loading }) {
+  if (loading) {
+    return <div>Loading...</div>;
+  }
+
   return (
     <div className="max-lg:relative block overflow-x-auto shadow-md sm:rounded-lg">
       <table className="w-full lg:max-w-[95%] mx-auto text-sm text-left rtl:text-right mb-9 text-gray-500 dark:text-gray-400">
         <thead className="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
           <tr>
-            <th scope="col" className="px-6 py-3">Product name</th>
-            <th scope="col" className="px-6 py-3">Color</th>
-            <th scope="col" className="px-6 py-3">Category</th>
-            <th scope="col" className="px-6 py-3">Price</th>
-            <th scope="col" className="px-6 py-3">
-              <span className="sr-only">Edit</span>
-            </th>
+            <th scope="col" className="px-6 py-3">Booking ID</th>
+            <th scope="col" className="px-6 py-3">Car</th>
+            <th scope="col" className="px-6 py-3">Driver</th>
+            <th scope="col" className="px-6 py-3">Date</th>
+            <th scope="col" className="px-6 py-3">Time</th>
           </tr>
         </thead>
         <tbody>
-          <tr className="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
-            <th scope="row" className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">
-              Apple MacBook Pro 17
-            </th>
-            <td className="px-6 py-4">Silver</td>
-            <td className="px-6 py-4">Laptop</td>
-            <td className="px-6 py-4">$2999</td>
-            <td className="px-6 py-4 text-right">
-              <a href="#" className="font-medium text-blue-600 dark:text-blue-500 hover:underline px-1">
-                Edit
-              </a>
-              <a href="#" className="font-medium text-blue-600 dark:text-blue-500 hover:underline pl-1">
-                Delete
-              </a>
-            </td>
-          </tr>
+          {bookings.map((booking) => (
+            <tr key={booking.id} className="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
+              <th scope="row" className="px-6 py-3">{booking.id}</th>
+              <td className="px-6 py-3">{booking.car}</td>
+              <td className="px-6 py-3">{booking.driver}</td>
+              <td className="px-6 py-3">{booking.date}</td>
+              <td className="px-6 py-3">{booking.time}</td>
+            </tr>
+          ))}
         </tbody>
       </table>
     </div>
   );
 }
+
 
 function AddButton({ showCreateForm, setShowCreateForm }) {
   return (

@@ -262,7 +262,7 @@ Router.post("/create-mannual-book", async (req, res) => {
   );
 });
 
-Router.get("/bookings", (req, res) => {
+Router.get("/bookings", isAdmin, (req, res) => {
   try {
     db.query("SELECT * FROM BOOKING ", (err, rows) => {
       if (err) {
