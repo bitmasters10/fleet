@@ -267,6 +267,27 @@ export default function Sidebar() {
               </NavLink>
             </li>
 
+            <li>
+              <NavLink
+                to="/calendar"
+                className={({ isActive }) =>
+                  !isActive
+                    ? "bg-white flex items-center p-2 text-gray-900 rounded-lg dark:text-white dark:bg-gray-800 hover:bg-[#F6F9FF] dark:hover:bg-gray-700 group"
+                    : "bg-[#F6F9FF] flex items-center p-2 text-gray-900 rounded-lg dark:text-white dark:bg-gray-900 dark:hover:bg-gray-700 group"
+                }
+              >
+                <svg
+                  className="w-5 h-5 text-gray-500 transition duration-75 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white"
+                  aria-hidden="true"
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path d="M17 16c1.1 0 1.99-.9 1.99-2L19 7c0-1.1-.9-2-1.99-2H5C3.9 5 3 5.9 3 7v7c0 1.1.9 2 2 2h12z" />
+                </svg>
+                <span className="ms-3">Calendar</span>
+              </NavLink>
+            </li>
             {/* Add more NavLinks as needed */}
           </ul>
         </div>

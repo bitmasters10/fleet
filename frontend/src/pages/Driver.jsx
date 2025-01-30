@@ -3,20 +3,25 @@ import { useState, useEffect } from "react";
 import Heading from "../components/Heading";
 import Input from "../components/Input";
 import { useDrivers } from "../contexts/DriverContext";
+import Toast from "../components/Toast";
 
 // eslint-disable-next-line react/prop-types
 export default function Driver({ title, track }) {
-  const {
-    drivers,
-
-    fetchDrivers,
-    deleteDriver,
-    updateDriver,
-    addDriver,
-  } = useDrivers();
+  const { drivers, fetchDrivers, deleteDriver, updateDriver, addDriver } =
+    useDrivers();
   const [editingDriver, setEditingDriver] = useState(null); // Tracks the driver being edited
   const [showCreateForm, setShowCreateForm] = useState(false); // Tracks Create Form visibility
   const [searchQuery, setSearchQuery] = useState(""); // Tracks search input
+  const [toast, setToast] = useState({
+    show: false,
+    message: "",
+    type: "success",
+  });
+
+  // Add this useEffect to monitor toast state changes
+  useEffect(() => {
+    console.log("Toast state changed:", toast);
+  }, [toast]);
 
   const filteredDrivers = drivers.filter(
     (driver) =>
@@ -33,9 +38,62 @@ export default function Driver({ title, track }) {
     fetchDrivers();
   }, []);
 
+  const showToast = (message, type = "success") => {
+    console.log("Showing toast:", message, type); // Debug log
+    setToast({ show: true, message, type });
+    setTimeout(() => {
+      console.log("Hiding toast"); // Debug log
+      setToast({ show: false, message: "", type: "success" });
+    }, 3000);
+  };
+
+  const handleAddDriver = async (data) => {
+    try {
+      await addDriver(data);
+      showToast("Driver added successfully");
+      setShowCreateForm(false); // Close the form after successful addition
+    } catch (error) {
+      showToast(error.message || "Failed to add driver", "error");
+    }
+  };
+
+  const handleUpdateDriver = async (data) => {
+    try {
+      await updateDriver(data);
+      showToast("Driver updated successfully");
+      setEditingDriver(null); // Close the form after successful update
+    } catch (error) {
+      showToast(error.message || "Failed to update driver", "error");
+    }
+  };
+
+  const handleDeleteDriver = async (id) => {
+    try {
+      await deleteDriver(id);
+      console.log("Delete successful, showing toast"); // Debug log
+      showToast("Driver deleted successfully");
+    } catch (error) {
+      console.log("Delete failed, showing error toast"); // Debug log
+      showToast(error.message || "Failed to delete driver", "error");
+    }
+  };
+
   return (
-    <div>
+    <div className="relative">
+      {" "}
+      {/* Add relative positioning */}
       <Heading title={title} track={track} />
+      {/* Move toast right after Heading */}
+      {toast.show && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onClose={() => {
+            console.log("Toast closed manually"); // Debug log
+            setToast({ show: false, message: "", type: "success" });
+          }}
+        />
+      )}
       <div className="xl:max-w-[90%] max-xl:mx-auto max-w-screen-full bg-white my-20 dark:bg-gray-800">
         <div className="flex items-center justify-between px-6 pt-6">
           <h2 className="mx-4 text-3xl font-semibold">{title}</h2>
@@ -54,7 +112,7 @@ export default function Driver({ title, track }) {
         {/* Render Create Form */}
         {showCreateForm && (
           <CreateForm
-            addDriver={addDriver}
+            addDriver={handleAddDriver}
             setShowCreateForm={setShowCreateForm}
           />
         )}
@@ -63,14 +121,14 @@ export default function Driver({ title, track }) {
         <TableManage
           drivers={filteredDrivers} // Pass filtered Drivers
           setEditingDriver={setEditingDriver}
-          deleteDriver={deleteDriver}
+          deleteDriver={handleDeleteDriver}
         />
 
         {/* Render Edit Form */}
         {editingDriver && (
           <EditForm
             driver={editingDriver}
-            updateDriver={updateDriver}
+            updateDriver={handleUpdateDriver}
             setEditingDriver={setEditingDriver}
           />
         )}

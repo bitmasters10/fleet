@@ -1,55 +1,129 @@
 /* eslint-disable react/prop-types */
-import  { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import Heading from "../components/Heading";
 import Input from "../components/Input";
 import { useAdmin } from "../contexts/AdminContext";
 import { useAuth } from "../contexts/AuthContext";
+import Toast from "../components/Toast";
 
 // Admin Component
 export default function Admin({ title, track }) {
-  const {user} = useAuth()
-  const { admins, fetchAdmins, addAdmin, updateAdmin, deleteAdmin } = useAdmin();
-  const [editingAdmin, setEditingAdmin] = useState(null); // Tracks the admin being edited
-  const [showCreateForm, setShowCreateForm] = useState(false); // Tracks Create Form visibility
-  const [searchQuery, setSearchQuery] = useState('');
- 
-  const filteredAdmins = admins.filter((admin) =>
-    admin.aname.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    admin.email.toLowerCase().includes(searchQuery.toLowerCase())
+  const { user } = useAuth();
+  const { admins, fetchAdmins, addAdmin, updateAdmin, deleteAdmin } =
+    useAdmin();
+  const [editingAdmin, setEditingAdmin] = useState(null);
+  const [showCreateForm, setShowCreateForm] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [toast, setToast] = useState({
+    show: false,
+    message: "",
+    type: "success",
+  });
+
+  // Add this useEffect to monitor toast state changes
+  useEffect(() => {
+    console.log("Toast state changed:", toast);
+  }, [toast]);
+
+  const showToast = (message, type = "success") => {
+    console.log("Showing toast:", message, type);
+    setToast({ show: true, message, type });
+    setTimeout(() => {
+      console.log("Hiding toast");
+      setToast({ show: false, message: "", type: "success" });
+    }, 3000);
+  };
+
+  const filteredAdmins = admins.filter(
+    (admin) =>
+      admin.aname.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      admin.email.toLowerCase().includes(searchQuery.toLowerCase())
   );
-  
-    
+
   useEffect(() => {
     fetchAdmins();
   }, []);
-  if (user?.role !== 'superadmin') {
+
+  const handleAddAdmin = async (data) => {
+    try {
+      await addAdmin(data);
+      showToast("Admin added successfully");
+      setShowCreateForm(false);
+    } catch (error) {
+      showToast(error.message || "Failed to add admin", "error");
+    }
+  };
+
+  const handleUpdateAdmin = async (id, data) => {
+    try {
+      await updateAdmin(id, data);
+      showToast("Admin updated successfully");
+      setEditingAdmin(null);
+    } catch (error) {
+      showToast(error.message || "Failed to update admin", "error");
+    }
+  };
+
+  const handleDeleteAdmin = async (id) => {
+    try {
+      await deleteAdmin(id);
+      showToast("Admin deleted successfully");
+    } catch (error) {
+      showToast(error.message || "Failed to delete admin", "error");
+    }
+  };
+
+  if (user?.role !== "superadmin") {
     return <div>You are not authorized to manage admins.</div>;
   }
+
   return (
-    <div>
+    <div className="relative">
       <Heading title={title} track={track} />
+      {toast.show && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onClose={() => {
+            console.log("Toast closed manually");
+            setToast({ show: false, message: "", type: "success" });
+          }}
+        />
+      )}
       <div className="xl:max-w-[90%] max-xl:mx-auto max-w-screen-full bg-white my-20 dark:bg-gray-800">
-      <div className="flex items-center justify-between  px-6 pt-6">
-        <h2 className="mx-4 text-3xl font-semibold">{title}</h2>
-        <AddButton setShowCreateForm={setShowCreateForm} showCreateForm={showCreateForm}/>
+        <div className="flex items-center justify-between  px-6 pt-6">
+          <h2 className="mx-4 text-3xl font-semibold">{title}</h2>
+          <AddButton
+            setShowCreateForm={setShowCreateForm}
+            showCreateForm={showCreateForm}
+          />
         </div>
 
-        <Input title={title} searchQuery={searchQuery} setSearchQuery={setSearchQuery} />
+        <Input
+          title={title}
+          searchQuery={searchQuery}
+          setSearchQuery={setSearchQuery}
+        />
         {/* Render Create Form */}
-        {showCreateForm && <CreateForm addAdmin={addAdmin} setShowCreateForm={setShowCreateForm} />}
+        {showCreateForm && (
+          <CreateForm
+            addAdmin={handleAddAdmin}
+            setShowCreateForm={setShowCreateForm}
+          />
+        )}
 
         {/* Render Admin Table */}
         <TableManage
-        admins={filteredAdmins}  // Pass filtered admins
-        setEditingAdmin={setEditingAdmin}
-        deleteAdmin={deleteAdmin}
+          admins={filteredAdmins}
+          setEditingAdmin={setEditingAdmin}
+          deleteAdmin={handleDeleteAdmin}
         />
 
         {/* Render Edit Form */}
         {editingAdmin && (
           <EditForm
             admin={editingAdmin}
-            updateAdmin={updateAdmin}
+            updateAdmin={handleUpdateAdmin}
             setEditingAdmin={setEditingAdmin}
           />
         )}
@@ -114,7 +188,11 @@ function TableManage({ admins = [], setEditingAdmin, deleteAdmin }) {
 // Create Form Component in Modal
 // Create Form Component in Modal
 function CreateForm({ addAdmin, setShowCreateForm }) {
-  const [formData, setFormData] = useState({ aname: "", email: "", password: "" });
+  const [formData, setFormData] = useState({
+    aname: "",
+    email: "",
+    password: "",
+  });
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -132,34 +210,48 @@ function CreateForm({ addAdmin, setShowCreateForm }) {
         >
           &times;
         </button>
-        <h3 className="text-lg font-semibold mb-4 text-gray-700 dark:text-gray-200">Create Admin</h3>
+        <h3 className="text-lg font-semibold mb-4 text-gray-700 dark:text-gray-200">
+          Create Admin
+        </h3>
         <form onSubmit={handleSubmit}>
           <div className="mb-4">
-            <label className="block mb-1 text-gray-700 dark:text-gray-300">Name</label>
+            <label className="block mb-1 text-gray-700 dark:text-gray-300">
+              Name
+            </label>
             <input
               type="text"
               value={formData.aname}
-              onChange={(e) => setFormData({ ...formData, aname: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, aname: e.target.value })
+              }
               className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200"
               required
             />
           </div>
           <div className="mb-4">
-            <label className="block mb-1 text-gray-700 dark:text-gray-300">Email</label>
+            <label className="block mb-1 text-gray-700 dark:text-gray-300">
+              Email
+            </label>
             <input
               type="email"
               value={formData.email}
-              onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, email: e.target.value })
+              }
               className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200"
               required
             />
           </div>
           <div className="mb-4">
-            <label className="block mb-1 text-gray-700 dark:text-gray-300">Password</label>
+            <label className="block mb-1 text-gray-700 dark:text-gray-300">
+              Password
+            </label>
             <input
               type="password"
               value={formData.password}
-              onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, password: e.target.value })
+              }
               className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200"
               required
             />
@@ -174,7 +266,6 @@ function CreateForm({ addAdmin, setShowCreateForm }) {
       </div>
     </div>
   );
-  
 }
 
 // Edit Form Component in Modal
@@ -199,24 +290,34 @@ function EditForm({ admin, updateAdmin, setEditingAdmin }) {
         >
           &times;
         </button>
-        <h3 className="text-lg font-semibold mb-4 text-gray-700 dark:text-gray-200">Edit Admin</h3>
+        <h3 className="text-lg font-semibold mb-4 text-gray-700 dark:text-gray-200">
+          Edit Admin
+        </h3>
         <form onSubmit={handleSubmit}>
           <div className="mb-4">
-            <label className="block mb-1 text-gray-700 dark:text-gray-300">Name</label>
+            <label className="block mb-1 text-gray-700 dark:text-gray-300">
+              Name
+            </label>
             <input
               type="text"
               value={formData.aname}
-              onChange={(e) => setFormData({ ...formData, aname: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, aname: e.target.value })
+              }
               className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200"
               required
             />
           </div>
           <div className="mb-4">
-            <label className="block mb-1 text-gray-700 dark:text-gray-300">Email</label>
+            <label className="block mb-1 text-gray-700 dark:text-gray-300">
+              Email
+            </label>
             <input
               type="email"
               value={formData.email}
-              onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, email: e.target.value })
+              }
               className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200"
               required
             />
@@ -247,27 +348,25 @@ function EditForm({ admin, updateAdmin, setEditingAdmin }) {
       </div>
     </div>
   );
-  
 }
 
-function AddButton({showCreateForm,setShowCreateForm}){
-  return(
+function AddButton({ showCreateForm, setShowCreateForm }) {
+  return (
     <a
-  className="group cursor-pointer outline-none hover:rotate-90 duration-300 mx-3"
-  title="Add New"
-  onClick={() => setShowCreateForm(!showCreateForm)}
->
-  <svg
-    className="stroke-black dark:stroke-white fill-none  group-active:stroke-black group-active:fill-black group-active:duration-0 duration-300"
-    viewBox="0 0 24 24"
-    height="50px"
-    width="50px"
-    xmlns="http://www.w3.org/2000/svg"
-  >
-    
-    <path strokeWidth="1.5" d="M8 12H16"></path>
-    <path strokeWidth="1.5" d="M12 16V8"></path>
-  </svg>
-</a>
-  )
+      className="group cursor-pointer outline-none hover:rotate-90 duration-300 mx-3"
+      title="Add New"
+      onClick={() => setShowCreateForm(!showCreateForm)}
+    >
+      <svg
+        className="stroke-black dark:stroke-white fill-none  group-active:stroke-black group-active:fill-black group-active:duration-0 duration-300"
+        viewBox="0 0 24 24"
+        height="50px"
+        width="50px"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <path strokeWidth="1.5" d="M8 12H16"></path>
+        <path strokeWidth="1.5" d="M12 16V8"></path>
+      </svg>
+    </a>
+  );
 }

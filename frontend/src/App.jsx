@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Route, Routes} from "react-router-dom";
+import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 import Navbar from "./components/Navbar";
 import Sidebar from "./components/Sidebar";
 
@@ -12,6 +12,7 @@ import Trip from "./pages/Trip";
 import Booking from "./pages/Booking";
 import Report from "./pages/Report";
 import Login from "./pages/Auth/Login";
+import CalendarPage from "./pages/Calendar";
 
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import AppLayout from "./pages/AppLayout";
@@ -41,11 +42,8 @@ const SidebarWrapper = () => {
 const NavbarWrapper = () => {
   const { isAuthenticated } = useAuth();
 
-  return <Navbar isAuthenticated={isAuthenticated}/>;
+  return <Navbar isAuthenticated={isAuthenticated} />;
 };
-
-
-
 
 function App() {
   return (
@@ -58,14 +56,13 @@ function App() {
         {/* Navbar is always visible */}
         <NavbarWrapper />
 
-        {/* Conditionally render Sidebar based on authentication */}
-        <SidebarWrapper />
-        <AppLayout>
-          <div className="max-w-screen-2xl mx-auto">
-            <Routes>
-              {/* Public Routes */}
-              <Route path="/" element={<Login />} />
-              
+              {/* Conditionally render Sidebar based on authentication */}
+              <SidebarWrapper />
+              <AppLayout>
+                <div className="max-w-screen-2xl mx-auto">
+                  <Routes>
+                    {/* Public Routes */}
+                    <Route path="/" element={<Login />} />
 
               {/* Protected Routes */}
               <Route
@@ -151,6 +148,5 @@ function App() {
     </Router>
   );
 }
-
 
 export default App;
