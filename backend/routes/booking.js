@@ -277,11 +277,12 @@ Router.patch("/booking/:id", (req, res) => {
   const { id } = req.params;
   const {
     TIMING,
+    PICKUP_LOC,
 
     END_TIME,
   } = req.body;
-  const query = "UPDATE BOOKING SET   TIMING=?, END_TIME=?	WHERE BOOK_ID = ?";
-  db.query(query, [TIMING, END_TIME, id], (err, rows) => {
+  const query = "UPDATE BOOKING SET   TIMING=?, END_TIME=?,PICKUP_LOC=?	WHERE BOOK_ID = ?";
+  db.query(query, [TIMING, END_TIME,PICKUP_LOC, id], (err, rows) => {
     if (err) {
       console.error("Error updating user:", err);
 
@@ -304,6 +305,22 @@ Router.get("/bookings", (req, res) => {
     console.error("Error during retrive:", err);
   }
 });
+Router.delete("/booking/:id",(req,res)=>{
+  const {id}=req.params;
+  const q="delete  BOOKING where BOOK_ID=?"
+  try {
+    db.query(q,[id] ,(err, rows) => {
+      if (err) {
+        console.error("Error executing query:", err);
+        return res.status(500).send("Server Error");
+      }
+      return res.status(200).json(rows);
+    });
+  } catch (err) {
+    console.error("Error during retive:", err);
+  }
+
+})
 Router.get("/packages", (req, res) => {
   try {
     db.query("SELECT * FROM PACKAGE ", (err, rows) => {
