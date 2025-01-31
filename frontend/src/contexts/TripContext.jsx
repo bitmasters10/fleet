@@ -1,76 +1,46 @@
-/* eslint-disable react/prop-types */
-import { createContext, useContext, useState, useEffect } from "react";
+import { createContext, useContext, useState } from "react";
+import axios from "axios";
 
 const TripContext = createContext();
 
+// eslint-disable-next-line react/prop-types
 export const TripProvider = ({ children }) => {
   const [trips, setTrips] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [locations, setLocations] = useState([]);
 
-  // Fetch all trips
+  const axiosInstance = axios.create({
+    baseURL: "http://localhost:3000",
+    withCredentials: true,
+  });
+
   const fetchTrips = async () => {
     setLoading(true);
+    setError(null);
     try {
-      const response = await fetch("/admin/trips");
-      const data = await response.json();
-      console.log(data)
-      setTrips(data);
-    } catch (err) {
-      setError("Failed to fetch trips");
+      const response = await axiosInstance.get("/admin/trips");
+      console.log("Trips response:", response.data);
+      setTrips(response.data);
+    } catch (error) {
+      console.error("Full error:", error);
+      setError(error.message || "Failed to fetch trips");
+      setTrips([]);
     } finally {
       setLoading(false);
     }
   };
-
-  // Fetch active trip locations
-  const fetchLocations = async () => {
-    setLoading(true);
-    try {
-      const response = await fetch("/admin/location");
-      const data = await response.json();
-      setLocations(data);
-    } catch (err) {
-      setError("Failed to fetch locations");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Create a new trip
-  const createTrip = async (tripData) => {
-    setLoading(true);
-    try {
-      const response = await fetch("/admin/create-trip", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(tripData),
-        credentials: "include", // Ensures session-based authentication
-      });
-
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.error || "Failed to create trip");
-      setTrips((prevTrips) => [...prevTrips, data.trip]);
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchTrips();
-    fetchLocations();
-  }, []);
 
   return (
-    <TripContext.Provider value={{ trips, locations, loading, error, createTrip, fetchTrips, fetchLocations }}>
+    <TripContext.Provider value={{ trips, loading, error, fetchTrips }}>
       {children}
     </TripContext.Provider>
   );
 };
 
-export const useTrip = () => useContext(TripContext);
+export const useTrip = () => {
+  const context = useContext(TripContext);
+  if (!context) {
+    throw new Error("useTrip must be used within a TripProvider");
+  }
+  return context;
+};

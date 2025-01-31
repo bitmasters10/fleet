@@ -31,6 +31,18 @@ const fs = require("fs");
 const storage = multer.memoryStorage(); // Store files in memory as a Buffer
 const upload = multer({ storage });
 
+
+Router.get("/fuel-records", async (req, res) => {
+  const query = "SELECT * FROM FUEL";
+  db.query(query, (err, results) => {
+    if (err) {
+      console.error("Error executing query:", err);
+      return res.status(500).json({ error: "Database query failed" });
+    }
+    res.json(results);
+  });
+});
+
 Router.post("/create-fuel", upload.single("photo"), async (req, res) => {
   try {
     // Generate a unique F_ID

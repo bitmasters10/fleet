@@ -100,7 +100,7 @@ Router.post("/create-trip", async (req, res) => {
   }
 });
  
-Router.get("/trips", (req, res) => {
+Router.get("/trips", isAdmin, (req, res) => {
   try {
     db.query("SELECT * FROM TRIP ", (err, rows) => {
       if (err) {

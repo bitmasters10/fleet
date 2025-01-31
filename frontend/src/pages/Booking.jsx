@@ -5,6 +5,7 @@ import Input from "../components/Input";
 import { useBooking } from "../contexts/BookingContext";
 import { useDrivers } from "../contexts/DriverContext";
 import { useVehicle } from "../contexts/VehicleContext";
+import NormalForm from "../components/NormalForm";
 
 // eslint-disable-next-line react/prop-types
 export default function Booking({ title, track }) {
@@ -23,6 +24,7 @@ export default function Booking({ title, track }) {
 
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [bookingError, setBookingError] = useState(null);
+  const [activeTab, setActiveTab] = useState("normal");
 
   const date = "25-01-2025";
   const start_time = "13:00";
@@ -110,13 +112,43 @@ export default function Booking({ title, track }) {
               <h3 className="text-lg font-semibold mb-4 text-gray-700 dark:text-gray-200">
                 Create Booking
               </h3>
-              <CreateForm
-                createBooking={handleCreateBooking}
-                createManualBooking={handleCreateManualBooking}
-                setShowCreateForm={setShowCreateForm}
-                bookingError={bookingError}
-                fetchPackages={fetchPackages}
-              />
+
+              {/* Tab Navigation */}
+              <div className="flex mb-4">
+                <button
+                  className={`px-4 py-2 ${
+                    activeTab === "normal"
+                      ? "bg-blue-500 text-white"
+                      : "bg-gray-200"
+                  }`}
+                  onClick={() => setActiveTab("normal")}
+                >
+                  Normal Booking
+                </button>
+                <button
+                  className={`px-4 py-2 ${
+                    activeTab === "manual"
+                      ? "bg-blue-500 text-white"
+                      : "bg-gray-200"
+                  }`}
+                  onClick={() => setActiveTab("manual")}
+                >
+                  Manual Booking
+                </button>
+              </div>
+
+              {/* Render the appropriate form based on the active tab */}
+              {activeTab === "normal" ? (
+                <CreateForm
+                  createBooking={handleCreateBooking}
+                  createManualBooking={handleCreateManualBooking}
+                  setShowCreateForm={setShowCreateForm}
+                  bookingError={bookingError}
+                  fetchPackages={fetchPackages}
+                />
+              ) : (
+                <NormalForm />
+              )}
             </div>
           </div>
         )}
@@ -226,7 +258,7 @@ function CreateForm({
   };
 
   return (
-    <form onSubmit={handleSubmit} className="overflow-y-auto h-[70vh]">
+    <form onSubmit={handleSubmit} className="overflow-y-auto h-[63vh]">
       {bookingError && <div className="text-red-500 mb-2">{bookingError}</div>}
 
       <div className="mb-4">
