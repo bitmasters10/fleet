@@ -146,7 +146,18 @@ Router.post("/avail-drivers",isAdmin, (req, res) => {
 Router.post("myloc",(req,res)=>{
   const {lat,long}=req.body
   const id=req.user.DRIVER_ID;
-  const q="UPDATE DRIVER SET LATITUDE=?,LONGITUDE=?"
+  const q="UPDATE DRIVER SET LATITUDE=?,LONGITUDE=? where DRIVER_ID=?"
+  try {
+    db.query(q,[lat,long,id], (err, rows) => {
+      if (err) {
+        console.error("Error executing query:", err);
+        return res.status(500).send("Server Error");
+      }
+      return res.status(200).json(rows);
+    });
+  } catch (err) {
+    console.error("Error during retive:", err);
+  }
 
 })
 module.exports = Router;
