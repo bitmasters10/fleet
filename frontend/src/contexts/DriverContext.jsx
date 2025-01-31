@@ -1,5 +1,5 @@
 import axios from "axios";
-import { createContext, useContext, useState} from "react";
+import { createContext, useContext, useState } from "react";
 
 const DriverContext = createContext();
 
@@ -8,7 +8,7 @@ export const DriverProvider = ({ children }) => {
   const [drivers, setDrivers] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  
+
   const axiosInstance = axios.create({
     baseURL: "http://localhost:3000", // Replace with your backend base URL
     withCredentials: true, // Important: This ensures that cookies (session) are included in requests
@@ -20,7 +20,8 @@ export const DriverProvider = ({ children }) => {
       const response = await axiosInstance.get("/admin/drivers");
       setDrivers(response.data);
     } catch (error) {
-      console.error("Error fetching cars:", error);
+      console.error("Error fetching drivers:", error);
+      setError("Error fetching drivers."); // Set error state
     } finally {
       setLoading(false);
     }
@@ -28,12 +29,17 @@ export const DriverProvider = ({ children }) => {
 
   const addDriver = async (driver) => {
     try {
-      
-      const response = await axiosInstance.post("/driver-auth/register", driver);
+      const response = await axiosInstance.post(
+        "/driver-auth/register",
+        driver
+      );
       setDrivers((prev) => [...prev, response.data.user]);
       return { success: true };
     } catch (error) {
-      return { success: false, message: error.response?.data?.message || "Error adding admin:" };
+      return {
+        success: false,
+        message: error.response?.data?.message || "Error adding admin:",
+      };
     }
   };
 
@@ -41,7 +47,9 @@ export const DriverProvider = ({ children }) => {
   const deleteDriver = async (id) => {
     try {
       await axiosInstance.delete(`/admin/driver/${id}`);
-      setDrivers((prevDrivers) => prevDrivers.filter((driver) => driver.DRIVER_ID !== id));
+      setDrivers((prevDrivers) =>
+        prevDrivers.filter((driver) => driver.DRIVER_ID !== id)
+      );
     } catch (error) {
       console.error("Error deleting driver:", error);
     }
@@ -57,7 +65,7 @@ export const DriverProvider = ({ children }) => {
         `/admin/driver/${updatedDriver.DRIVER_ID}`, // Use DRIVER_ID for the URL
         updatedDriver // Pass the updated driver data as the body
       );
-  
+
       // Update the local state after a successful response
       setDrivers((prevDrivers) =>
         prevDrivers.map((driver) =>
@@ -68,7 +76,6 @@ export const DriverProvider = ({ children }) => {
       console.error("Error updating driver:", error); // Update error message for clarity
     }
   };
-  
 
   // Fetch a single driver by ID
   const fetchDriverById = async (id) => {
@@ -91,10 +98,16 @@ export const DriverProvider = ({ children }) => {
   const fetchAvailableDrivers = async (date, start_time, end_time) => {
     setLoading(true);
     try {
-      const response = await axiosInstance.post("/avail-drivers", { date, start_time, end_time });
+      const response = await axiosInstance.post("/admin/avail-drivers", {
+        date,
+        start_time,
+        end_time,
+      });
+      
       setDrivers(response.data);
     } catch (error) {
       console.error("Error fetching available drivers:", error);
+      setError("Error fetching available drivers."); // Set error state
     } finally {
       setLoading(false);
     }
@@ -112,7 +125,9 @@ export const DriverProvider = ({ children }) => {
     fetchDriverById,
   };
 
-  return <DriverContext.Provider value={value}>{children}</DriverContext.Provider>;
+  return (
+    <DriverContext.Provider value={value}>{children}</DriverContext.Provider>
+  );
 };
 
 // eslint-disable-next-line react-refresh/only-export-components

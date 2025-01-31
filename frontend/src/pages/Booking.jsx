@@ -7,12 +7,7 @@ import { useVehicle } from "../contexts/VehicleContext";
 
 // eslint-disable-next-line react/prop-types
 export default function Booking({ title, track }) {
-  const { 
-    bookings, 
-    loading, 
-    fetchBookings, 
-    createBooking 
-  } = useBooking();
+  const { bookings, loading, fetchBookings, createBooking } = useBooking();
 
   const { fetchAvailableDrivers, drivers } = useDrivers();
   const { fetchAvailableVehicles, vehicles } = useVehicle();
@@ -26,17 +21,20 @@ export default function Booking({ title, track }) {
 
   // Fetch available drivers and vehicles using the context functions
   useEffect(() => {
+    fetchBookings();
     fetchAvailableDrivers(date, start_time, end_time);
     fetchAvailableVehicles(date, start_time, end_time);
   }, []);
-
+  
+  console.log("Bookings Data:", bookings);
+  
   // Create booking logic
   const handleCreateBooking = async (bookingData) => {
     const { NO_OF_PASSENGER, CAR_ID, DRIVER_ID, PACKAGE_ID } = bookingData;
 
     // Validate the booking data
-    const selectedCar = vehicles.find(vehicle => vehicle.id === CAR_ID);
-    const selectedDriver = drivers.find(driver => driver.id === DRIVER_ID);
+    const selectedCar = vehicles.find((vehicle) => vehicle.id === CAR_ID);
+    const selectedDriver = drivers.find((driver) => driver.id === DRIVER_ID);
 
     if (!selectedCar || !selectedDriver) {
       setBookingError("Please select a valid car and driver.");
@@ -58,7 +56,10 @@ export default function Booking({ title, track }) {
       <div className="xl:max-w-[90%] max-xl:mx-auto w-full bg-white my-20 dark:bg-gray-800">
         <div className="flex justify-between items-center mx-4 px-6 pt-6">
           <h2 className="text-3xl font-semibold">{title}</h2>
-          <AddButton setShowCreateForm={setShowCreateForm} showCreateForm={showCreateForm} />
+          <AddButton
+            setShowCreateForm={setShowCreateForm}
+            showCreateForm={showCreateForm}
+          />
         </div>
 
         {showCreateForm && (
@@ -70,7 +71,9 @@ export default function Booking({ title, track }) {
               >
                 &times;
               </button>
-              <h3 className="text-lg font-semibold mb-4 text-gray-700 dark:text-gray-200">Create Booking</h3>
+              <h3 className="text-lg font-semibold mb-4 text-gray-700 dark:text-gray-200">
+                Create Booking
+              </h3>
               <CreateForm
                 availableCars={vehicles}
                 availableDrivers={drivers}
@@ -174,7 +177,10 @@ function CreateForm({
       </div>
 
       <div className="mt-4">
-        <button type="submit" className="bg-green-500 text-white px-4 py-2 rounded shadow hover:bg-green-600">
+        <button
+          type="submit"
+          className="bg-green-500 text-white px-4 py-2 rounded shadow hover:bg-green-600"
+        >
           Submit
         </button>
       </div>
@@ -183,10 +189,22 @@ function CreateForm({
 }
 
 // TableManage component
+// eslint-disable-next-line react/prop-types
 function TableManage({ bookings, loading }) {
   if (loading) {
     return <div>Loading...</div>;
   }
+
+  // Handle Accept and Reject actions
+  const handleAccept = (bookingId) => {
+    alert(`Accepted booking: ${bookingId}`);
+    // Add API call or state update logic here
+  };
+
+  const handleReject = (bookingId) => {
+    alert(`Rejected booking: ${bookingId}`);
+    // Add API call or state update logic here
+  };
 
   return (
     <div className="max-lg:relative block overflow-x-auto shadow-md sm:rounded-lg">
@@ -194,20 +212,35 @@ function TableManage({ bookings, loading }) {
         <thead className="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
           <tr>
             <th scope="col" className="px-6 py-3">Booking ID</th>
-            <th scope="col" className="px-6 py-3">Car</th>
-            <th scope="col" className="px-6 py-3">Driver</th>
-            <th scope="col" className="px-6 py-3">Date</th>
+            <th scope="col" className="px-6 py-3">Car ID</th>
+            <th scope="col" className="px-6 py-3">User ID</th>
+            <th scope="col" className="px-6 py-3">Pickup Location</th>
             <th scope="col" className="px-6 py-3">Time</th>
+            <th scope="col" className="px-6 py-3 text-center">Actions</th>
           </tr>
         </thead>
         <tbody>
           {bookings.map((booking) => (
-            <tr key={booking.id} className="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
-              <th scope="row" className="px-6 py-3">{booking.id}</th>
-              <td className="px-6 py-3">{booking.car}</td>
-              <td className="px-6 py-3">{booking.driver}</td>
-              <td className="px-6 py-3">{booking.date}</td>
-              <td className="px-6 py-3">{booking.time}</td>
+            <tr key={booking.BOOK_ID} className="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
+              <td className="px-6 py-3">{booking.BOOK_ID}</td>
+              <td className="px-6 py-3">{booking.CAR_ID}</td>
+              <td className="px-6 py-3">{booking.USER_ID}</td>
+              <td className="px-6 py-3">{booking.PICKUP_LOC}</td>
+              <td className="px-6 py-3">{booking.TIMING}</td>
+              <td className="px-6 py-3 flex">
+                <button
+                  onClick={() => handleAccept(booking.BOOK_ID)}
+                  className="bg-green-500 text-white px-3 py-1 rounded shadow hover:bg-green-600 mx-1"
+                >
+                  Accept
+                </button>
+                <button
+                  onClick={() => handleReject(booking.BOOK_ID)}
+                  className="bg-red-500 text-white px-3 py-1 rounded shadow hover:bg-red-600 mx-1"
+                >
+                  Reject
+                </button>
+              </td>
             </tr>
           ))}
         </tbody>
@@ -215,7 +248,6 @@ function TableManage({ bookings, loading }) {
     </div>
   );
 }
-
 
 function AddButton({ showCreateForm, setShowCreateForm }) {
   return (

@@ -30,7 +30,7 @@ async function idmake(table, column) {
     db.query(query, [id], (err, rows) => {
       if (err) {
         console.error("Error executing query:", err);
-        return reject(err);
+        return reject(err)
       }
 
       if (rows.length === 0) {

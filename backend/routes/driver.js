@@ -142,6 +142,7 @@ Router.post("/avail-drivers",isAdmin, (req, res) => {
     return res.status(500).send("Unexpected Server Error");
   }
 });
+
 Router.post("myloc",(req,res)=>{
   const {lat,long}=req.body
   const id=req.user.DRIVER_ID;

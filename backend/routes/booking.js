@@ -66,8 +66,6 @@ Router.get("/available-books", (req, res) => {
         s.order_status = ? AND s.fleet_status = ?
 `;
 
-
-
   try {
     db.query(q, ["order_status=Success", "waiting"], (err, rows) => {
       if (err) {
@@ -132,13 +130,13 @@ Router.post("/create-book", async (req, res) => {
     PACKAGE_ID,
     DROP_LOC,
     AC_NONAC,
-  
+
     END_TIME,
     VID,
     DRIVER_ID,
-    mobile
+    mobile,
   } = req.body;
-  
+
   db.query(
     "select * from BOOKING where CAR_ID=? AND DRIVER_ID=? AND TIMING=? AND END_TIME=?",
     [CAR_ID, DRIVER_ID, TIMING, END_TIME],
@@ -165,11 +163,11 @@ Router.post("/create-book", async (req, res) => {
         PACKAGE_ID,
         DROP_LOC,
         AC_NONAC,
-        stat:"READY",
+        stat: "READY",
         END_TIME,
         VID,
         DRIVER_ID,
-        mobile_no:mobile
+        mobile_no: mobile,
       };
       console.log(ID);
       db.query(" INSERT INTO BOOKING SET ?", newBook, (err, rows) => {
@@ -207,13 +205,13 @@ Router.post("/create-mannual-book", async (req, res) => {
     PACKAGE_ID,
     DROP_LOC,
     AC_NONAC,
-    
+
     END_TIME,
-    
+
     DRIVER_ID,
-    MOBILE_NO
+    MOBILE_NO,
   } = req.body;
-  
+
   db.query(
     "select * from BOOKING where CAR_ID=? AND DRIVER_ID=? AND TIMING=? AND END_TIME=?",
     [CAR_ID, DRIVER_ID, TIMING, END_TIME],
@@ -240,13 +238,13 @@ Router.post("/create-mannual-book", async (req, res) => {
         PACKAGE_ID,
         DROP_LOC,
         AC_NONAC,
-        stat:"READY",
+        stat: "READY",
         END_TIME,
-        mobile_no:MOBILE_NO,
+        mobile_no: MOBILE_NO,
         DRIVER_ID,
       };
-      console.log(MOBILE_NO)
-      console.log(newBook)
+      console.log(MOBILE_NO);
+      console.log(newBook);
       console.log(ID);
       db.query(" INSERT INTO BOOKING SET ?", newBook, (err, rows) => {
         if (err) {
@@ -254,9 +252,8 @@ Router.post("/create-mannual-book", async (req, res) => {
           return res.status(500).send("Server Error");
         }
         return res
-              .status(200)
-              .json({ message: "new book added", results: rows });
-        
+          .status(200)
+          .json({ message: "new book added", results: rows });
       });
     }
   );
@@ -280,9 +277,8 @@ Router.patch("/booking/:id", (req, res) => {
   const { id } = req.params;
   const {
     TIMING,
-    
+
     END_TIME,
-   
   } = req.body;
   const query = "UPDATE BOOKING SET   TIMING=?, END_TIME=?	WHERE BOOK_ID = ?";
   db.query(query, [TIMING, END_TIME, id], (err, rows) => {
@@ -295,7 +291,7 @@ Router.patch("/booking/:id", (req, res) => {
   });
 });
 
-Router.get("/bookings",(req,res)=>{
+Router.get("/bookings", (req, res) => {
   try {
     db.query("SELECT * FROM BOOKING ", (err, rows) => {
       if (err) {
@@ -307,7 +303,7 @@ Router.get("/bookings",(req,res)=>{
   } catch (err) {
     console.error("Error during retrive:", err);
   }
-})
+});
 Router.get("/packages", (req, res) => {
   try {
     db.query("SELECT * FROM PACKAGE ", (err, rows) => {
@@ -321,6 +317,5 @@ Router.get("/packages", (req, res) => {
     console.error("Error during retive:", err);
   }
 });
-
 
 module.exports = Router;

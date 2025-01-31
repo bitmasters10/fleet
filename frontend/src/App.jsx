@@ -50,9 +50,10 @@ function App() {
     <Router>
       <AuthProvider>
         <AdminProvider>
+        <BookingProvider>
+
           <VehicleProvider>
             <DriverProvider>
-              <BookingProvider>
         {/* Navbar is always visible */}
         <NavbarWrapper />
 
@@ -140,9 +141,10 @@ function App() {
             </Routes>
           </div>
         </AppLayout>
-        </BookingProvider>
         </DriverProvider>
         </VehicleProvider>
+        </BookingProvider>
+
         </AdminProvider>
       </AuthProvider>
     </Router>
