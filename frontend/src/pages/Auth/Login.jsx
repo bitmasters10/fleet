@@ -183,7 +183,7 @@ function Password({ password, onPassword }) {
 function Radio({ onRadio}) {
   return (
     <div className="flex justify-between">
-      <div className="flex items-center ps-4 border border-[#FF6500] rounded dark:border-gray-700 w-72 rounded-r-none">
+      <div className="flex items-center ps-4 border border-[#FF6500] rounded dark:border-[#FF6500] w-72 rounded-r-none">
         <input
           defaultChecked
           id="bordered-radio-1"
@@ -200,7 +200,7 @@ function Radio({ onRadio}) {
           Admin
         </label>
       </div>
-      <div className="flex items-center ps-4 border border-[#FF6500] rounded dark:border-gray-700 w-72 rounded-l-none">
+      <div className="flex items-center ps-4 border border-[#FF6500] rounded dark:border-[#FF6500] w-72 rounded-l-none">
         <input
           id="bordered-radio-2"
           type="radio"
