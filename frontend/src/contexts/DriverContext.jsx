@@ -104,7 +104,7 @@ export const DriverProvider = ({ children }) => {
         end_time,
       });
       
-      setDrivers(response.data);
+      return response.data;
     } catch (error) {
       console.error("Error fetching available drivers:", error);
       setError("Error fetching available drivers."); // Set error state

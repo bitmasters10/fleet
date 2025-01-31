@@ -1,10 +1,9 @@
-import  { createContext, useContext, useState } from "react";
+import { createContext, useContext, useState } from "react";
 import axios from "axios";
 
 const BookingContext = createContext();
 
 // Custom hook to use the BookingContext
-
 
 // BookingContext Provider Component
 // eslint-disable-next-line react/prop-types
@@ -51,12 +50,14 @@ export const BookingProvider = ({ children }) => {
 
   // Create a new booking
   const createBooking = async (bookingData) => {
+    console.log("Creating booking with data:", bookingData);
     setError(null);
     try {
       const response = await axiosInstance.post(
-        "/admin/create-booking",
+        "/admin/create-book",
         bookingData
       );
+      console.log("Booking created successfully:", response.data);
       setBookings((prevBookings) => [...prevBookings, response.data.booking]);
       return { success: true };
     } catch (error) {
@@ -65,6 +66,29 @@ export const BookingProvider = ({ children }) => {
       return {
         success: false,
         message: error.response?.data?.message || "Error creating booking.",
+      };
+    }
+  };
+
+  // Create a manual booking
+  const createManualBooking = async (bookingData) => {
+    console.log("Creating manual booking with data:", bookingData);
+    setError(null);
+    try {
+      const response = await axiosInstance.post(
+        "/admin/create-manual-book",
+        bookingData
+      );
+      console.log("Manual booking created successfully:", response.data);
+      setBookings((prevBookings) => [...prevBookings, response.data.booking]);
+      return { success: true };
+    } catch (error) {
+      console.error("Error creating manual booking:", error);
+      setError("Error creating manual booking.");
+      return {
+        success: false,
+        message:
+          error.response?.data?.message || "Error creating manual booking.",
       };
     }
   };
@@ -105,6 +129,81 @@ export const BookingProvider = ({ children }) => {
     }
   };
 
+  // Fetch all packages
+  const fetchPackages = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await axiosInstance.get("/admin/packages");
+      return response.data; // Return the fetched packages
+    } catch (error) {
+      console.error("Error fetching packages:", error);
+      setError(error.response?.data?.message || "Error fetching packages.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Create a new package
+  const createPackage = async (packageData) => {
+    console.log("Creating package with data:", packageData);
+    setError(null);
+    try {
+      const response = await axiosInstance.post(
+        "/admin/add-package",
+        packageData
+      );
+      console.log("Package created successfully:", response.data);
+      return { success: true };
+    } catch (error) {
+      console.error("Error creating package:", error);
+      setError("Error creating package.");
+      return {
+        success: false,
+        message: error.response?.data?.message || "Error creating package.",
+      };
+    }
+  };
+
+  // Update an existing package
+  const updatePackage = async (packageId, packageData) => {
+    console.log("Updating package with ID:", packageId);
+    setError(null);
+    try {
+      const response = await axiosInstance.patch(
+        `/admin/package/${packageId}`,
+        packageData
+      );
+      console.log("Package updated successfully:", response.data);
+      return { success: true };
+    } catch (error) {
+      console.error("Error updating package:", error);
+      setError("Error updating package.");
+      return {
+        success: false,
+        message: error.response?.data?.message || "Error updating package.",
+      };
+    }
+  };
+
+  // Delete a package
+  const deletePackage = async (packageId) => {
+    console.log("Deleting package with ID:", packageId);
+    setError(null);
+    try {
+      await axiosInstance.delete(`/admin/package/${packageId}`);
+      console.log("Package deleted successfully");
+      return { success: true };
+    } catch (error) {
+      console.error("Error deleting package:", error);
+      setError("Error deleting package.");
+      return {
+        success: false,
+        message: error.response?.data?.message || "Error deleting package.",
+      };
+    }
+  };
+
   return (
     <BookingContext.Provider
       value={{
@@ -115,9 +214,13 @@ export const BookingProvider = ({ children }) => {
         fetchBookings,
         fetchBookingById,
         createBooking,
+        createManualBooking,
+        fetchPackages,
+        createPackage,
+        updatePackage,
+        deletePackage,
         updateBooking,
         deleteBooking,
-  
       }}
     >
       {children}

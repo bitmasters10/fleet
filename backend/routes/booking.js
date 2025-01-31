@@ -192,7 +192,7 @@ Router.post("/create-book", async (req, res) => {
     }
   );
 });
-Router.post("/create-mannual-book", async (req, res) => {
+Router.post("/create-manual-book", async (req, res) => {
   let ID = await idmake("BOOKING", "BOOK_ID");
   const {
     TIMING,
