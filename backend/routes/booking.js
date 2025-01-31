@@ -307,7 +307,7 @@ Router.get("/bookings", (req, res) => {
 });
 Router.delete("/booking/:id",(req,res)=>{
   const {id}=req.params;
-  const q="delete  BOOKING where BOOK_ID=?"
+  const q="delete from BOOKING where BOOK_ID=?"
   try {
     db.query(q,[id] ,(err, rows) => {
       if (err) {
@@ -320,7 +320,7 @@ Router.delete("/booking/:id",(req,res)=>{
     console.error("Error during retive:", err);
   }
 
-})
+  })
 Router.get("/packages", (req, res) => {
   try {
     db.query("SELECT * FROM PACKAGE ", (err, rows) => {
