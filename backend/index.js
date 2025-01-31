@@ -59,6 +59,7 @@ app.use('/Sadmin', require('./routes/admin'));
 app.use('/admin', require('./routes/car'));
 app.use('/admin', require('./routes/booking'));
 app.use('/admin', require('./routes/driver'));
+app.use('/admin', require('./routes/trip'));
 app.use('/driver', require('./routes/driver_app'));
 app.use('/admin', require('./routes/img'));
 app.use('/admin', require('./routes/user'));

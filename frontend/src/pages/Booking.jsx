@@ -1,3 +1,4 @@
+/* eslint-disable react/prop-types */
 import React, { useState, useContext, useEffect } from "react";
 import Heading from "../components/Heading";
 import Input from "../components/Input";
@@ -7,7 +8,7 @@ import { useVehicle } from "../contexts/VehicleContext";
 
 // eslint-disable-next-line react/prop-types
 export default function Booking({ title, track }) {
-  const { bookings, loading, fetchBookings, createBooking } = useBooking();
+  const { bookings, loading, fetchBookings, createBooking, updateBooking, deleteBooking } = useBooking();
 
   const { fetchAvailableDrivers, drivers } = useDrivers();
   const { fetchAvailableVehicles, vehicles } = useVehicle();
@@ -117,12 +118,7 @@ function CreateForm({
   });
 
   // Handle change in form inputs
-  const handleInputChange = (e) => {
-    setBookingData({
-      ...bookingData,
-      [e.target.name]: e.target.value,
-    });
-  };
+
 
   // Handle car and driver selection
   const handleCarSelection = (e) => {
@@ -190,21 +186,10 @@ function CreateForm({
 
 // TableManage component
 // eslint-disable-next-line react/prop-types
-function TableManage({ bookings, loading }) {
+function TableManage({ bookings, loading, setEditingBooking, setShowCreateForm , deleteBooking}) {
   if (loading) {
     return <div>Loading...</div>;
   }
-
-  // Handle Accept and Reject actions
-  const handleAccept = (bookingId) => {
-    alert(`Accepted booking: ${bookingId}`);
-    // Add API call or state update logic here
-  };
-
-  const handleReject = (bookingId) => {
-    alert(`Rejected booking: ${bookingId}`);
-    // Add API call or state update logic here
-  };
 
   return (
     <div className="max-lg:relative block overflow-x-auto shadow-md sm:rounded-lg">
@@ -227,18 +212,21 @@ function TableManage({ bookings, loading }) {
               <td className="px-6 py-3">{booking.USER_ID}</td>
               <td className="px-6 py-3">{booking.PICKUP_LOC}</td>
               <td className="px-6 py-3">{booking.TIMING}</td>
-              <td className="px-6 py-3 flex">
+              <td className="px-6 py-4 flex">
                 <button
-                  onClick={() => handleAccept(booking.BOOK_ID)}
-                  className="bg-green-500 text-white px-3 py-1 rounded shadow hover:bg-green-600 mx-1"
+                  className="font-medium text-blue-600 dark:text-blue-500 hover:underline px-1"
+                  onClick={() => {
+                    setEditingBooking(booking);
+                    setShowCreateForm(true);
+                  }}
                 >
-                  Accept
+                  Edit
                 </button>
                 <button
-                  onClick={() => handleReject(booking.BOOK_ID)}
-                  className="bg-red-500 text-white px-3 py-1 rounded shadow hover:bg-red-600 mx-1"
+                  className="font-medium text-red-600 dark:text-red-500 hover:underline pl-1"
+                  onClick={() => deleteBooking(booking.BOOK_ID)}
                 >
-                  Reject
+                  Delete
                 </button>
               </td>
             </tr>
@@ -249,6 +237,8 @@ function TableManage({ bookings, loading }) {
   );
 }
 
+
+// eslint-disable-next-line react/prop-types
 function AddButton({ showCreateForm, setShowCreateForm }) {
   return (
     <a
