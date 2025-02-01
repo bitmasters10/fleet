@@ -15,6 +15,7 @@ export const useVehicle = () => {
 // eslint-disable-next-line react/prop-types
 export const VehicleProvider = ({ children }) => {
   const [vehicles, setVehicles] = useState([]);
+  const [availableVehicles, setAvailableVehicles] = useState([]);
   const [vehicleDetails, setVehicleDetails] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -59,7 +60,7 @@ export const VehicleProvider = ({ children }) => {
         start_time,
         end_time,
       });
-      setVehicles(response.data);
+      return response.data;
     } catch (error) {
       console.error("Error fetching available vehicles:", error);
       setError("Error fetching available vehicles."); // Set error state
@@ -117,6 +118,7 @@ export const VehicleProvider = ({ children }) => {
         vehicleDetails,
         loading,
         error,
+        availableVehicles,
         fetchVehicles,
         fetchVehicleById,
         fetchAvailableVehicles,

@@ -29,10 +29,7 @@ export default function Trip({ title, track }) {
   );
 }
 
-
-
-// eslint-disable-next-line react/prop-types
-function TableManage({ trips = [] }) {
+function TableManage({ data = [] }) {
   return (
     <div className="max-lg:relative block overflow-x-auto shadow-md sm:rounded-lg">
       <table className="w-full lg:max-w-[95%] mx-auto text-sm text-left rtl:text-right mb-9 text-gray-500 dark:text-gray-400">
@@ -51,8 +48,8 @@ function TableManage({ trips = [] }) {
           </tr>
         </thead>
         <tbody>
-          {trips.length > 0 ? (
-            trips.map((trip) => (
+          {data.length > 0 ? (
+            data.map((trip) => (
               <tr
                 key={trip.TRIP_ID}
                 className="bg-white border-b dark:bg-gray-800 dark:border-gray-700"
@@ -65,7 +62,7 @@ function TableManage({ trips = [] }) {
                 <td className="px-6 py-4">{trip.OTP}</td>
                 <td className="px-6 py-4">{trip.STAT}</td>
                 <td className="px-6 py-4">{trip.ROOM_ID}</td>
-                <td className="px-6 py-4">{trip.date}</td>
+                <td className="px-6 py-4">{trip.DATE}</td>
                 <td className="px-6 py-4">{trip.DRIVER_ID}</td>
               </tr>
             ))
@@ -81,6 +78,3 @@ function TableManage({ trips = [] }) {
     </div>
   );
 }
-
-
-

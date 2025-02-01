@@ -6,7 +6,7 @@ import Dashboard from "./pages/Dashboard";
 import Map from "./pages/Map";
 import Admin from "./pages/Admin";
 import Driver from "./pages/Driver";
-import User from "./pages/User";
+import User from "./pages/Fuel";
 import Vehicle from "./pages/Vehicle";
 import Trip from "./pages/Trip";
 import Booking from "./pages/Booking";
@@ -20,6 +20,9 @@ import { AdminProvider } from "./contexts/AdminContext";
 import { VehicleProvider } from "./contexts/VehicleContext";
 import { DriverProvider } from "./contexts/DriverContext";
 import { BookingProvider } from "./contexts/BookingContext";
+import { TripProvider } from "./contexts/TripContext";
+import { FuelProvider } from "./contexts/FuelContext";
+import Fuel from "./pages/Fuel";
 
 // PrivateRoute Component to protect routes
 // eslint-disable-next-line react/prop-types
@@ -51,7 +54,8 @@ function App() {
       <AuthProvider>
         <AdminProvider>
         <BookingProvider>
-
+        <TripProvider>
+        <FuelProvider>  
           <VehicleProvider>
             <DriverProvider>
         {/* Navbar is always visible */}
@@ -107,10 +111,10 @@ function App() {
                 }
               />
               <Route
-                path="/user"
+                path="/fuel"
                 element={
                   <PrivateRoute>
-                    <User title="User" track="Manage" />
+                    <Fuel title="Fuel" track="Manage" />
                   </PrivateRoute>
                 }
               />
@@ -143,8 +147,10 @@ function App() {
         </AppLayout>
         </DriverProvider>
         </VehicleProvider>
-        </BookingProvider>
+        </FuelProvider>
+        </TripProvider>
 
+        </BookingProvider>
         </AdminProvider>
       </AuthProvider>
     </Router>
