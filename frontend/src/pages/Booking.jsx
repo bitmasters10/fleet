@@ -139,6 +139,8 @@ export default function Booking({ title, track }) {
 
               {/* Render the appropriate form based on the active tab */}
               {activeTab === "normal" ? (
+                <NormalForm />
+              ) : (
                 <CreateForm
                   createBooking={handleCreateBooking}
                   createManualBooking={handleCreateManualBooking}
@@ -146,8 +148,6 @@ export default function Booking({ title, track }) {
                   bookingError={bookingError}
                   fetchPackages={fetchPackages}
                 />
-              ) : (
-                <NormalForm />
               )}
             </div>
           </div>
