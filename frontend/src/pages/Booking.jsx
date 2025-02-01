@@ -258,7 +258,7 @@ function CreateForm({
   };
 
   return (
-    <form onSubmit={handleSubmit} className="overflow-y-auto h-[63vh]">
+    <form onSubmit={handleSubmit} className="overflow-y-auto h-[55vh]">
       {bookingError && <div className="text-red-500 mb-2">{bookingError}</div>}
 
       <div className="mb-4">

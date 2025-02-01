@@ -66,7 +66,7 @@ const NormalForm = ({ setShowCreateForm }) => {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="overflow-y-auto h-[70vh]">
+    <form onSubmit={handleSubmit} className="overflow-y-auto h-[60vh]">
       <div className="mb-4">
         <label className="block text-gray-700 dark:text-gray-200">Date</label>
         <input 
