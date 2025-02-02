@@ -1,4 +1,4 @@
-import React from 'react';
+import React from "react";
 import {
   StyleSheet,
   View,
@@ -7,112 +7,94 @@ import {
   TouchableOpacity,
   ScrollView,
   SafeAreaView,
-} from 'react-native';
+} from "react-native";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
+import BottomNav from "../navigation/BottomTabNavigator";
 
-
-// Review component
-const Review = ({ 
-  name, 
-  location, 
-  date, 
-  rating, 
-  text, 
-  source, 
-  avatar 
-}) => (
-  <View style={styles.reviewCard}>
-    <View style={styles.reviewHeader}>
-      <View style={styles.reviewerInfo}>
-        <Text style={styles.reviewerName}>{name}</Text>
-        <Text style={styles.reviewMeta}>{date} • {location}</Text>
-      </View>
-      <Image 
-        source={{ uri: avatar }} 
-        style={styles.reviewerAvatar}
-      />
-    </View>
-    <View style={styles.ratingContainer}>
-      {[1, 2, 3, 4, 5].map((star) => (
-        <Icon 
-          key={star}
-          name={star <= rating ? "star" : "star-outline"}
-          size={16}
-          color={star <= rating ? "#FFD700" : "#C4C4C4"}
-        />
-      ))}
-      <Text style={styles.sourceText}>{source}</Text>
-    </View>
-    <Text style={styles.reviewText}>{text}</Text>
-    <TouchableOpacity style={styles.shareButton}>
-      <Icon name="share-variant" size={20} color="#666" />
-    </TouchableOpacity>
-  </View>
-);
+const driverData = {
+  DRIVER_ID: "3e1f079b-995f-4c58-98e4-10ad2d243e12",
+  NAME: "jundaid",
+  EMAIL_ID: "user@example.com",
+  LICENSE_NO: "11111",
+  GENDER: "Male",
+};
 
 export default function ProfileScreen() {
+  const renderMenuItem = (icon, title) => (
+    <TouchableOpacity style={styles.menuItem}>
+      <View style={styles.menuLeft}>
+        <Icon name={icon} size={24} color="#4FA89B" />
+        <Text style={styles.menuText}>{title}</Text>
+      </View>
+      <Icon name="chevron-right" size={24} color="#666" />
+    </TouchableOpacity>
+  );
+
+  const renderDocumentItem = (title, value) => (
+    <View style={styles.documentItem}>
+      <Text style={styles.documentLabel}>{title}</Text>
+      <Text style={styles.documentValue}>{value}</Text>
+    </View>
+  );
+
   return (
     <SafeAreaView style={styles.container}>
-      
-        
-
+      <ScrollView style={styles.content}>
         <View style={styles.profileSection}>
-          <TouchableOpacity style={styles.actionButton}>
-            <Icon name="phone" size={24} color="#4FA89B" />
-            <Text style={styles.actionText}>Call</Text>
-          </TouchableOpacity>
+          <Image
+            source={{
+              uri: "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-Sff3YZXkjD9kgp0i3sA4MQzPoP3MY1.png",
+            }}
+            style={styles.profileImage}
+          />
+          <Text style={styles.profileName}>{driverData.NAME}</Text>
+          <Text style={styles.profileHandle}>
+            @{driverData.NAME.toLowerCase()}
+          </Text>
+        </View>
 
-          <View style={styles.profileImageContainer}>
-            <Image
-              source={{ uri: 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-gh9ztB8E38LQzjywwapUjdkETlUvca.png' }}
-              style={styles.profileImage}
-            />
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Driver Information</Text>
+          {renderDocumentItem("Driver ID", driverData.DRIVER_ID)}
+          {renderDocumentItem("Email", driverData.EMAIL_ID)}
+          {renderDocumentItem("License No", driverData.LICENSE_NO)}
+          {renderDocumentItem("Gender", driverData.GENDER)}
+        </View>
+
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Identity Documents</Text>
+          <View style={styles.documentCard}>
+            <Icon name="card-account-details" size={24} color="#4FA89B" />
+            <View style={styles.documentInfo}>
+              <Text style={styles.documentTitle}>Aadhar Card</Text>
+              <Text style={styles.documentNumber}>XXXX-XXXX-1234</Text>
+            </View>
+            <TouchableOpacity style={styles.viewButton}>
+              <Text style={styles.viewButtonText}>View</Text>
+            </TouchableOpacity>
           </View>
 
-          <TouchableOpacity style={styles.actionButton}>
-            <Icon name="email" size={24} color="#4FA89B" />
-            <Text style={styles.actionText}>Email</Text>
-          </TouchableOpacity>
+          <View style={styles.documentCard}>
+            <Icon name="card-text" size={24} color="#4FA89B" />
+            <View style={styles.documentInfo}>
+              <Text style={styles.documentTitle}>PAN Card</Text>
+              <Text style={styles.documentNumber}>ABCDE1234F</Text>
+            </View>
+            <TouchableOpacity style={styles.viewButton}>
+              <Text style={styles.viewButtonText}>View</Text>
+            </TouchableOpacity>
+          </View>
         </View>
-  
-      <View style={styles.profileInfo}>
-        <Text style={styles.driverName}>Alfonso Bator</Text>
-        <Text style={styles.driverAddress}>750 Sarah Drive Sulphur, LA 70663</Text>
-        
-        <View style={styles.ratingContainer}>
-          <Text style={styles.ratingNumber}>4.3</Text>
-          {[1, 2, 3, 4, 5].map((star) => (
-            <Icon 
-              key={star}
-              name={star <= 4 ? "star" : "star-outline"}
-              size={20}
-              color={star <= 4 ? "#FFD700" : "#C4C4C4"}
-            />
-          ))}
-        </View>
-      </View>
 
-      <ScrollView style={styles.reviewsContainer}>
-        <Review
-          name="Devon Lane"
-          location="Mesa, AZ"
-          date="Aug 9, 2019"
-          rating={4}
-          text="If you just need a marketing check up or major surgery Dr. Mortensen is your Man. Hire him."
-          source="Google"
-          avatar="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-gh9ztB8E38LQzjywwapUjdkETlUvca.png"
-        />
-        
-        <Review
-          name="Brooklyn Simmons"
-          location="Temecule, Democratic Republic..."
-          date="Aug 9, 2019"
-          rating={4}
-          text="If you just need a marketing check up or major surgery Dr. Mortensen is your Man. Hire him."
-          source="BBB"
-          avatar="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-gh9ztB8E38LQzjywwapUjdkETlUvca.png"
-        />
+        <View style={styles.menuSection}>
+          {renderMenuItem("account-group", "My Team")}
+          {renderMenuItem("share-variant", "Share App")}
+          {renderMenuItem("help-circle", "Help & resource")}
+          {renderMenuItem("credit-card", "Manage Subscription")}
+        </View>
       </ScrollView>
+
+      <BottomNav />
     </SafeAreaView>
   );
 }
@@ -120,141 +102,150 @@ export default function ProfileScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F5F5F5',
-  },
-  headerGradient: {
-    paddingTop: 20,
-    paddingBottom: 40,
-    borderBottomLeftRadius: 24,
-    borderBottomRightRadius: 24,
+    backgroundColor: "#fff",
   },
   header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     paddingHorizontal: 20,
+    paddingTop: 20,
+    paddingBottom: 40,
+    backgroundColor: "#4FA89B",
+  },
+  headerButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    justifyContent: "center",
+    alignItems: "center",
   },
   headerTitle: {
-    color: '#fff',
-    fontSize: 18,
-    fontWeight: '600',
+    fontSize: 20,
+    fontWeight: "bold",
+    color: "#fff",
   },
-  closeButton: {
-    padding: 8,
-  },
-  copyButton: {
-    padding: 8,
+  content: {
+    flex: 1,
+    marginTop: -20,
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    backgroundColor: "#fff",
   },
   profileSection: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    alignItems: 'center',
-    marginTop: 20,
-  },
-  actionButton: {
-    backgroundColor: '#fff',
-    padding: 12,
-    borderRadius: 12,
-    alignItems: 'center',
-  },
-  actionText: {
-    color: '#4FA89B',
-    marginTop: 4,
-    fontSize: 12,
-  },
-  profileImageContainer: {
-    width: 100,
-    height: 100,
-    borderRadius: 20,
-    backgroundColor: '#fff',
-    padding: 3,
+    alignItems: "center",
+    paddingVertical: 20,
   },
   profileImage: {
-    width: '100%',
-    height: '100%',
-    borderRadius: 17,
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    borderWidth: 3,
+    borderColor: "#fff",
   },
-  profileInfo: {
-    alignItems: 'center',
-    marginTop: -20,
-    padding: 20,
-  },
-  driverName: {
+  profileName: {
     fontSize: 24,
-    fontWeight: 'bold',
-    color: '#333',
-  },
-  driverAddress: {
-    fontSize: 14,
-    color: '#666',
-    marginTop: 4,
-  },
-  ratingContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    fontWeight: "bold",
+    color: "#333",
     marginTop: 12,
   },
-  ratingNumber: {
+  profileHandle: {
     fontSize: 16,
-    fontWeight: '600',
-    marginRight: 8,
-    color: '#333',
+    color: "#666",
+    marginTop: 4,
   },
-  reviewsContainer: {
-    flex: 1,
+  section: {
     padding: 20,
   },
-  reviewCard: {
-    backgroundColor: '#fff',
-    borderRadius: 12,
-    padding: 16,
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: "600",
+    color: "#333",
+    marginBottom: 16,
+  },
+  documentItem: {
     marginBottom: 12,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
   },
-  reviewHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
+  documentLabel: {
+    fontSize: 14,
+    color: "#666",
+    marginBottom: 4,
   },
-  reviewerInfo: {
-    flex: 1,
-  },
-  reviewerName: {
+  documentValue: {
     fontSize: 16,
-    fontWeight: '600',
-    color: '#333',
+    color: "#333",
   },
-  reviewMeta: {
-    fontSize: 12,
-    color: '#666',
+  documentCard: {
+    flexDirection: "row",
+    alignItems: "center",
+    padding: 16,
+    backgroundColor: "#F5F5F5",
+    borderRadius: 12,
+    marginBottom: 12,
+  },
+  documentInfo: {
+    flex: 1,
+    marginLeft: 12,
+  },
+  documentTitle: {
+    fontSize: 16,
+    fontWeight: "500",
+    color: "#333",
+  },
+  documentNumber: {
+    fontSize: 14,
+    color: "#666",
     marginTop: 2,
   },
-  reviewerAvatar: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
+  viewButton: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    backgroundColor: "#4FA89B",
+    borderRadius: 8,
   },
-  sourceText: {
-    fontSize: 12,
-    color: '#666',
-    marginLeft: 8,
-  },
-  reviewText: {
+  viewButtonText: {
+    color: "#fff",
     fontSize: 14,
-    color: '#333',
-    marginTop: 8,
-    lineHeight: 20,
+    fontWeight: "500",
   },
-  shareButton: {
-    position: 'absolute',
-    right: 16,
-    bottom: 16,
+  menuSection: {
+    padding: 20,
+  },
+  menuItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    padding: 16,
+    backgroundColor: "#F5F5F5",
+    borderRadius: 12,
+    marginBottom: 12,
+  },
+  menuLeft: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  menuText: {
+    fontSize: 16,
+    color: "#333",
+    marginLeft: 12,
+  },
+  bottomNav: {
+    flexDirection: "row",
+    justifyContent: "space-around",
+    padding: 12,
+    borderTopWidth: 1,
+    borderTopColor: "#E0E0E0",
+    backgroundColor: "#fff",
+  },
+  navItem: {
+    alignItems: "center",
+  },
+  navText: {
+    fontSize: 12,
+    color: "#666",
+    marginTop: 4,
+  },
+  activeNavText: {
+    color: "#4FA89B",
   },
 });

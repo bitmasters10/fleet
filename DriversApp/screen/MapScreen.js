@@ -8,9 +8,8 @@ import {
   SafeAreaView,
   Dimensions,
 } from "react-native";
-import MapView, { Marker, Polyline, PROVIDER_GOOGLE } from "react-native-maps";
-import Icon from "react-native-vector-icons/MaterialCommunityIcons";
-import { ChevronLeft, Star } from "react-native-vector-icons/MaterialIcons";
+import MapView, { Marker} from "react-native-maps";
+import BottomNav from "../navigation/BottomTabNavigator";
 
 const { width } = Dimensions.get("window");
 
@@ -30,7 +29,7 @@ const vehicles = [
 
 const MapScreen = () => {
   return (
-    <View style={{ flex: 1 }}>
+    <SafeAreaView style={styles.container}>
       <MapView
         style={{ flex: 1 }}
         initialRegion={{
@@ -40,8 +39,13 @@ const MapScreen = () => {
           longitudeDelta: 0.0421,
         }}
       />
-      <Text>Map Screen</Text>
-    </View>
+      <Marker
+        coordinate={{ latitude: 30.2672, longitude: -97.7431 }}
+        title="Marker"
+        description="This is a marker"
+      />
+      <BottomNav />
+    </SafeAreaView>
   );
 };
 
@@ -50,6 +54,7 @@ export default MapScreen;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: "#fff"
   },
   map: {
     ...StyleSheet.absoluteFillObject,
