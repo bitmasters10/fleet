@@ -1,25 +1,56 @@
 import L from "leaflet";
-import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
+import { useEffect, useState } from "react";
+import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import Heading from "../components/Heading";
 import Input from "../components/Input";
 import markerIcon from "/marker.svg";
 import markerShadow from "leaflet/dist/images/marker-shadow.png";
+import carIconSrc from "../assets/car.png";
+import { io } from "socket.io-client";
 
-// eslint-disable-next-line react/prop-types
+// Initialize Socket.IO
+const socket = io("ws://localhost:3001", {
+  reconnectionDelayMax: 10000
+});
+
+socket.on("connect", () => {
+  console.log(`Connected: ${socket.id}`);
+});
+
+let room = "all";
+socket.emit("rom", room);
+
 export default function Map({ title, track }) {
-  // Create custom marker icon
+  const [carPosition, setCarPosition] = useState([28.6139, 77.209]); // Default position (Delhi)
+
+  useEffect(() => {
+    socket.on("otherloc", (data) => {
+      console.log("Received location:", data);
+      setCarPosition([data.lat, data.long]);
+    });
+
+    return () => {
+      socket.off("otherloc");
+    };
+  }, []);
+
+  // Custom marker icons
   const customMarker = new L.Icon({
     iconUrl: markerIcon,
-    shadowUrl: markerShadow, // Add shadow for better visibility
+    shadowUrl: markerShadow,
     iconSize: [42, 42],
-    iconAnchor: [21, 42], // Center bottom of icon (half of iconSize[0], full iconSize[1])
-    popupAnchor: [0, -42], // Center top of icon
-    shadowSize: [41, 41], // Standard shadow size
+    iconAnchor: [21, 42],
+    popupAnchor: [0, -42],
+    shadowSize: [41, 41],
   });
 
-  // Using valid coordinates (example: New Delhi, India)
-  const position = [28.6139, 77.209];
+  const carIcon = new L.Icon({
+    iconUrl: carIconSrc,
+    iconSize: [50, 50],
+    iconAnchor: [25, 50],
+    popupAnchor: [0, -50],
+  });
 
   return (
     <div>
@@ -27,7 +58,7 @@ export default function Map({ title, track }) {
       <div className="flex xl:justify-between max-lg:flex-col-reverse justify-center items-center my-11 xl:max-w-[90%] max-xl:mx-auto max-w-screen-full">
         <div className="w-full border-black" style={{ height: "60vh" }}>
           <MapContainer
-            center={position}
+            center={carPosition}
             zoom={13}
             scrollWheelZoom={false}
             className="w-full lg:w-[50vw] h-full z-0 border-black"
@@ -36,10 +67,8 @@ export default function Map({ title, track }) {
               attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
               url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
             />
-            <Marker position={position} icon={customMarker}>
-              <Popup>
-                A pretty CSS3 popup. <br /> Easily customizable.
-              </Popup>
+            <Marker position={carPosition} icon={carIcon}>
+              <Popup>Car is here.</Popup>
             </Marker>
           </MapContainer>
         </div>

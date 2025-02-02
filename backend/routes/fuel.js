@@ -33,7 +33,7 @@ const upload = multer({ storage });
 
 
 Router.get("/fuel-records", async (req, res) => {
-  const query = "SELECT * FROM FUEL";
+  const query = "SELECT * FROM FUEL_CONSUMPTION";
   db.query(query, (err, results) => {
     if (err) {
       console.error("Error executing query:", err);
@@ -48,7 +48,8 @@ Router.post("/create-fuel", upload.single("photo"), async (req, res) => {
     // Generate a unique F_ID
     const F_ID = await idmake("FUEL_CONSUMPTION", "F_ID");
 
-    const { CAR_ID, DRIVER_ID, DATE, COST } = req.body;
+    const { CAR_ID,  DATE, COST } = req.body;
+    const DRIVER_ID=req.user.DRIVER_ID;
 
     // Check if the photo file is uploaded
     if (!req.file) {
