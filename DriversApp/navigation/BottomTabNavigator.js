@@ -5,6 +5,7 @@ import VehicleScreen from "../screen/VehicleScreen";
 import FleetScreen from "../screen/FleetScreen";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 import HomeScreen from "../screen/HomeScreen";
+
 const Tab = createBottomTabNavigator();
 
 const BottomTabNavigator = () => {

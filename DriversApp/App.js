@@ -20,17 +20,16 @@ export default function App() {
           component={LoginScreen}
           options={{ headerShown: false }} // Hide the header for Login
         />
-         <Stack.Screen
-          name="Home"
-          component={HomeScreen}
-          options={{ headerShown: false }} // Hide the header for ProfileScreen
-        />
         <Stack.Screen
           name="Main"
           component={BottomTabNavigator}
           options={{ headerShown: false }} // Hide the header for BottomTabNavigator
         />
-       
+        <Stack.Screen
+          name="Home"
+          component={HomeScreen}
+          options={{ headerShown: false }} // Hide the header for HomeScreen
+        />
         <Stack.Screen
           name="Fleet"
           component={FleetScreen}

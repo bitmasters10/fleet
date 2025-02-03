@@ -19,7 +19,7 @@ export default function LoginScreen() {
 
   const handleLogin = () => {
     console.log("Login with:", email, password);
-    navigation.navigate("Home");
+    navigation.navigate("Main");
   };
 
   return (
