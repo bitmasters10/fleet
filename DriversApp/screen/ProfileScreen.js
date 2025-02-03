@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useContext } from "react";
 import {
   StyleSheet,
   View,
@@ -9,17 +9,23 @@ import {
   SafeAreaView,
 } from "react-native";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
-import BottomNav from "../navigation/BottomTabNavigator";
+import { AuthContext } from "../context/AuthContext";
+import { useNavigation } from "@react-navigation/native";
 
-const driverData = {
-  DRIVER_ID: "3e1f079b-995f-4c58-98e4-10ad2d243e12",
-  NAME: "jundaid",
-  EMAIL_ID: "user@example.com",
-  LICENSE_NO: "11111",
-  GENDER: "Male",
-};
+const ProfileScreen = () => {
+  const { user, logout } = useContext(AuthContext);
+  const navigation = useNavigation();
 
-export default function ProfileScreen() {
+  const handleLogout = async () => {
+    try {
+      await logout();
+      navigation.navigate("Login");
+      
+    } catch (error) {
+      console.error("Logout error:", error);
+    }
+  };
+
   const renderMenuItem = (icon, title) => (
     <TouchableOpacity style={styles.menuItem}>
       <View style={styles.menuLeft}>
@@ -47,18 +53,18 @@ export default function ProfileScreen() {
             }}
             style={styles.profileImage}
           />
-          <Text style={styles.profileName}>{driverData.NAME}</Text>
-          <Text style={styles.profileHandle}>
-            @{driverData.NAME.toLowerCase()}
-          </Text>
+          <Text style={styles.profileName}>{user?.NAME}</Text>
+          <Text style={styles.profileHandle}>@{user?.NAME.toLowerCase()}</Text>
         </View>
 
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Driver Information</Text>
-          {renderDocumentItem("Driver ID", driverData.DRIVER_ID)}
-          {renderDocumentItem("Email", driverData.EMAIL_ID)}
-          {renderDocumentItem("License No", driverData.LICENSE_NO)}
-          {renderDocumentItem("Gender", driverData.GENDER)}
+          <Text style={styles.documentItem}>Driver ID: {user?.DRIVER_ID}</Text>
+          <Text style={styles.documentItem}>Email: {user?.EMAIL_ID}</Text>
+          <Text style={styles.documentItem}>
+            License No: {user?.LICENSE_NO}
+          </Text>
+          <Text style={styles.documentItem}>Gender: {user?.GENDER}</Text>
         </View>
 
         <View style={styles.section}>
@@ -92,12 +98,14 @@ export default function ProfileScreen() {
           {renderMenuItem("help-circle", "Help & resource")}
           {renderMenuItem("credit-card", "Manage Subscription")}
         </View>
-      </ScrollView>
 
-      <BottomNav />
+        <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
+          <Text style={styles.logoutButtonText}>Logout</Text>
+        </TouchableOpacity>
+      </ScrollView>
     </SafeAreaView>
   );
-}
+};
 
 const styles = StyleSheet.create({
   container: {
@@ -164,7 +172,9 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   documentItem: {
-    marginBottom: 12,
+    fontSize: 16,
+    color: "#333",
+    marginBottom: 8,
   },
   documentLabel: {
     fontSize: 14,
@@ -248,4 +258,18 @@ const styles = StyleSheet.create({
   activeNavText: {
     color: "#4FA89B",
   },
+  logoutButton: {
+    backgroundColor: "#4FA89B",
+    borderRadius: 25,
+    padding: 15,
+    marginTop: 24,
+    alignItems: "center",
+  },
+  logoutButtonText: {
+    color: "white",
+    fontSize: 16,
+    fontWeight: "500",
+  },
 });
+
+export default ProfileScreen;

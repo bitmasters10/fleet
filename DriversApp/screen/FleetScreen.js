@@ -10,7 +10,7 @@ import {
   StatusBar,
 } from "react-native";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
-import BottomNav from "../navigation/BottomTabNavigator";
+
 import { useNavigation } from "@react-navigation/native";
 
 // Mock data for vehicles
@@ -96,7 +96,7 @@ export default function FleetScreen() {
         contentContainerStyle={styles.listContent}
       />
 
-      <BottomNav />
+ 
     </SafeAreaView>
   );
 }

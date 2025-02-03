@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useContext, useState } from "react";
 import {
   StyleSheet,
   View,
@@ -10,16 +10,26 @@ import {
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { Feather } from "@expo/vector-icons";
+import { AuthContext } from "../../context/AuthContext";
 
 export default function LoginScreen() {
+  const { login } = useContext(AuthContext);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const navigation = useNavigation();
 
-  const handleLogin = () => {
-    console.log("Login with:", email, password);
-    navigation.navigate("Main");
+  const handleLogin = async () => {
+    try {
+      const response = await login(email, password);
+      if (response.success) {
+        navigation.navigate("Main");
+      } else {
+        console.error("Login failed");
+      }
+    } catch (error) {
+      console.error("Login failed:", error);
+    }
   };
 
   return (

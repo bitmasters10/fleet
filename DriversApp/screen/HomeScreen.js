@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useContext } from "react";
 import {
   StyleSheet,
   View,
@@ -11,9 +11,9 @@ import {
 } from "react-native";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 import MapView, { Marker } from "react-native-maps";
-import { LineChart } from "react-native-chart-kit";
+
 import { useNavigation } from "@react-navigation/native";
-import BottomTabNavigator from "../navigation/BottomTabNavigator";
+import { AuthContext } from "../context/AuthContext";
 
 // Mock data for the spending graph
 const spendingData = {
@@ -33,10 +33,10 @@ const initialRegion = {
   longitudeDelta: 0.0421,
 };
 
-export default function HomePage() {
+const HomeScreen = () => {
   const navigation = useNavigation();
   const screenWidth = Dimensions.get("window").width;
-
+  const { user} = useContext(AuthContext);
   return (
     <SafeAreaView style={styles.container}>
       {/* Header */}
@@ -50,7 +50,7 @@ export default function HomePage() {
           />
           <View>
             <Text style={styles.welcomeText}>Welcome!</Text>
-            <Text style={styles.userName}>Alfredo Curtis</Text>
+            <Text style={styles.userName}>{user?.NAME}</Text>
           </View>
         </View>
         <TouchableOpacity style={styles.notificationButton}>
@@ -84,82 +84,12 @@ export default function HomePage() {
         </TouchableOpacity>
 
         {/* Spending Section */}
-        <View style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Spending</Text>
-            <TouchableOpacity>
-              <Text style={styles.seeAllText}>See all</Text>
-            </TouchableOpacity>
-          </View>
-          <View style={styles.graphContainer}>
-            <LineChart
-              data={spendingData}
-              width={screenWidth - 70}
-              height={180}
-              chartConfig={{
-                backgroundColor: "#F5F5F5",
-                backgroundGradientFrom: "#F5F5F5",
-                backgroundGradientTo: "#F5F5F5",
-                decimalPlaces: 0,
-                color: (opacity = 1) => `rgba(79, 168, 155, ${opacity})`,
-                style: {
-                  borderRadius: 12,
-                },
-              }}
-              bezier
-              style={{
-                borderRadius: 12,
-              }}
-            />
-          </View>
-        </View>
 
         {/* Upcoming Deadlines Section */}
-        <View style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Upcoming Deadlines</Text>
-            <TouchableOpacity>
-              <Text style={styles.seeAllText}>See all</Text>
-            </TouchableOpacity>
-          </View>
-
-          <TouchableOpacity style={styles.deadlineItem}>
-            <View style={styles.deadlineIcon}>
-              <Icon name="filter" size={24} color="#4FA89B" />
-            </View>
-            <View style={styles.deadlineInfo}>
-              <Text style={styles.deadlineTitle}>Filter Change</Text>
-              <Text style={styles.deadlineDate}>Due On: Jan 12, 2022</Text>
-            </View>
-            <TouchableOpacity>
-              <Text style={styles.arrowRight}>→</Text>
-            </TouchableOpacity>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={[styles.deadlineItem, styles.activeDeadline]}
-          >
-            <View style={styles.deadlineIcon}>
-              <Icon name="oil" size={24} color="#fff" />
-            </View>
-            <View style={styles.deadlineInfo}>
-              <Text style={styles.activeDeadlineTitle}>Oil Change</Text>
-              <Text style={styles.activeDeadlineDate}>
-                Due On: Aug 18, 2022
-              </Text>
-            </View>
-            <TouchableOpacity>
-              <Text style={styles.activeArrowRight}>→</Text>
-            </TouchableOpacity>
-          </TouchableOpacity>
-        </View>
       </ScrollView>
-
-      {/* Bottom Navigation */}
-      <BottomTabNavigator navigation={navigation} />
     </SafeAreaView>
   );
-}
+};
 
 const styles = StyleSheet.create({
   container: {
@@ -285,3 +215,5 @@ const styles = StyleSheet.create({
     color: "#fff",
   },
 });
+
+export default HomeScreen;

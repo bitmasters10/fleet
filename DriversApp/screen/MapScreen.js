@@ -9,7 +9,6 @@ import {
   Dimensions,
 } from "react-native";
 import MapView, { Marker} from "react-native-maps";
-import BottomNav from "../navigation/BottomTabNavigator";
 
 const { width } = Dimensions.get("window");
 
@@ -44,7 +43,7 @@ const MapScreen = () => {
         title="Marker"
         description="This is a marker"
       />
-      <BottomNav />
+  
     </SafeAreaView>
   );
 };
