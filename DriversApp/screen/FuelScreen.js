@@ -78,15 +78,8 @@ export default function FleetScreen() {
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="light-content" />
       <View style={styles.headerContent}>
-        <Text style={styles.headerTitle}>Fleet</Text>
-        <View style={styles.headerRight}>
-          <TouchableOpacity style={styles.headerButton}>
-            <Icon name="magnify" size={24} color="#fff" />
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.headerButton}>
-            <Icon name="plus" size={24} color="#fff" />
-          </TouchableOpacity>
-        </View>
+        <Text style={styles.headerTitle}>Fuel</Text>
+       
       </View>
 
       <FlatList

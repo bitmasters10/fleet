@@ -6,7 +6,7 @@ import LoginScreen from "./screen/auth/LoginScreen"; // Import LoginScreen
 import HomeScreen from "./screen/HomeScreen"; // Import HomeScreen
 import MapScreen from "./screen/MapScreen"; // Import MapScreen
 import ProfileScreen from "./screen/ProfileScreen"; // Import ProfileScreen
-import FleetScreen from "./screen/FleetScreen"; // Import FleetScreen
+import FleetScreen from "./screen/FuelScreen"; // Import FleetScreen
 import VehicleScreen from "./screen/VehicleScreen"; // Import VehicleScreen for details
 import { StyleSheet } from "react-native";
 import ErrorBoundary from "./ErrorBoundary"; // Import ErrorBoundary
