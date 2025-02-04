@@ -23,7 +23,7 @@ const app = express();
 // CORS configuration
 app.use(
   cors({
-    origin: ["http://localhost:5173", "http://192.168.0.202:5500"], // Allowed origins
+    origin: ["http://localhost:5173", "http://172.16.248.135:5500"], // Allowed origins
     credentials: true, // Allow credentials (cookies, authorization headers, etc.)
   })
 );

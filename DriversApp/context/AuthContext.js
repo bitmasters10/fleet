@@ -6,12 +6,12 @@ export const AuthContext = createContext();
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null); // Store user data in state
   const [loading, setLoading] = useState(false); // Loading state
-
+const app = "http://172.16.248.135:3000"
   const login = async (email, password) => {
     try {
       setLoading(true); // Set loading to true while logging in
       const response = await axios.post(
-        "http://192.168.0.202:3000/driver-auth/login",
+        `${app}/driver-auth/login`,
         {
           email,
           password,
@@ -31,7 +31,7 @@ export const AuthProvider = ({ children }) => {
 
   const logout = async () => {
     try {
-      await axios.post("http://192.168.0.202:3000/driver-auth/logout");
+      await axios.post(`${app}/driver-auth/logout`);
       setUser(null); // Clear user data on logout
     } catch (error) {
       console.error("Logout error:", error);
