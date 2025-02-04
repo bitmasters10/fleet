@@ -19,11 +19,12 @@ const db = require("./db");
 const driver = require("./auth/driver");
 
 const app = express();
-
+const home = "http://192.168.0.202:5500"
+const clg = "http://172.16.248.135:5500"
 // CORS configuration
 app.use(
   cors({
-    origin: ["http://localhost:5173", "http://172.16.248.135:5500"], // Allowed origins
+    origin: ["http://localhost:5173", `${home}`], // Allowed origins
     credentials: true, // Allow credentials (cookies, authorization headers, etc.)
   })
 );

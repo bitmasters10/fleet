@@ -1,4 +1,4 @@
-import React, { useContext, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import {
   StyleSheet,
   View,
@@ -10,10 +10,12 @@ import {
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { Feather } from "@expo/vector-icons";
+import * as Location from "expo-location"; 
 import { AuthContext } from "../../context/AuthContext";
-
 export default function LoginScreen() {
-  const { login } = useContext(AuthContext);
+
+
+  const { position, setPosition , login } = useContext(AuthContext);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -23,6 +25,7 @@ export default function LoginScreen() {
     try {
       const response = await login(email, password);
       if (response.success) {
+        await requestLocationPermission();
         navigation.navigate("Main");
       } else {
         console.error("Login failed");
@@ -32,6 +35,20 @@ export default function LoginScreen() {
     }
   };
 
+  const requestLocationPermission = async () => {
+    const { status } = await Location.requestForegroundPermissionsAsync();
+    
+    if (status !== "granted") {
+      Alert.alert("Permission Denied", "Location access is required for better service.");
+      return;
+    }
+    const location = await Location.getCurrentPositionAsync({});
+    const {latitude , longitude} = location.coords;
+    setPosition({latitude , longitude})
+  }
+  useEffect(() => {
+    console.log("Position updated:", position);
+  }, [position]);
   return (
     <View style={styles.container}>
       <Image

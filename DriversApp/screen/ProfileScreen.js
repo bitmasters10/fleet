@@ -92,12 +92,7 @@ const ProfileScreen = () => {
           </View>
         </View>
 
-        <View style={styles.menuSection}>
-          {renderMenuItem("account-group", "My Team")}
-          {renderMenuItem("share-variant", "Share App")}
-          {renderMenuItem("help-circle", "Help & resource")}
-          {renderMenuItem("credit-card", "Manage Subscription")}
-        </View>
+      
 
         <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
           <Text style={styles.logoutButtonText}>Logout</Text>
@@ -259,10 +254,10 @@ const styles = StyleSheet.create({
     color: "#4FA89B",
   },
   logoutButton: {
-    backgroundColor: "#4FA89B",
+    backgroundColor: "red",
     borderRadius: 25,
     padding: 15,
-    marginTop: 24,
+    margin: 24,
     alignItems: "center",
   },
   logoutButtonText: {
