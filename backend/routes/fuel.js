@@ -108,4 +108,5 @@ Router.get("/fuels",(req,res)=>{
     console.error("Error during retrive:", err);
   }
 })
+
 module.exports = Router;
