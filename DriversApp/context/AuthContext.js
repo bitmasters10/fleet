@@ -8,12 +8,12 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(false); // Loading state
    const [position, setPosition] = useState(null);
 const home = "http://192.168.0.202:3000"
-const clg = "http://172.16.248.135:3000"
+const clg = "http://172.16.239.81:3000"
   const login = async (email, password) => {
     try {
       setLoading(true); // Set loading to true while logging in
       const response = await axios.post(
-        `${home}/driver-auth/login`,
+        `${clg}/driver-auth/login`,
         {
           email,
           password,
@@ -33,7 +33,7 @@ const clg = "http://172.16.248.135:3000"
 
   const logout = async () => {
     try {
-      await axios.post(`${home}/driver-auth/logout`);
+      await axios.post(`${clg}/driver-auth/logout`);
       setUser(null); // Clear user data on logout
     } catch (error) {
       console.error("Logout error:", error);

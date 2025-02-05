@@ -120,7 +120,7 @@ Router.post("/add-package", async (req, res) => {
 Router.post("/create-book", async (req, res) => {
   let ID = await idmake("BOOKING", "BOOK_ID");
   const {
-    TIMING,
+    START_TIME,
     PICKUP_LOC,
     CAR_ID,
     USER_ID,
@@ -153,7 +153,7 @@ Router.post("/create-book", async (req, res) => {
 
       const newBook = {
         BOOK_ID: ID,
-        TIMING,
+        TIMING:START_TIME,
         PICKUP_LOC,
         CAR_ID,
         USER_ID,
@@ -195,7 +195,7 @@ Router.post("/create-book", async (req, res) => {
 Router.post("/create-manual-book", async (req, res) => {
   let ID = await idmake("BOOKING", "BOOK_ID");
   const {
-    TIMING,
+    START_TIME,
     PICKUP_LOC,
     CAR_ID,
     USER_ID,
@@ -228,7 +228,7 @@ Router.post("/create-manual-book", async (req, res) => {
 
       const newBook = {
         BOOK_ID: ID,
-        TIMING,
+        TIMING:START_TIME,
         PICKUP_LOC,
         CAR_ID,
         USER_ID,

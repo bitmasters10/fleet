@@ -188,7 +188,7 @@ function CreateForm({
     CAR_ID: "",
     DRIVER_ID: "",
     PACKAGE_ID: "",
-    MOBILE_NO: "",
+    MOBILE_NO: 1234567890,
   });
 
   const [availableCars, setAvailableCars] = useState([]);
