@@ -17,9 +17,11 @@ const clg = "http://192.168.1.243:3000"
         {
           email,
           password,
-        }
+        },
+       
       );
       if (response.data.success) {
+        console.log("Response", response.data)
         setUser(response.data.user); // Set user data in state
       }
       return response.data; // Return response data

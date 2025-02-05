@@ -43,7 +43,7 @@ const HomeScreen = () => {
   const { user } = useContext(AuthContext);
   const { trips = [], fetchTrips, createTrip, loading } = useTrip() || {}; // ✅ Safe fallback
   // ✅ Get trip functions
-console.log(fetchTrips)
+console.log("User:",user)
   // Fetch trips when the screen loads
 
   useEffect(() => {
@@ -65,6 +65,11 @@ console.log(fetchTrips)
       alert("Failed to start trip");
     }
   };
+  
+const handleClick = (item) => {
+  
+  navigation.navigate("Map", { bookingData: item }); // Send booking data to the Map screen
+};
 
   return (
     <SafeAreaView style={styles.container}>
@@ -86,7 +91,7 @@ console.log(fetchTrips)
           <Icon name="bell" size={24} color="#4FA89B" />
         </TouchableOpacity>
       </View>
-
+  
       {/* ✅ Replace ScrollView with FlatList */}
       <FlatList
         ListHeaderComponent={
@@ -103,13 +108,15 @@ console.log(fetchTrips)
                 <MapScreen isOpen="true" />
               </View>
             </View>
-
+  
             {/* Available Requests Section */}
-            <View style={styles.sectionHeader}>
-              <Text style={styles.sectionTitle}>Available Requests</Text>
-              <TouchableOpacity onPress={() => navigation.navigate("Requests")}>
-                <Text style={styles.seeAllText}>View all</Text>
-              </TouchableOpacity>
+            <View style={styles.section}>
+              <View style={styles.sectionHeader}>
+                <Text style={styles.sectionTitle}>Available Requests</Text>
+                <TouchableOpacity onPress={() => navigation.navigate("Requests")}>
+                  <Text style={styles.seeAllText}>View all</Text>
+                </TouchableOpacity>
+              </View>
             </View>
           </>
         }
@@ -117,36 +124,41 @@ console.log(fetchTrips)
         keyExtractor={(item) => item.BOOK_ID}
         ListEmptyComponent={<Text style={styles.emptyText}>No trips available</Text>}
         renderItem={({ item }) => (
-          <View style={styles.requestCard}>
-            <View style={styles.requestHeader}>
-              <View style={styles.requestType}>
-                <Icon name="car" size={20} color="#4FA89B" />
-                <Text style={styles.requestTypeText}>{item.ROUTE}</Text>
+          <View style={styles.section}>  {/* Added section here */}
+            <View style={styles.requestCard}>
+              <View style={styles.requestHeader}>
+                <View style={styles.requestType}>
+                  <Icon name="car" size={20} color="#4FA89B" />
+                  <Text style={styles.requestTypeText}>
+                    {item.PICKUP_LOC} to {item.DROP_LOC}  {/* Showing pickup and drop locations as route */}
+                  </Text>
+                </View>
+                <Text style={styles.recipientText}>Receipient: User {item.USER_ID}</Text> {/* Displaying USER_ID as recipient */}
               </View>
-              <Text style={styles.recipientText}>Receipient: {item.RECIPIENT}</Text>
-            </View>
-
-            <View style={styles.locationInfo}>
-              <Icon name="map-marker" size={20} color="#4FA89B" />
-              <Text style={styles.locationText}>{item.LOCATION}</Text>
-            </View>
-
-            <View style={styles.actionButtons}>
-              <TouchableOpacity style={styles.rejectButton}>
-                <Text style={styles.rejectButtonText}>Reject</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.acceptButton}
-                onPress={() => handleStartTrip(item)}
-              >
-                <Text style={styles.acceptButtonText}>Start Trip</Text>
-              </TouchableOpacity>
+  
+              <View style={styles.locationInfo}>
+                <Icon name="map-marker" size={20} color="#4FA89B" />
+                <Text style={styles.locationText}>{item.PICKUP_LOC}</Text> {/* Pickup Location */}
+              </View>
+  
+              <View style={styles.actionButtons}>
+                <TouchableOpacity style={styles.rejectButton}>
+                  <Text style={styles.rejectButtonText}>Reject</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.acceptButton}
+                  onPress={() => handleClick(item)} 
+                >
+                  <Text style={styles.acceptButtonText}  >Start Trip</Text>
+                </TouchableOpacity>
+              </View>
             </View>
           </View>
         )}
       />
     </SafeAreaView>
   );
+  
 };
 
 const styles = StyleSheet.create({

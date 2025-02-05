@@ -43,6 +43,7 @@ function AddButton() {
   );
 }
 
+// eslint-disable-next-line react/prop-types
 function TableManage({ fuelRecords, acceptFuelRecord, rejectFuelRecord }) {
   return (
     <div className="max-lg:relative block overflow-x-auto shadow-md sm:rounded-lg">

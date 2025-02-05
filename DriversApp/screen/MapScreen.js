@@ -1,54 +1,65 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import {
   StyleSheet,
   View,
   Text,
   TouchableOpacity,
-  Image,
   TextInput,
   SafeAreaView,
   Dimensions,
 } from "react-native";
-
-import MapView, { Marker } from "react-native-maps";
+import MapView, { Marker, Polyline } from "react-native-maps";
 import { useAuth } from "../context/AuthContext";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 import { io } from "socket.io-client";
+import { useRoute } from "@react-navigation/native";
 
 const { width } = Dimensions.get("window");
 
-// Initialize socket connection
 const socket = io("ws://172.16.239.81:3001");
-console.log("helo map")
-const MapScreen = ({ isOpen }) => {
+
+const MapScreen = ({ isOpen}) => {
+  const route = useRoute()
+  const { bookingData } = route.params || {};
   const { position } = useAuth();
-  console.log("Position Map:", position);
+  const [pickupCoords, setPickupCoords] = useState(null);
+  const [dropCoords, setDropCoords] = useState(null);
+  const [showModal, setShowModal] = useState(false);
+console.log(bookingData)
+
+
+  const geocodeLocation = async (address, type) => {
+    try {
+      const response = await fetch(
+        `https://api.opencagedata.com/geocode/v1/json?q=${encodeURIComponent(
+          `${address} , mumbai`
+        )}&key=23a9db4a9b29400daf8144a710df5d75`
+      );
+      const data = await response.json();
+      if (data.results && data.results.length > 0) {
+        const coords = data.results[0].geometry;
+        if (type === "pickup") {
+          setPickupCoords(coords);
+        } else if (type === "drop") {
+          setDropCoords(coords);
+        }
+      } else {
+        console.log("No results for geocoding");
+      }
+    } catch (error) {
+      console.error("Geocoding error:", error);
+    }
+  };
 
   useEffect(() => {
-    console.log("test")
-    // Connect to WebSocket
-    socket.on("connect", () => {
-      console.log("Connected to WebSocket:", socket.id);
-    });
-
-    // Join room "all"
-    let room = "all";
-    socket.emit("rom", room);
-
-    // Send location updates when position changes
     if (position && position.latitude && position.longitude) {
-      console.log("helo"+position.latitude)
       socket.emit("loc", {
-        room: room,
+        room: "all",
         lat: position.latitude,
         long: position.longitude,
       });
     }
-
-    return () => {
-      socket.disconnect(); // Clean up socket connection on unmount
-    };
-  }, [position]); // Run effect when position updates
+  }, [position]);
 
   if (!position || !position.latitude || !position.longitude) {
     return (
@@ -58,6 +69,16 @@ const MapScreen = ({ isOpen }) => {
     );
   }
 
+  const toggleModal = () => {
+    setShowModal((prevState) => !prevState);
+  };
+  useEffect(() => {
+    if (bookingData) {
+      // Geocode Pickup and Drop locations when bookingData is available
+      geocodeLocation(bookingData.PICKUP_LOC, "pickup");
+      geocodeLocation(bookingData.DROP_LOC, "drop");
+    }
+  }, [bookingData]);
   return (
     <SafeAreaView style={styles.container}>
       <MapView
@@ -75,50 +96,98 @@ const MapScreen = ({ isOpen }) => {
             longitude: position.longitude,
           }}
           title="Driver"
-          description="This is a marker"
+          description="Current Location"
         />
+        {pickupCoords && (
+          <Marker
+            coordinate={{
+              latitude: pickupCoords.lat,
+              longitude: pickupCoords.lng,
+            }}
+            title="Pickup Location"
+            description={bookingData.pickupLocation}
+          />
+        )}
+        {dropCoords && (
+          <Marker
+            coordinate={{
+              latitude: dropCoords.lat,
+              longitude: dropCoords.lng,
+            }}
+            title="Drop Location"
+            description={bookingData.dropLocation}
+          />
+        )}
+        {pickupCoords &&  (
+          <Polyline
+            coordinates={[
+              { latitude: position.latitude, longitude: position.longitude },
+              { latitude: pickupCoords.lat, longitude: pickupCoords.lng },
+              { latitude: dropCoords.lat, longitude: dropCoords.lng },
+            ]}
+            strokeColor="#FF0000"
+            strokeWidth={3}
+          />
+        )}
       </MapView>
-      {isOpen == "true" ? null : (
-        <View style={styles.bottomSheet}>
-          <Text style={styles.title}>Instant Delivery</Text>
+{isOpen == "true"  ? (null) : (<TouchableOpacity onPress={toggleModal} style={styles.toggleButton}>
+        <Text style={styles.toggleButtonText}>
+          {showModal ? "Hide Details" : "Show Details"}
+        </Text>
+      </TouchableOpacity>) }
+      
 
-          <View style={styles.locationContainer}>
-            <View style={styles.locationItem}>
-              <Icon name="map" size={24} color="#FF4444" />
-              <View style={styles.locationInput}>
-                <Text style={styles.locationLabel}>Pickup Location</Text>
-                <Text style={styles.locationText}>32 Samwell Sq, Chevron</Text>
-              </View>
-            </View>
+      {showModal && bookingData && (
+  <View style={styles.bottomSheet}>
+    <Text style={styles.title}>Tour Details</Text>
 
-            <View style={styles.divider} />
-
-            <View style={styles.locationItem}>
-              <Icon name="map" size={24} color="#4FA89B" />
-              <View style={styles.locationInput}>
-                <Text style={styles.locationLabel}>Delivery Location</Text>
-                <Text style={styles.locationText}>
-                  21b, Karimu Kotun Street, Victoria Island
-                </Text>
-              </View>
-            </View>
-          </View>
-
-          <View style={styles.otpContainer}>
-            <Text style={styles.otpLabel}>Enter OTP</Text>
-            <TextInput
-              style={styles.otpInput}
-              placeholder="Enter 4-digit OTP"
-              keyboardType="number-pad"
-              maxLength={4}
-            />
-          </View>
-
-          <TouchableOpacity style={styles.button}>
-            <Text style={styles.buttonText}>Next</Text>
-          </TouchableOpacity>
+    <View style={styles.locationContainer}>
+      <View style={styles.locationItem}>
+        <Icon name="map" size={24} color="#FF4444" />
+        <View style={styles.locationInput}>
+          <Text style={styles.locationLabel}>Pickup Location</Text>
+          <Text style={styles.locationText}>{bookingData.PICKUP_LOC}</Text>
         </View>
-      )}
+      </View>
+
+      <View style={styles.divider} />
+
+      <View style={styles.locationItem}>
+        <Icon name="map" size={24} color="#4FA89B" />
+        <View style={styles.locationInput}>
+          <Text style={styles.locationLabel}>Delivery Location</Text>
+          <Text style={styles.locationText}>{bookingData.DROP_LOC}</Text>
+        </View>
+      </View>
+    </View>
+
+    {/* Display mobile phone number */}
+    <View style={styles.locationContainer}>
+      <View style={styles.locationItem}>
+        <Icon name="phone" size={24} color="#4CAF50" />
+        <View style={styles.locationInput}>
+          <Text style={styles.locationLabel}>Mobile Phone</Text>
+          <Text style={styles.locationText}>{bookingData.mobile_no}</Text> {/* Corrected this */}
+        </View>
+      </View>
+    </View>
+
+    <View style={styles.otpContainer}>
+      <Text style={styles.otpLabel}>Enter OTP</Text>
+      <TextInput
+        style={styles.otpInput}
+        placeholder="Enter 4-digit OTP"
+        keyboardType="number-pad"
+        maxLength={4}
+      />
+    </View>
+
+    <TouchableOpacity style={styles.button}>
+      <Text style={styles.buttonText}>Next</Text>
+    </TouchableOpacity>
+  </View>
+)}
+
     </SafeAreaView>
   );
 };
@@ -145,6 +214,39 @@ const styles = StyleSheet.create({
     top: 44,
     left: 0,
     right: 0,
+  },
+
+  bottomSheet: {
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: "#fff",
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    padding: 20,
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: -2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  toggleButton: {
+    position: "absolute",
+    top: 20,
+    left: 20,
+    backgroundColor: "#006A60",
+    borderRadius: 8,
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    zIndex: 10,
+  },
+  toggleButtonText: {
+    color: "#fff",
+    fontSize: 16,
   },
   backButton: {
     width: 40,

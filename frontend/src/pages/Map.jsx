@@ -21,6 +21,7 @@ socket.on("connect", () => {
 let room = "all";
 socket.emit("rom", room);
 
+// eslint-disable-next-line react/prop-types
 export default function Map({ title, track }) {
   const [carPosition, setCarPosition] = useState([28.6139, 77.209]); // Default position (Delhi)
 
