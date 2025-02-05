@@ -1,22 +1,17 @@
-/* eslint-disable no-unused-vars */
+
 const express = require("express");
 const session = require("express-session");
 const MySQLStore = require("express-mysql-session")(session);
 const bodyParser = require("body-parser");
 const passport = require("passport");
-const LocalStrategy = require("passport-local").Strategy;
-const bcrypt = require("bcryptjs");
 const path = require("path");
 const cors = require("cors");
 const dotenv = require("dotenv");
-const mysql = require("mysql2");
 const port = 3000;
 dotenv.config();
-const { v4: uuidv4 } = require("uuid");
-const { Server } = require("socket.io");
-const { createServer } = require("http");
+
 const db = require("./db");
-const driver = require("./auth/driver");
+
 
 const app = express();
 const home = "http://192.168.0.202:5500"
@@ -25,7 +20,7 @@ const clg = "http://172.16.239.81:5500"
 app.use(
   cors({
     origin: ["http://localhost:5173", `${clg}`], // Allowed origins
-    credentials: true, // Allow credentials (cookies, authorization headers, etc.)
+    credentials: true, 
   })
 );
 
