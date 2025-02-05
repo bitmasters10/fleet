@@ -5,12 +5,14 @@ import {
   Text,
   TouchableOpacity,
   Image,
+  TextInput,
   SafeAreaView,
   Dimensions,
 } from "react-native";
-import MapView, { Marker} from "react-native-maps";
-import BottomNav from "../navigation/BottomTabNavigator";
 
+import MapView, { Marker } from "react-native-maps";
+import { useAuth } from "../context/AuthContext";
+import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 const { width } = Dimensions.get("window");
 
 // Mock route coordinates
@@ -27,24 +29,81 @@ const vehicles = [
   { id: 3, latitude: 30.2798, longitude: -97.7368, speed: 30 },
 ];
 
-const MapScreen = () => {
+const MapScreen = ({ isOpen }) => {
+  const { position } = useAuth();
+  console.log("Position Map:", position);
+
+  if (!position || !position.latitude || !position.longitude) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <Text>Loading map...</Text>
+      </SafeAreaView>
+    );
+  }
+
   return (
     <SafeAreaView style={styles.container}>
       <MapView
         style={{ flex: 1 }}
         initialRegion={{
-          latitude: 37.78825,
-          longitude: -122.4324,
+          latitude: position.latitude,
+          longitude: position.longitude,
           latitudeDelta: 0.0922,
           longitudeDelta: 0.0421,
         }}
-      />
-      <Marker
-        coordinate={{ latitude: 30.2672, longitude: -97.7431 }}
-        title="Marker"
-        description="This is a marker"
-      />
-      <BottomNav />
+      >
+        <Marker
+          coordinate={{
+            latitude: position.latitude,
+            longitude: position.longitude,
+          }}
+          title="Driver"
+          description="This is a marker"
+        />
+      </MapView>
+      {isOpen == "true" ? null : (
+        <View style={styles.bottomSheet}>
+          <Text style={styles.title}>Instant Delivery</Text>
+
+          <View style={styles.locationContainer}>
+            <View style={styles.locationItem}>
+              <Icon name="map" size={24} color="#FF4444" />
+              <View style={styles.locationInput}>
+                <Text style={styles.locationLabel}>Pickup Location</Text>
+                <Text style={styles.locationText}>32 Samwell Sq, Chevron</Text>
+              </View>
+            </View>
+
+            <View style={styles.divider} />
+
+            <View style={styles.locationItem}>
+              <Icon name="map" size={24} color="#4FA89B" />
+              <View style={styles.locationInput}>
+                <Text style={styles.locationLabel}>Delivery Location</Text>
+                <Text style={styles.locationText}>
+                  21b, Karimu Kotun Street, Victoria Island
+                </Text>
+              </View>
+            </View>
+          </View>
+
+          <View style={styles.otpContainer}>
+            <Text style={styles.otpLabel}>Enter OTP</Text>
+            <TextInput
+              style={styles.otpInput}
+              // value={otp}
+              // onChangeText={setOtp}
+              placeholder="Enter 4-digit OTP"
+              keyboardType="number-pad"
+              maxLength={4}
+            />
+          </View>
+
+          <TouchableOpacity style={styles.button}>
+            <Text style={styles.buttonText}>Next</Text>
+          </TouchableOpacity>
+        </View>
+      )}
     </SafeAreaView>
   );
 };
@@ -54,7 +113,7 @@ export default MapScreen;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#fff"
+    backgroundColor: "#fff",
   },
   map: {
     ...StyleSheet.absoluteFillObject,
@@ -172,6 +231,99 @@ const styles = StyleSheet.create({
   timeText: {
     fontSize: 12,
     color: "#666",
+  },
+  container: {
+    flex: 1,
+    backgroundColor: "#fff",
+  },
+  map: {
+    ...StyleSheet.absoluteFillObject,
+  },
+  bottomSheet: {
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: "#fff",
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    padding: 20,
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: -2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: "bold",
+    marginBottom: 20,
+  },
+  locationContainer: {
+    backgroundColor: "#F5F5F5",
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 20,
+  },
+  locationItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 8,
+  },
+  locationInput: {
+    flex: 1,
+    marginLeft: 12,
+  },
+  locationLabel: {
+    fontSize: 12,
+    color: "#666",
+    marginBottom: 4,
+  },
+  locationText: {
+    fontSize: 14,
+    color: "#333",
+  },
+  divider: {
+    height: 1,
+    backgroundColor: "#E0E0E0",
+    marginVertical: 12,
+  },
+  otpContainer: {
+    marginBottom: 20,
+  },
+  otpLabel: {
+    fontSize: 14,
+    fontWeight: "500",
+    marginBottom: 8,
+    color: "#333",
+  },
+  otpInput: {
+    backgroundColor: "#F5F5F5",
+    borderRadius: 8,
+    padding: 12,
+    fontSize: 16,
+    letterSpacing: 4,
+  },
+  button: {
+    backgroundColor: "#006A60",
+    borderRadius: 12,
+    padding: 16,
+    alignItems: "center",
+  },
+  buttonText: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "600",
+  },
+  markerContainer: {
+    backgroundColor: "#fff",
+    padding: 8,
+    borderRadius: 20,
+    borderWidth: 2,
+    borderColor: "#4FA89B",
   },
   ratingContainer: {
     flexDirection: "row",

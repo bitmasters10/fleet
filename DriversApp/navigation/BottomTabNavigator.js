@@ -1,5 +1,9 @@
 import React from "react";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
+import HomeScreen from "../screen/HomeScreen";
+import FleetScreen from "../screen/FuelScreen";
+import MapScreen from "../screen/MapScreen";
+import ProfileScreen from "../screen/ProfileScreen";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 
 const Tab = createBottomTabNavigator();
@@ -26,11 +30,11 @@ const BottomTabNavigator = () => {
         }}
       />
       <Tab.Screen
-        name="Vehicle"
-        component={() => require("../screen/VehicleScreen").default}
+        name="Map"
+        component={MapScreen}
         options={{
           tabBarIcon: ({ color }) => (
-            <Icon name="truck" color={color} size={24} />
+            <Icon name="map" color={color} size={24} />
           ),
         }}
       />

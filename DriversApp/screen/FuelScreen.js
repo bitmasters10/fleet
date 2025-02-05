@@ -10,7 +10,7 @@ import {
   StatusBar,
 } from "react-native";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
-import BottomNav from "../navigation/BottomTabNavigator";
+
 import { useNavigation } from "@react-navigation/native";
 
 // Mock data for vehicles
@@ -78,15 +78,8 @@ export default function FleetScreen() {
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="light-content" />
       <View style={styles.headerContent}>
-        <Text style={styles.headerTitle}>Fleet</Text>
-        <View style={styles.headerRight}>
-          <TouchableOpacity style={styles.headerButton}>
-            <Icon name="magnify" size={24} color="#fff" />
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.headerButton}>
-            <Icon name="plus" size={24} color="#fff" />
-          </TouchableOpacity>
-        </View>
+        <Text style={styles.headerTitle}>Fuel</Text>
+       
       </View>
 
       <FlatList
@@ -96,7 +89,7 @@ export default function FleetScreen() {
         contentContainerStyle={styles.listContent}
       />
 
-      <BottomNav />
+ 
     </SafeAreaView>
   );
 }

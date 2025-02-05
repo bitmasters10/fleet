@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useContext } from "react";
 import {
   StyleSheet,
   View,
@@ -11,9 +11,10 @@ import {
 } from "react-native";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 import MapView, { Marker } from "react-native-maps";
-import { LineChart } from "react-native-chart-kit";
+
 import { useNavigation } from "@react-navigation/native";
-import BottomTabNavigator from "../navigation/BottomTabNavigator";
+import { AuthContext } from "../context/AuthContext";
+import MapScreen from "./MapScreen";
 
 // Mock data for the spending graph
 const spendingData = {
@@ -33,10 +34,10 @@ const initialRegion = {
   longitudeDelta: 0.0421,
 };
 
-export default function HomePage() {
+const HomeScreen = () => {
   const navigation = useNavigation();
   const screenWidth = Dimensions.get("window").width;
-
+  const { user} = useContext(AuthContext);
   return (
     <SafeAreaView style={styles.container}>
       {/* Header */}
@@ -50,7 +51,7 @@ export default function HomePage() {
           />
           <View>
             <Text style={styles.welcomeText}>Welcome!</Text>
-            <Text style={styles.userName}>Alfredo Curtis</Text>
+            <Text style={styles.userName}>{user?.NAME}</Text>
           </View>
         </View>
         <TouchableOpacity style={styles.notificationButton}>
@@ -60,106 +61,86 @@ export default function HomePage() {
 
       <ScrollView style={styles.content}>
         {/* Live GPS Section */}
-        <TouchableOpacity onPress={() => navigation.navigate("Map")}>
+        
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
               <Text style={styles.sectionTitle}>Live GPS</Text>
-              <TouchableOpacity>
+              <TouchableOpacity onPress={() => navigation.navigate("Map")}>
                 <Text style={styles.seeAllText}>See all</Text>
               </TouchableOpacity>
             </View>
             <View style={styles.mapContainer}>
-              <MapView style={styles.map} initialRegion={initialRegion}>
-                <Marker
-                  coordinate={{
-                    latitude: 37.78825,
-                    longitude: -122.4324,
-                  }}
-                  title="Vehicle Location"
-                  description="Current location of the vehicle"
-                />
-              </MapView>
+              <MapScreen isOpen="true"/>
             </View>
           </View>
-        </TouchableOpacity>
+        
 
         {/* Spending Section */}
         <View style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Spending</Text>
-            <TouchableOpacity>
-              <Text style={styles.seeAllText}>See all</Text>
-            </TouchableOpacity>
-          </View>
-          <View style={styles.graphContainer}>
-            <LineChart
-              data={spendingData}
-              width={screenWidth - 70}
-              height={180}
-              chartConfig={{
-                backgroundColor: "#F5F5F5",
-                backgroundGradientFrom: "#F5F5F5",
-                backgroundGradientTo: "#F5F5F5",
-                decimalPlaces: 0,
-                color: (opacity = 1) => `rgba(79, 168, 155, ${opacity})`,
-                style: {
-                  borderRadius: 12,
-                },
-              }}
-              bezier
-              style={{
-                borderRadius: 12,
-              }}
-            />
-          </View>
+        <View style={styles.sectionHeader}>
+          <Text style={styles.sectionTitle}>Available Requests</Text>
+          <TouchableOpacity onPress={() => navigation.navigate("Requests")}>
+            <Text style={styles.seeAllText}>View all</Text>
+          </TouchableOpacity>
         </View>
 
+        <View style={styles.requestsContainer}>
+          {/* Electronics Request */}
+          <View style={styles.requestCard}>
+            <View style={styles.requestHeader}>
+              <View style={styles.requestType}>
+                <Icon name="devices" size={20} color="#4FA89B" />
+                <Text style={styles.requestTypeText}>Electronics/Gadgets</Text>
+              </View>
+              <Text style={styles.recipientText}>Receipient: Paul Pogba</Text>
+            </View>
+
+            <View style={styles.locationInfo}>
+              <Icon name="bicycle" size={20} color="#4FA89B" />
+              <Text style={styles.locationText}>Maryland busstop, Anthony Ikeja</Text>
+            </View>
+
+            <View style={styles.actionButtons}>
+              <TouchableOpacity style={styles.rejectButton}>
+                <Text style={styles.rejectButtonText}>Reject</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.acceptButton}>
+                <Text style={styles.acceptButtonText}>Accept</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+
+          {/* Food Items Request */}
+          <View style={styles.requestCard}>
+            <View style={styles.requestHeader}>
+              <View style={styles.requestType}>
+                <Icon name="food" size={20} color="#4FA89B" />
+                <Text style={styles.requestTypeText}>Food Items/Groceries</Text>
+              </View>
+              <Text style={styles.recipientText}>Receipient: Paul Pogba</Text>
+            </View>
+
+            <View style={styles.locationInfo}>
+              <Icon name="bicycle" size={20} color="#4FA89B" />
+              <Text style={styles.locationText}>Maryland busstop, Anthony Ikeja</Text>
+            </View>
+
+            <View style={styles.actionButtons}>
+              <TouchableOpacity style={styles.rejectButton}>
+                <Text style={styles.rejectButtonText}>Reject</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.acceptButton}>
+                <Text style={styles.acceptButtonText}>Accept</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </View>
         {/* Upcoming Deadlines Section */}
-        <View style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Upcoming Deadlines</Text>
-            <TouchableOpacity>
-              <Text style={styles.seeAllText}>See all</Text>
-            </TouchableOpacity>
-          </View>
-
-          <TouchableOpacity style={styles.deadlineItem}>
-            <View style={styles.deadlineIcon}>
-              <Icon name="filter" size={24} color="#4FA89B" />
-            </View>
-            <View style={styles.deadlineInfo}>
-              <Text style={styles.deadlineTitle}>Filter Change</Text>
-              <Text style={styles.deadlineDate}>Due On: Jan 12, 2022</Text>
-            </View>
-            <TouchableOpacity>
-              <Text style={styles.arrowRight}>→</Text>
-            </TouchableOpacity>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={[styles.deadlineItem, styles.activeDeadline]}
-          >
-            <View style={styles.deadlineIcon}>
-              <Icon name="oil" size={24} color="#fff" />
-            </View>
-            <View style={styles.deadlineInfo}>
-              <Text style={styles.activeDeadlineTitle}>Oil Change</Text>
-              <Text style={styles.activeDeadlineDate}>
-                Due On: Aug 18, 2022
-              </Text>
-            </View>
-            <TouchableOpacity>
-              <Text style={styles.activeArrowRight}>→</Text>
-            </TouchableOpacity>
-          </TouchableOpacity>
-        </View>
       </ScrollView>
-
-      {/* Bottom Navigation */}
-      <BottomTabNavigator navigation={navigation} />
     </SafeAreaView>
   );
-}
+};
 
 const styles = StyleSheet.create({
   container: {
@@ -233,6 +214,82 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     padding: 15,
   },
+  requestsContainer: {
+    marginTop: 12,
+  },
+  requestCard: {
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 12,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+    elevation: 3,
+  },
+  requestHeader: {
+    marginBottom: 12,
+  },
+  requestType: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 4,
+  },
+  requestTypeText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#333',
+    marginLeft: 8,
+  },
+  recipientText: {
+    fontSize: 14,
+    color: '#666',
+  },
+  locationInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F5F5F5',
+    padding: 12,
+    borderRadius: 8,
+    marginBottom: 12,
+  },
+  locationText: {
+    fontSize: 14,
+    color: '#333',
+    marginLeft: 8,
+  },
+  actionButtons: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    gap: 12,
+  },
+  rejectButton: {
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#E0E0E0',
+  },
+  rejectButtonText: {
+    color: '#666',
+    fontSize: 14,
+    fontWeight: '500',
+  },
+  acceptButton: {
+    backgroundColor: '#006A60',
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+  },
+  acceptButtonText: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: '500',
+  },
   deadlineItem: {
     flexDirection: "row",
     alignItems: "center",
@@ -285,3 +342,5 @@ const styles = StyleSheet.create({
     color: "#fff",
   },
 });
+
+export default HomeScreen;
