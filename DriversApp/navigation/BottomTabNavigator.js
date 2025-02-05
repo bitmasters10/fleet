@@ -1,10 +1,7 @@
 import React from "react";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
-import ProfileScreen from "../screen/ProfileScreen";
-import VehicleScreen from "../screen/VehicleScreen";
-import FleetScreen from "../screen/FleetScreen";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
-import HomeScreen from "../screen/HomeScreen";
+
 const Tab = createBottomTabNavigator();
 
 const BottomTabNavigator = () => {
@@ -12,7 +9,7 @@ const BottomTabNavigator = () => {
     <Tab.Navigator>
       <Tab.Screen
         name="Home"
-        component={HomeScreen}
+        component={() => require("../screen/HomeScreen").default}
         options={{
           tabBarIcon: ({ color }) => (
             <Icon name="home" color={color} size={24} />
@@ -21,7 +18,7 @@ const BottomTabNavigator = () => {
       />
       <Tab.Screen
         name="Fleet"
-        component={FleetScreen}
+        component={() => require("../screen/FleetScreen").default}
         options={{
           tabBarIcon: ({ color }) => (
             <Icon name="car" color={color} size={24} />
@@ -30,7 +27,7 @@ const BottomTabNavigator = () => {
       />
       <Tab.Screen
         name="Vehicle"
-        component={VehicleScreen}
+        component={() => require("../screen/VehicleScreen").default}
         options={{
           tabBarIcon: ({ color }) => (
             <Icon name="truck" color={color} size={24} />
@@ -39,7 +36,7 @@ const BottomTabNavigator = () => {
       />
       <Tab.Screen
         name="Profile"
-        component={ProfileScreen}
+        component={() => require("../screen/ProfileScreen").default}
         options={{
           tabBarIcon: ({ color }) => (
             <Icon name="account" color={color} size={24} />
