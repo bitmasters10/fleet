@@ -194,6 +194,9 @@ Router.get("/test", (req, res) => {
 });
 Router.get("/history", (req, res) => {
   const id = req.user.DRIVER_ID;
+  if (!id) {
+    res.status(505).json({ error: "driver not ready " });
+  }
   const q = "select * from TRIP where DRIVER_ID=? AND stat=? ";
   db.query(q, [id, "COMPLETED"], (err, results) => {
     if (err) {
