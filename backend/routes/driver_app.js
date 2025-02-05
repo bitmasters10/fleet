@@ -207,5 +207,20 @@ Router.get("/history", (req, res) => {
     res.json(results);
   });
 });
+Router.get("drive/fuel",(req,res)=>{
+  const id = req.user.DRIVER_ID;
+  if (!id) {
+    res.status(505).json({ error: "driver not ready " });
+  }
+  const q = "select * from FUEL_CONSUMPTION where DRIVER_ID=?  ";
+  db.query(q, [id], (err, results) => {
+    if (err) {
+      console.error("Error executing query:", err);
+      return res.status(500).json({ error: "Database query failed" });
+    }
+
+    res.json(results);
+  });
+})
 
 module.exports = Router;
