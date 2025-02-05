@@ -38,11 +38,11 @@ Router.get("/book/:date", (req, res) => {
     res.json(results);
   });
 });
-Router.patch("/book-complete", (req, res) => {
+Router.patch("/trip-complete", (req, res) => {
   const id = req.user.DRIVER_ID;
-  const { date, BOOK_ID } = req.body;
-  const q = "update TRIP set STAT=? where date=? and DRIVER_ID=? AND BOOK_ID=?";
-  db.query(q, ["COMPLETED", date, id, BOOK_ID], (err, results) => {
+  const { BOOK_ID } = req.body;
+  const q = "update TRIP set STAT=? where  DRIVER_ID=? AND BOOK_ID=?";
+  db.query(q, ["COMPLETED", id, BOOK_ID], (err, results) => {
     if (err) {
       console.error("Error executing query:", err);
       return res.status(500).json({ error: "Database query failed" });
@@ -100,16 +100,14 @@ Router.post("/otp", (req, res) => {
 Router.get("/all/book", (req, res) => {
   const id = req.user.DRIVER_ID;
   const q = "select * from BOOKING where DRIVER_ID=? AND stat=? ";
-  db.query(q, [id,"READY"],(err, results) => {
+  db.query(q, [id, "READY"], (err, results) => {
     if (err) {
       console.error("Error executing query:", err);
       return res.status(500).json({ error: "Database query failed" });
     }
 
-   
     res.json(results);
   });
-
 });
 Router.get("/cars", async (req, res) => {
   try {
@@ -124,7 +122,66 @@ Router.get("/cars", async (req, res) => {
     console.error("Error during retrive:", err);
   }
 });
+Router.post("/create-trip", async (req, res) => {
+  try {
+    let ID = await idmake("TRIP", "TRIP_ID");
+    const { BOOK_NO, BOOK_ID, ROUTE, date } = req.body;
+    const id = req.user.DRIVER_ID;
+    const otp = Math.floor(1000 + Math.random() * 9000); // Generate a random OTP
+    const START_TIME = new Date().getHours() + "" + new Date().getMinutes(); // Get current time
 
+    // Trip object to insert
+    const trip = {
+      START_TIME,
+      TRIP_ID: ID,
+      BOOK_ID,
+      BOOK_NO,
+      ROUTE,
+      OTP: otp,
+      STAT: "JUST",
+      ROOM_ID: BOOK_ID,
+      date,
+      DRIVER_ID: id,
+    };
+
+    // Update the BOOKING table
+    const updateBookingQuery = "UPDATE BOOKING SET stat = ? WHERE BOOK_ID = ?";
+    db.query(updateBookingQuery, ["TRIP", BOOK_ID], (err) => {
+      if (err) {
+        console.error("Error updating BOOKING:", err);
+        return res.status(500).json({ error: "Database update failed" });
+      }
+
+      // Insert into TRIP table
+      const insertTripQuery = "INSERT INTO TRIP SET ?";
+      db.query(insertTripQuery, trip, (err) => {
+        if (err) {
+          console.error("Error inserting into TRIP:", err);
+          return res.status(500).json({ error: "Database insertion failed" });
+        }
+
+        // Retrieve the newly created trip record
+        const selectTripQuery = "SELECT * FROM TRIP WHERE TRIP_ID = ?";
+        db.query(selectTripQuery, [ID], (err, results) => {
+          if (err) {
+            console.error("Error retrieving trip record:", err);
+            return res
+              .status(500)
+              .json({ error: "Failed to retrieve trip record" });
+          }
+
+          // Send the created trip record back to the client
+          return res
+            .status(201)
+            .json({ message: "Trip created successfully", trip: results[0] });
+        });
+      });
+    });
+  } catch (error) {
+    console.error("Error in trip creation:", error);
+    return res.status(500).json({ error: "Internal server error" });
+  }
+});
 Router.get("/test", (req, res) => {
   db.query("select otp from TRIP", (err, results) => {
     if (err) {
@@ -132,7 +189,18 @@ Router.get("/test", (req, res) => {
       return res.status(500).json({ error: "Database query failed" });
     }
 
-  
+    res.json(results);
+  });
+});
+Router.get("/history", (req, res) => {
+  const id = req.user.DRIVER_ID;
+  const q = "select * from TRIP where DRIVER_ID=? AND stat=? ";
+  db.query(q, [id, "COMPLETED"], (err, results) => {
+    if (err) {
+      console.error("Error executing query:", err);
+      return res.status(500).json({ error: "Database query failed" });
+    }
+
     res.json(results);
   });
 });
