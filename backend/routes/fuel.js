@@ -97,7 +97,7 @@ Router.patch("/reject/:id",(req,res)=>{
 })
 Router.get("/fuels",(req,res)=>{
   try {
-    db.query("SELECT * FROM CARS ", (err, rows) => {
+    db.query("SELECT * FROM FUEL_CONSUMPTION ", (err, rows) => {
       if (err) {
         console.error("Error executing query:", err);
         return res.status(500).send("Server Error");

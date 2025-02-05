@@ -8,7 +8,7 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(false); // Loading state
    const [position, setPosition] = useState(null);
 const home = "http://192.168.0.202:3000"
-const clg = "http://172.16.239.81:3000"
+const clg = "http://192.168.1.243:3000"
   const login = async (email, password) => {
     try {
       setLoading(true); // Set loading to true while logging in
