@@ -22,7 +22,23 @@ async function idmake(table, column) {
     });
   });
 }
-Router.get("/book/:date", (req, res) => {
+function isDriver(req, res, next) {
+  console.log("Session:", req.session); // Log session data
+  console.log("User:", req.user); // Log the user object
+
+  if (!req.isAuthenticated() || !req.user) {
+    console.log("User is not authenticated");
+    return res.status(401).json({ message: "Unauthorized access." });
+  }
+
+  if (req.user.role !== "driver") {
+    console.log("User role is not driver:", req.user.role);
+    return res
+      .status(403)
+      .json({ message: "Forbidden: You are not a superadmin." });
+  }
+}
+Router.get("/book/:date",isDriver, (req, res) => {
   const id = req.user.DRIVER_ID;
   const { date } = req.params;
   console.log("Driver ID:", id);
@@ -38,7 +54,7 @@ Router.get("/book/:date", (req, res) => {
     res.json(results);
   });
 });
-Router.patch("/trip-complete", (req, res) => {
+Router.patch("/trip-complete",isDriver, (req, res) => {
   const id = req.user.DRIVER_ID;
   const { BOOK_ID } = req.body;
   const q = "update TRIP set STAT=? where  DRIVER_ID=? AND BOOK_ID=?";
@@ -51,7 +67,7 @@ Router.patch("/trip-complete", (req, res) => {
     res.json(results);
   });
 });
-Router.post("/otp", (req, res) => {
+Router.post("/otp", isDriver,(req, res) => {
   const { otp, BOOK_ID } = req.body;
   const id = req.user.DRIVER_ID;
 
@@ -109,7 +125,7 @@ Router.get("/all/book", (req, res) => {
     res.json(results);
   });
 });
-Router.get("/cars", async (req, res) => {
+Router.get("/cars", isDriver,async (req, res) => {
   try {
     db.query("SELECT * FROM CARS ", (err, rows) => {
       if (err) {
@@ -122,7 +138,7 @@ Router.get("/cars", async (req, res) => {
     console.error("Error during retrive:", err);
   }
 });
-Router.post("/create-trip", async (req, res) => {
+Router.post("/create-trip", isDriver,async (req, res) => {
   try {
     let ID = await idmake("TRIP", "TRIP_ID");
     const { BOOK_NO, BOOK_ID, ROUTE, date } = req.body;
@@ -192,7 +208,7 @@ Router.get("/test", (req, res) => {
     res.json(results);
   });
 });
-Router.get("/history", (req, res) => {
+Router.get("/history",isDriver, (req, res) => {
   const id = req.user.DRIVER_ID;
   if (!id) {
     res.status(505).json({ error: "driver not ready " });
@@ -207,7 +223,7 @@ Router.get("/history", (req, res) => {
     res.json(results);
   });
 });
-Router.get("drive/fuel",(req,res)=>{
+Router.get("drive/fuel",isDriver,(req,res)=>{
   const id = req.user.DRIVER_ID;
   if (!id) {
     res.status(505).json({ error: "driver not ready " });
