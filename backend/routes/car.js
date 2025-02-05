@@ -220,7 +220,7 @@ Router.post("/avail-cars", isAdmin, (req, res) => {
 Router.patch("/repair/:id", (req, res) => {
   const { id } = req.params;
   const q = `update CARS set STATUS=? WHERE CAR_ID=? `;
-  db.query(query, ["REPAIR", id], (err, results) => {
+  db.query(q, ["REPAIR", id], (err, results) => {
     if (err) {
       console.error("Error fetching :", err);
       res.status(500).send("Server Error");
@@ -234,7 +234,7 @@ Router.patch("/repair/:id", (req, res) => {
 Router.patch("/work/:id", (req, res) => {
   const { id } = req.params;
   const q = `update CARS set STATUS=? WHERE CAR_ID=? `;
-  db.query(query, ["ACTIVE", id], (err, results) => {
+  db.query(q, ["ACTIVE", id], (err, results) => {
     if (err) {
       console.error("Error fetching :", err);
       res.status(500).send("Server Error");
