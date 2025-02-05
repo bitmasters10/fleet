@@ -65,6 +65,10 @@ app.use("/driver", require("./routes/driver_app"));
 app.use("/admin/img", require("./routes/img"));
 app.use("/admin", require("./routes/user"));
 app.use("/admin/maintenance", require("./routes/maintaince"));
+app.use("/admin/insurance", require("./routes/insurance"));
+app.use("/admin/car-health", require("./routes/car_health"));
+
+
 
 app.post("/api/events", (req, res) => {
   const eventDetails = req.body;
@@ -75,7 +79,7 @@ app.post("/api/events", (req, res) => {
       .json({ message: "Invalid request. No data received." });
   }
 
-  // Normalize keys by removing colons and spaces
+
   const normalizedDetails = Object.entries(eventDetails).reduce(
     (acc, [key, value]) => {
       const newKey = key.replace(/[:\s]/g, ""); // Remove colons and spaces
