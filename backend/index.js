@@ -19,7 +19,7 @@ const clg = "http://172.16.239.81:5500"
 // CORS configuration
 app.use(
   cors({
-    origin: ["http://localhost:5173", `${clg}`], // Allowed origins
+    origin: ["http://localhost:5173", `${home}`], // Allowed origins
     credentials: true, 
   })
 );
@@ -56,6 +56,7 @@ app.use("/admin", require("./routes/car"));
 app.use("/admin", require("./routes/booking"));
 app.use("/admin", require("./routes/driver"));
 app.use("/admin", require("./routes/trip"));
+app.use("/admin", require("./routes/fuel"));
 app.use("/driver", require("./routes/driver_app"));
 app.use("/admin/img", require("./routes/img"));
 app.use("/admin", require("./routes/user"));
