@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import {
   StyleSheet,
   View,
@@ -13,25 +13,42 @@ import {
 import MapView, { Marker } from "react-native-maps";
 import { useAuth } from "../context/AuthContext";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
+import { io } from "socket.io-client";
+
 const { width } = Dimensions.get("window");
 
-// Mock route coordinates
-const routeCoordinates = [
-  { latitude: 30.2672, longitude: -97.7431 }, // Austin coordinates
-  { latitude: 30.2749, longitude: -97.7404 },
-  { latitude: 30.2798, longitude: -97.7368 },
-];
-
-// Mock vehicle locations
-const vehicles = [
-  { id: 1, latitude: 30.2672, longitude: -97.7431, speed: 60 },
-  { id: 2, latitude: 30.2749, longitude: -97.7404, speed: 45 },
-  { id: 3, latitude: 30.2798, longitude: -97.7368, speed: 30 },
-];
-
+// Initialize socket connection
+const socket = io("ws://172.16.239.81:3001");
+console.log("helo map")
 const MapScreen = ({ isOpen }) => {
   const { position } = useAuth();
   console.log("Position Map:", position);
+
+  useEffect(() => {
+    console.log("test")
+    // Connect to WebSocket
+    socket.on("connect", () => {
+      console.log("Connected to WebSocket:", socket.id);
+    });
+
+    // Join room "all"
+    let room = "all";
+    socket.emit("rom", room);
+
+    // Send location updates when position changes
+    if (position && position.latitude && position.longitude) {
+      console.log("helo"+position.latitude)
+      socket.emit("loc", {
+        room: room,
+        lat: position.latitude,
+        long: position.longitude,
+      });
+    }
+
+    return () => {
+      socket.disconnect(); // Clean up socket connection on unmount
+    };
+  }, [position]); // Run effect when position updates
 
   if (!position || !position.latitude || !position.longitude) {
     return (
@@ -91,8 +108,6 @@ const MapScreen = ({ isOpen }) => {
             <Text style={styles.otpLabel}>Enter OTP</Text>
             <TextInput
               style={styles.otpInput}
-              // value={otp}
-              // onChangeText={setOtp}
               placeholder="Enter 4-digit OTP"
               keyboardType="number-pad"
               maxLength={4}
@@ -107,6 +122,9 @@ const MapScreen = ({ isOpen }) => {
     </SafeAreaView>
   );
 };
+
+
+
 
 export default MapScreen;
 
