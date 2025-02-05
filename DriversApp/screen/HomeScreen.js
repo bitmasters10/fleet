@@ -1,4 +1,4 @@
-import React, { useContext } from "react";
+import React, { useContext, useEffect } from "react";
 import {
   StyleSheet,
   View,
@@ -8,6 +8,7 @@ import {
   TouchableOpacity,
   SafeAreaView,
   Dimensions,
+  FlatList,
 } from "react-native";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 import MapView, { Marker } from "react-native-maps";
@@ -15,6 +16,7 @@ import MapView, { Marker } from "react-native-maps";
 import { useNavigation } from "@react-navigation/native";
 import { AuthContext } from "../context/AuthContext";
 import MapScreen from "./MapScreen";
+import { useTrip } from "../context/TripContext";
 
 // Mock data for the spending graph
 const spendingData = {
@@ -34,10 +36,36 @@ const initialRegion = {
   longitudeDelta: 0.0421,
 };
 
+
 const HomeScreen = () => {
   const navigation = useNavigation();
   const screenWidth = Dimensions.get("window").width;
-  const { user} = useContext(AuthContext);
+  const { user } = useContext(AuthContext);
+  const { trips = [], fetchTrips, createTrip, loading } = useTrip() || {}; // ✅ Safe fallback
+  // ✅ Get trip functions
+console.log(fetchTrips)
+  // Fetch trips when the screen loads
+
+  useEffect(() => {
+    fetchTrips();
+  }, []);
+
+  // Function to start a trip
+  const handleStartTrip = async (trip) => {
+    try {
+      const newTrip = {
+        BOOK_NO: trip.BOOK_NO,
+        BOOK_ID: trip.BOOK_ID,
+        ROUTE: trip.ROUTE,
+        date: trip.date,
+      };
+      await createTrip(newTrip);
+      alert("Trip started successfully!");
+    } catch (error) {
+      alert("Failed to start trip");
+    }
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       {/* Header */}
@@ -59,85 +87,64 @@ const HomeScreen = () => {
         </TouchableOpacity>
       </View>
 
-      <ScrollView style={styles.content}>
-        {/* Live GPS Section */}
-        
-          <View style={styles.section}>
+      {/* ✅ Replace ScrollView with FlatList */}
+      <FlatList
+        ListHeaderComponent={
+          <>
+            {/* Live GPS Section */}
+            <View style={styles.section}>
+              <View style={styles.sectionHeader}>
+                <Text style={styles.sectionTitle}>Live GPS</Text>
+                <TouchableOpacity onPress={() => navigation.navigate("Map")}>
+                  <Text style={styles.seeAllText}>See all</Text>
+                </TouchableOpacity>
+              </View>
+              <View style={styles.mapContainer}>
+                <MapScreen isOpen="true" />
+              </View>
+            </View>
+
+            {/* Available Requests Section */}
             <View style={styles.sectionHeader}>
-              <Text style={styles.sectionTitle}>Live GPS</Text>
-              <TouchableOpacity onPress={() => navigation.navigate("Map")}>
-                <Text style={styles.seeAllText}>See all</Text>
+              <Text style={styles.sectionTitle}>Available Requests</Text>
+              <TouchableOpacity onPress={() => navigation.navigate("Requests")}>
+                <Text style={styles.seeAllText}>View all</Text>
               </TouchableOpacity>
             </View>
-            <View style={styles.mapContainer}>
-              <MapScreen isOpen="true"/>
-            </View>
-          </View>
-        
-
-        {/* Spending Section */}
-        <View style={styles.section}>
-        <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Available Requests</Text>
-          <TouchableOpacity onPress={() => navigation.navigate("Requests")}>
-            <Text style={styles.seeAllText}>View all</Text>
-          </TouchableOpacity>
-        </View>
-
-        <View style={styles.requestsContainer}>
-          {/* Electronics Request */}
+          </>
+        }
+        data={trips}
+        keyExtractor={(item) => item.BOOK_ID}
+        ListEmptyComponent={<Text style={styles.emptyText}>No trips available</Text>}
+        renderItem={({ item }) => (
           <View style={styles.requestCard}>
             <View style={styles.requestHeader}>
               <View style={styles.requestType}>
-                <Icon name="devices" size={20} color="#4FA89B" />
-                <Text style={styles.requestTypeText}>Electronics/Gadgets</Text>
+                <Icon name="car" size={20} color="#4FA89B" />
+                <Text style={styles.requestTypeText}>{item.ROUTE}</Text>
               </View>
-              <Text style={styles.recipientText}>Receipient: Paul Pogba</Text>
+              <Text style={styles.recipientText}>Receipient: {item.RECIPIENT}</Text>
             </View>
 
             <View style={styles.locationInfo}>
-              <Icon name="bicycle" size={20} color="#4FA89B" />
-              <Text style={styles.locationText}>Maryland busstop, Anthony Ikeja</Text>
+              <Icon name="map-marker" size={20} color="#4FA89B" />
+              <Text style={styles.locationText}>{item.LOCATION}</Text>
             </View>
 
             <View style={styles.actionButtons}>
               <TouchableOpacity style={styles.rejectButton}>
                 <Text style={styles.rejectButtonText}>Reject</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={styles.acceptButton}>
-                <Text style={styles.acceptButtonText}>Accept</Text>
+              <TouchableOpacity
+                style={styles.acceptButton}
+                onPress={() => handleStartTrip(item)}
+              >
+                <Text style={styles.acceptButtonText}>Start Trip</Text>
               </TouchableOpacity>
             </View>
           </View>
-
-          {/* Food Items Request */}
-          <View style={styles.requestCard}>
-            <View style={styles.requestHeader}>
-              <View style={styles.requestType}>
-                <Icon name="food" size={20} color="#4FA89B" />
-                <Text style={styles.requestTypeText}>Food Items/Groceries</Text>
-              </View>
-              <Text style={styles.recipientText}>Receipient: Paul Pogba</Text>
-            </View>
-
-            <View style={styles.locationInfo}>
-              <Icon name="bicycle" size={20} color="#4FA89B" />
-              <Text style={styles.locationText}>Maryland busstop, Anthony Ikeja</Text>
-            </View>
-
-            <View style={styles.actionButtons}>
-              <TouchableOpacity style={styles.rejectButton}>
-                <Text style={styles.rejectButtonText}>Reject</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.acceptButton}>
-                <Text style={styles.acceptButtonText}>Accept</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-      </View>
-        {/* Upcoming Deadlines Section */}
-      </ScrollView>
+        )}
+      />
     </SafeAreaView>
   );
 };

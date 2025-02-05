@@ -11,6 +11,7 @@ import VehicleScreen from "./screen/VehicleScreen"; // Import VehicleScreen for 
 import { StyleSheet } from "react-native";
 import ErrorBoundary from "./ErrorBoundary"; // Import ErrorBoundary
 import { AuthProvider } from "./context/AuthContext"; // Import AuthProvider
+import { TripProvider } from "./context/TripContext";
 
 const Stack = createNativeStackNavigator(); // Create native stack navigator
 
@@ -18,6 +19,7 @@ export default function App() {
   return (
     <ErrorBoundary>
       <AuthProvider>
+        <TripProvider>
         <NavigationContainer>
           <Stack.Navigator initialRouteName="Login">
             <Stack.Screen
@@ -57,6 +59,7 @@ export default function App() {
             />
           </Stack.Navigator>
         </NavigationContainer>
+        </TripProvider>
       </AuthProvider>
     </ErrorBoundary>
   );
