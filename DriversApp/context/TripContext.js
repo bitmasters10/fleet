@@ -11,14 +11,14 @@ export const TripProvider = ({ children }) => {
   const [loading, setLoading] = useState(false);
 
   const home = "http://192.168.0.202:3000";
-  const clg = "http://192.168.1.243:3000";
+  const clg = "http://172.16.255.151:3000";
 
   // Function to fetch current trips
   const fetchTrips = async () => {
     if (!user) return; // If no user is available, do not proceed
     try {
       setLoading(true);
-      const response = await axios.get(`${home}/driver/all/book`, {
+      const response = await axios.get(`${clg}/driver/all/book`, {
         withCredentials: true, // Send session cookies with the request
       });
       console.log("DATA:", response.data);
@@ -30,11 +30,31 @@ export const TripProvider = ({ children }) => {
     }
   };
 
+  const verifyOtp = async (otp, BOOK_ID) => {
+    try {
+      const response = await axios.post(`${clg}/driver/otp`, {
+        otp,
+        BOOK_ID,
+      });
+
+      if (response.status === 200) {
+        console.log("OTP verification success:", response.data);
+        return response.data; // Contains success message and record
+      } else {
+        console.log("OTP verification failed:", response.data);
+        return null;
+      }
+    } catch (error) {
+      console.error("Error during OTP verification:", error);
+      return null;
+    }
+  };
+
   // Function to fetch trip history
   const fetchHistory = async () => {
     if (!user) return; // If no user is available, do not proceed
     try {
-      const response = await axios.get(`${home}/driver/history`, {
+      const response = await axios.get(`${clg}/driver/history`, {
         withCredentials: true, // Send session cookies with the request
       });
       setHistory(response.data);
@@ -47,7 +67,7 @@ export const TripProvider = ({ children }) => {
   const createTrip = async (tripData) => {
     if (!user) return; // If no user is available, do not proceed
     try {
-      const response = await axios.post(`${home}/driver/create-trip`, tripData, {
+      const response = await axios.post(`${clg}/driver/create-trip`, tripData, {
         withCredentials: true, // Send session cookies with the request
       });
       setTrips((prevTrips) => [...prevTrips, response.data.trip]);
@@ -62,7 +82,7 @@ export const TripProvider = ({ children }) => {
     if (!user) return; // If no user is available, do not proceed
     try {
       await axios.patch(
-        `${home}/driver/trip-complete`,
+        `${clg}/driver/trip-complete`,
         { BOOK_ID },
         {
           withCredentials: true, // Send session cookies with the request
@@ -83,7 +103,7 @@ export const TripProvider = ({ children }) => {
 
   return (
     <TripContext.Provider
-      value={{ trips, history, createTrip, completeTrip, fetchTrips, loading }}
+      value={{ trips, history, createTrip, completeTrip, fetchTrips, loading, verifyOtp }}
     >
       {children}
     </TripContext.Provider>
