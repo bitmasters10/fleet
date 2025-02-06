@@ -161,6 +161,16 @@ function AddButton({ showCreateForm, setShowCreateForm }) {
 // Admin Table Component
 // eslint-disable-next-line react/prop-types
 function TableManage({ drivers = [], setEditingDriver, deleteDriver }) {
+  const viewDocument = (docData, docName) => {
+    if (docData) {
+      const blob = new Blob([docData], { type: "application/pdf" }); // Change type if needed
+      const url = URL.createObjectURL(blob);
+      window.open(url, "_blank");
+    } else {
+      alert(`${docName} is not available.`);
+    }
+  };
+
   return (
     <div className="max-lg:relative block overflow-x-auto shadow-md sm:rounded-lg">
       <table className="w-full lg:max-w-[95%] mx-auto text-sm text-left rtl:text-right mb-9 text-gray-500 dark:text-gray-400">
@@ -171,6 +181,7 @@ function TableManage({ drivers = [], setEditingDriver, deleteDriver }) {
             <th className="px-6 py-3">EMAIL_ID</th>
             <th className="px-6 py-3">LICENSE_NO</th>
             <th className="px-6 py-3">GENDER</th>
+            <th className="px-6 py-3">DOCUMENTS</th>
             <th className="px-6 py-3">
               <span className="sr-only">Actions</span>
             </th>
@@ -188,7 +199,20 @@ function TableManage({ drivers = [], setEditingDriver, deleteDriver }) {
                 <td className="px-6 py-4">{driver.EMAIL_ID}</td>
                 <td className="px-6 py-4">{driver.LICENSE_NO}</td>
                 <td className="px-6 py-4">{driver.GENDER}</td>
-
+                <td className="px-6 py-4 flex gap-2">
+                  <button
+                    className="font-medium text-blue-600 dark:text-blue-500 hover:underline"
+                    onClick={() => viewDocument(driver.ADHARCARD, "Aadhaar Card")}
+                  >
+                    View Aadhaar
+                  </button>
+                  <button
+                    className="font-medium text-green-600 dark:text-green-500 hover:underline"
+                    onClick={() => viewDocument(driver.PANCARD, "PAN Card")}
+                  >
+                    View PAN
+                  </button>
+                </td>
                 <td className="px-6 py-4 text-right">
                   <button
                     className="font-medium text-blue-600 dark:text-blue-500 hover:underline px-1"
@@ -207,7 +231,7 @@ function TableManage({ drivers = [], setEditingDriver, deleteDriver }) {
             ))
           ) : (
             <tr>
-              <td colSpan="4" className="text-center py-4">
+              <td colSpan="7" className="text-center py-4">
                 No drivers found.
               </td>
             </tr>
@@ -217,6 +241,7 @@ function TableManage({ drivers = [], setEditingDriver, deleteDriver }) {
     </div>
   );
 }
+
 function CreateForm({ addDriver, setShowCreateForm }) {
   const [formData, setFormData] = useState({
     name: "",
@@ -230,6 +255,7 @@ function CreateForm({ addDriver, setShowCreateForm }) {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    console.log(formData)
     addDriver(formData);
     setFormData({
       name: "",
@@ -333,7 +359,7 @@ function CreateForm({ addDriver, setShowCreateForm }) {
 
              
             </label>
-            <input type="text" name="phone_no" placeholder="Phone Number"  phone number
+            <input type="text" name="phone_no" placeholder="Phone Number"  
               value={formData.phone_no}
               onChange={(e) =>
                 setFormData({ ...formData, phone_no: e.target.value })
