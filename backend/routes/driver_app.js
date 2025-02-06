@@ -116,6 +116,9 @@ Router.post("/otp", isDriver,(req, res) => {
 });
 
 Router.get("/all/book", (req, res) => {
+  console.log("Request body:", req.body);
+console.log("Request user:", req.user);
+
   const id = req.user.DRIVER_ID;
   const q = "select * from BOOKING where DRIVER_ID=? AND stat=? ";
   db.query(q, [id, "READY"], (err, results) => {

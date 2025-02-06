@@ -31,8 +31,12 @@ export const DriverProvider = ({ children }) => {
     try {
       const response = await axiosInstance.post(
         "/driver-auth/register",
-        driver
+        driver,
+        {
+          headers: { "Content-Type": "multipart/form-data" },
+        }
       );
+      
       setDrivers((prev) => [...prev, response.data.user]);
       return { success: true };
     } catch (error) {
