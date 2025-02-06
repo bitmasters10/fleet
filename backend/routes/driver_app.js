@@ -34,6 +34,7 @@ Router.get("/book/:date",isDriver, (req, res) => {
   const id = req.user.DRIVER_ID;
   const { date } = req.params;
   console.log("Driver ID:", id);
+  console.log(id)
 
   const q = "SELECT * FROM BOOKING WHERE DATE = ? AND DRIVER_ID = ? and stat=?";
 
