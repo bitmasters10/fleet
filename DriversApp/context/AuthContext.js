@@ -13,7 +13,7 @@ const clg = "http://172.16.255.151:3000"
     try {
       setLoading(true); // Set loading to true while logging in
       const response = await axios.post(
-        `${clg}/driver-auth/login`,
+        `${home}/driver-auth/login`,
         {
           email,
           password,
@@ -35,7 +35,7 @@ const clg = "http://172.16.255.151:3000"
 
   const logout = async () => {
     try {
-      await axios.post(`${clg}/driver-auth/logout`);
+      await axios.post(`${home}/driver-auth/logout`);
       setUser(null); // Clear user data on logout
     } catch (error) {
       console.error("Logout error:", error);

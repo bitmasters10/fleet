@@ -19,7 +19,7 @@ const clg = "http://172.16.255.151:5500"
 // CORS configuration
 app.use(
   cors({
-    origin: ["http://localhost:5173", `${clg}`], // Allowed origins
+    origin: ["http://localhost:5173", `${home}`], // Allowed origins
     credentials: true, 
   })
 );
