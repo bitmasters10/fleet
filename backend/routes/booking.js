@@ -139,7 +139,7 @@ Router.post("/create-book", async (req, res) => {
 
   db.query(
     "select * from BOOKING where CAR_ID=? AND DRIVER_ID=? AND TIMING=? AND END_TIME=?",
-    [CAR_ID, DRIVER_ID, TIMING, END_TIME],
+    [CAR_ID, DRIVER_ID, START_TIME, END_TIME],
     (err, rows) => {
       if (err) {
         console.log(err);

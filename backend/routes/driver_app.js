@@ -31,17 +31,19 @@ function isDriver(req, res, next) {
     return res.status(401).json({ message: "Unauthorized access." });
   }
 
-  if (req.user.role !== "driver") {
+  if (req.user. role !== 'driver') {
     console.log("User role is not driver:", req.user.role);
     return res
       .status(403)
       .json({ message: "Forbidden: You are not a superadmin." });
   }
+  return next();
 }
 Router.get("/book/:date",isDriver, (req, res) => {
   const id = req.user.DRIVER_ID;
   const { date } = req.params;
   console.log("Driver ID:", id);
+  console.log(id)
 
   const q = "SELECT * FROM BOOKING WHERE DATE = ? AND DRIVER_ID = ? and stat=?";
 
