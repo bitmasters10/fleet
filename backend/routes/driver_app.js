@@ -22,22 +22,14 @@ async function idmake(table, column) {
     });
   });
 }
-function isDriver(req, res, next) {
-  console.log("Session:", req.session); // Log session data
-  console.log("User:", req.user); // Log the user object
-
-  if (!req.isAuthenticated() || !req.user) {
-    console.log("User is not authenticated");
-    return res.status(401).json({ message: "Unauthorized access." });
+const isDriver = (req, res, next) => {
+  if (!req.user || !req.user.DRIVER_ID) {
+    return res.status(401).json({ error: "Unauthorized: Driver not authenticated" });
   }
+  console.log("Driver Authenticated:", req.user.DRIVER_ID);
+  next();
+};
 
-  if (req.user.role !== "driver") {
-    console.log("User role is not driver:", req.user.role);
-    return res
-      .status(403)
-      .json({ message: "Forbidden: You are not a superadmin." });
-  }
-}
 Router.get("/book/:date",isDriver, (req, res) => {
   const id = req.user.DRIVER_ID;
   const { date } = req.params;
@@ -67,13 +59,15 @@ Router.patch("/trip-complete",isDriver, (req, res) => {
     res.json(results);
   });
 });
-Router.post("/otp", isDriver,(req, res) => {
-  const { otp, BOOK_ID } = req.body;
-  const id = req.user.DRIVER_ID;
 
+Router.post("/otp", (req, res) => {
+  const { otp, BOOK_ID } = req.body;
+  console.log("Backend:", req.body);
+  const id = req.user.DRIVER_ID;
+console.log(id)
   const query =
     "SELECT otp FROM TRIP WHERE  DRIVER_ID = ? AND otp = ? AND BOOK_ID = ?";
-  db.query(query, [date, id, otp, BOOK_ID], (err, results) => {
+  db.query(query, [ id, otp, BOOK_ID], (err, results) => {
     if (err) {
       console.error("Error executing query:", err);
       return res.status(500).json({ error: "Database query failed" });
@@ -108,7 +102,8 @@ Router.post("/otp", isDriver,(req, res) => {
         );
       });
     } else {
-      return res.status(404).json({ message: "Not same" });
+      return res.status(400).json({message: 'incorrect otp'});
+      ;
     }
   });
 });
@@ -118,6 +113,7 @@ Router.get("/all/book", (req, res) => {
 console.log("Request user:", req.user);
 
   const id = req.user.DRIVER_ID;
+  console.log(id)
   const q = "select * from BOOKING where DRIVER_ID=? AND stat=? ";
   db.query(q, [id, "READY"], (err, results) => {
     if (err) {

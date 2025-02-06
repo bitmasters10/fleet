@@ -31,24 +31,23 @@ export const TripProvider = ({ children }) => {
   };
 
   const verifyOtp = async (otp, BOOK_ID) => {
+    console.log(otp)
     try {
-      const response = await axios.post(`${home}/driver/otp`, {
-        otp,
-        BOOK_ID,
-      });
-
+      const response = await axios.post(`${home}/driver/otp`, { otp, BOOK_ID }, { withCredentials: true });
+  
+      console.log("Response:", response.data);
+  
       if (response.status === 200) {
-        console.log("OTP verification success:", response.data);
-        return response.data; // Contains success message and record
+        return response.data;
       } else {
-        console.log("OTP verification failed:", response.data);
-        return null;
+        throw new Error(response.data?.message || "OTP verification failed");
       }
     } catch (error) {
       console.error("Error during OTP verification:", error);
-      return null;
+      throw error;
     }
   };
+  
 
   // Function to fetch trip history
   const fetchHistory = async () => {

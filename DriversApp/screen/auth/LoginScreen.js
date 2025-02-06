@@ -100,10 +100,7 @@ export default function LoginScreen() {
         </TouchableOpacity>
       </View>
 
-      <View style={styles.footer}>
-        <Text style={styles.footerText}>Managing Fleets</Text>
-        <Text style={styles.footerText}>Day To Day</Text>
-      </View>
+     
     </View>
   );
 }

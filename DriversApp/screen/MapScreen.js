@@ -30,8 +30,10 @@ const MapScreen = ({ isOpen }) => {
   const [otpInput, setOtpInput] = useState("")
   const [showModal, setShowModal] = useState(false);
   const { verifyOtp } = useTrip();
-  console.log(bookingData);
-console.log(otpInput)
+  
+
+console.log("Update position:", position)
+  
   const geocodeLocation = async (address, type) => {
     try {
       const response = await fetch(
@@ -55,24 +57,26 @@ console.log(otpInput)
     }
   };
   const handleOTPClick = async () => {
-   // assuming otpInput is the state variable for OTP input
-  const BOOK_ID = bookingData.BOOK_ID; // Assuming bookingData has BOOK_ID
-  
-  // Call the verifyOtp function with otp and BOOK_ID
-  try {
-    const response = await verifyOtp(otpInput, BOOK_ID); // Call the function from TripContext
-    if(!response.ok){
-       console.long("Incorrect OTP");   
-    }else{
-    setOtpVerify(true)
-        Alert.alert("OTP received");   
-
+    const BOOK_ID = bookingData?.BOOK_ID;
+    const otp = otpInput;
+  console.log(BOOK_ID)
+    if (!BOOK_ID || !otp) {
+      Alert.alert("Error", "Please enter OTP and ensure a valid booking ID.");
+      return;
     }
-
-  } catch (error) {
-    console.error("OTP Verification failed:", error);
-  }
-};
+  
+    try {
+      const response = await verifyOtp(otp, BOOK_ID);
+  console.log("Frontend response", response);
+      if (response.status == 200) {
+        setOtpVerify(true);
+        Alert.alert("Success", "OTP verified successfully");
+      }
+    } catch (error) {
+      Alert.alert("Error", "Incorrect OTP or verification failed");
+    }
+  };
+  
 
   useEffect(() => {
     if (position && position.latitude && position.longitude) {
@@ -82,7 +86,7 @@ console.log(otpInput)
         long: position.longitude,
       });
     }
-  }, [position]);
+  }, [position, bookingData]);
 
   if (!position || !position.latitude || !position.longitude) {
     return (
@@ -132,7 +136,7 @@ console.log(otpInput)
               longitude: pickupCoords.lng,
             }}
             title="Pickup Location"
-            description={bookingData.pickupLocation}
+            description={bookingData.PICKUP_LOC}
           />
         )}
 
@@ -223,8 +227,8 @@ console.log(otpInput)
 
           </View>
 
-          <TouchableOpacity style={styles.button} >
-            <Text style={styles.buttonText} onPress={handleOTPClick} >Next</Text>
+          <TouchableOpacity style={styles.button} onPress={handleOTPClick}>
+            <Text style={styles.buttonText}  >Next</Text>
           </TouchableOpacity>
         </View>
       )}

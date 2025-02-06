@@ -49,8 +49,8 @@
             const hashedPassword = await bcrypt.hash(password, 10);
 
 
-            const adharcard = req.files?.adharcard ? req.files.adharcard[0].buffer : null;
-            const pancard = req.files?.pancard ? req.files.pancard[0].buffer : null;
+            const adharcard = req.files?.adharcard ;
+            const pancard = req.files?.pancard;
 
             const newDriver = {
                 DRIVER_ID: driverId,
