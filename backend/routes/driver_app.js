@@ -75,7 +75,7 @@ Router.post("/otp", isDriver,(req, res) => {
 
   const query =
     "SELECT otp FROM TRIP WHERE  DRIVER_ID = ? AND otp = ? AND BOOK_ID = ?";
-  db.query(query, [date, id, otp, BOOK_ID], (err, results) => {
+  db.query(query, [ id, otp, BOOK_ID], (err, results) => {
     if (err) {
       console.error("Error executing query:", err);
       return res.status(500).json({ error: "Database query failed" });
@@ -91,10 +91,10 @@ Router.post("/otp", isDriver,(req, res) => {
         }
 
         const selectUpdatedQuery =
-          "SELECT * FROM TRIP WHERE date = ? AND DRIVER_ID = ? AND BOOK_ID = ?";
+          "SELECT * FROM TRIP WHERE   DRIVER_ID = ? AND BOOK_ID = ?";
         db.query(
           selectUpdatedQuery,
-          [date, id, BOOK_ID],
+          [ id, BOOK_ID],
           (err, updatedResults) => {
             if (err) {
               console.error("Error retrieving updated record:", err);
@@ -243,5 +243,21 @@ Router.get("drive/fuel",isDriver,(req,res)=>{
     res.json(results);
   });
 })
+Router.post("/myloc",(req,res)=>{
+  const {lat,long}=req.body
+  const id=req.user.DRIVER_ID;
+  const q="UPDATE DRIVER SET LATITUDE=?,LONGITUDE=? where DRIVER_ID=?"
+  try {
+    db.query(q,[lat,long,id], (err, rows) => {
+      if (err) {
+        console.error("Error executing query:", err);
+        return res.status(500).send("Server Error");
+      }
+      return res.status(200).json(rows);
+    });
+  } catch (err) {
+    console.error("Error during retive:", err);
+  }
 
+})
 module.exports = Router;
