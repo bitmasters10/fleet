@@ -143,7 +143,7 @@ Router.post("/avail-drivers",isAdmin, (req, res) => {
   }
 });
 
-Router.post("myloc",(req,res)=>{
+Router.post("/myloc",(req,res)=>{
   const {lat,long}=req.body
   const id=req.user.DRIVER_ID;
   const q="UPDATE DRIVER SET LATITUDE=?,LONGITUDE=? where DRIVER_ID=?"
