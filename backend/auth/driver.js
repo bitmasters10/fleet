@@ -1,90 +1,81 @@
-    const multer = require('multer');
-    const passport = require('passport');
-    const LocalStrategy = require('passport-local').Strategy;
-    const bcrypt = require('bcryptjs');
-    const db = require('../db');
-    const { v4: uuidv4 } = require('uuid');
-    const express = require('express');
-    const Router = express.Router();
-    const session = require('express-session');
-    const MySQLStore = require('express-mysql-session')(session);
+const passport = require('passport');
+const LocalStrategy = require('passport-local').Strategy;
+const bcrypt = require('bcryptjs');
+const db = require('../db');
+const { v4: uuidv4 } = require('uuid');
+const express = require('express');
+const Router = express.Router();
+const session = require('express-session');
+const MySQLStore = require('express-mysql-session')(session);
 
-    const storage = multer.memoryStorage(); 
-    const upload = multer({ storage }).fields([
-        { name: 'adharcard', maxCount: 1 }, 
-        { name: 'pancard', maxCount: 1 }  
-    ]);
+async function idmake(table, column) {
+    let id = uuidv4();
+    const query = `SELECT * FROM ${table} WHERE ${column} = ?`;
 
-    async function idmake(table, column) {
-        let id = uuidv4();
-        const query = `SELECT * FROM ${table} WHERE ${column} = ?`;
+    return new Promise((resolve, reject) => {
+        db.query(query, [id], (err, rows) => {
+            if (err) {
+                console.error('Error executing query:', err);
+                return reject(err);
+            }
 
-        return new Promise((resolve, reject) => {
-            db.query(query, [id], (err, rows) => {
-                if (err) {
-                    console.error('Error executing query:', err);
-                    return reject(err); 
-                }
-
-                if (rows.length === 0) {
-                    return resolve(id);
-                } else {
-                
-                    idmake(table, column).then(resolve).catch(reject);
-                }
-            });
+            if (rows.length === 0) {
+                return resolve(id);
+            } else {
+                idmake(table, column).then(resolve).catch(reject);
+            }
         });
-    }
+    });
+}
 
-    passport.use('driver-local-register', new LocalStrategy({
-        usernameField: 'email',
-        passwordField: 'password',
-        passReqToCallback: true
-    }, async (req, email, password, done) => {
-        const { name, phone_no, gender, license_no } = req.body;
+passport.use(
+    'driver-local-register',
+    new LocalStrategy(
+        {
+            usernameField: 'email',
+            passwordField: 'password',
+            passReqToCallback: true,
+        },
+        async (req, email, password, done) => {
+            const { name, phone_no, gender, license_no, adharcard, pancard } = req.body;
 
-        try {
-        
-            const driverId = await idmake('DRIVER', 'DRIVER_ID');
-            const hashedPassword = await bcrypt.hash(password, 10);
+            try {
+                // Generate unique DRIVER_ID
+                const driverId = await idmake('DRIVER', 'DRIVER_ID');
+                const hashedPassword = await bcrypt.hash(password, 10);
 
+                // Expecting Base64 strings for images
+                const newDriver = {
+                    DRIVER_ID: driverId,
+                    NAME: name,
+                    EMAIL_ID: email,
+                    GENDER: gender,
+                    PHONE_NO: phone_no,
+                    PASS: hashedPassword,
+                    LICENSE_NO: license_no,
+                    ADHARCARD: adharcard || null, // Base64 string
+                    PANCARD: pancard || null, // Base64 string
+                };
 
-            const adharcard = req.files?.adharcard ;
-            const pancard = req.files?.pancard;
-            console.log("Adhaar Card:",adharcard)
-            console.log("Pan Card:",pancard)
-            const newDriver = {
-                DRIVER_ID: driverId,
-                NAME: name,
-                EMAIL_ID: email,
-                GENDER: gender,
-                PHONE_NO: phone_no,
-                PASS: hashedPassword,
-                LICENSE_NO: license_no,
-                ADHARCARD: adharcard, 
-                PANCARD: pancard    
-            };
-            console.log("Driverdetails befor regis:", newDriver)
-        
-            db.query('INSERT INTO DRIVER SET ?', newDriver, (err) => {
-                if (err) return done(err);
-                return done(null, { 
-                    DRIVER_ID: newDriver.DRIVER_ID, 
-                    NAME: newDriver.NAME, 
-                    EMAIL_ID: newDriver.EMAIL_ID, 
-                    GENDER: newDriver.GENDER, 
-                    PHONE_NO: newDriver.PHONE_NO, 
-                    PASS: newDriver.PASS, 
-                    LICENSE_NO: newDriver.LICENSE_NO 
+                db.query('INSERT INTO DRIVER SET ?', newDriver, (err) => {
+                    if (err) return done(err);
+                    return done(null, {
+                        DRIVER_ID: newDriver.DRIVER_ID,
+                        NAME: newDriver.NAME,
+                        EMAIL_ID: newDriver.EMAIL_ID,
+                        GENDER: newDriver.GENDER,
+                        PHONE_NO: newDriver.PHONE_NO,
+                        PASS: newDriver.PASS,
+                        LICENSE_NO: newDriver.LICENSE_NO,
+                    });
                 });
-            });
-        } catch (err) {
-            console.error('Error during registration:', err);
-            return done(err);
+            } catch (err) {
+                console.error('Error during registration:', err);
+                return done(err);
+            }
         }
-
-    }));
-
+    )
+);
 
     passport.use('driver-local-login', new LocalStrategy({
         usernameField: 'email',
@@ -135,21 +126,21 @@
     Router.post('/logout', (req, res) => {
         logout(req, res);
     });
-    Router.post('/register', upload, (req, res, next) => {
+    Router.post('/register', (req, res, next) => {
         passport.authenticate('driver-local-register', (err, user, info) => {
             if (err) {
                 console.error(err);
                 return res.status(500).json({ success: false, message: 'An error occurred during registration.' });
             }
-
+    
             if (!user) {
-            
-                return res.status(400).json({ success: false, message: info.message || 'Registration failed.' });
+                return res.status(400).json({ success: false, message: info?.message || 'Registration failed.' });
             }
-            console.log("Backend:", user);
+    
             res.status(200).json({ success: true, message: 'Registration successful!', user });
         })(req, res, next);
     });
+    
 
     Router.post('/login', (req, res, next) => {
         passport.authenticate('driver-local-login', (err, user, info) => {
