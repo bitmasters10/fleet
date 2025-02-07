@@ -95,6 +95,7 @@ Router.get('/fuel-view/:id', (req, res) => {
 });
 Router.get('/driver-view/:id/adharcard', (req, res) => {
     const driverId = req.params.id;
+    console.log("helo")
 
     db.query('SELECT ADHARCARD FROM DRIVER WHERE DRIVER_ID = ?', [driverId], (err, rows) => {
         if (err) {
@@ -104,36 +105,40 @@ Router.get('/driver-view/:id/adharcard', (req, res) => {
 
         if (rows.length > 0) {
             const fileData = rows[0].ADHARCARD;
+            console.log(fileData)
 
             res.writeHead(200, {
-                'Content-Type': 'application/octet-stream',
-                'Content-Disposition': 'attachment; filename="adharcard.jpg"'
+                'Content-Type': 'image/jpeg'  // Change to appropriate image type
             });
 
-            res.end(fileData);
+            res.end(fileData); // Directly display the image
         } else {
             res.status(404).send('Aadhaar card not found');
-    }
+        }
+    });
 });
-});
+
 Router.get('/driver-view/:id/pancard', (req, res) => {
     const driverId = req.params.id;
 
     db.query('SELECT PANCARD FROM DRIVER WHERE DRIVER_ID = ?', [driverId], (err, rows) => {
         if (err) {
-            console.error('Error retrieving Aadhaar card:', err);
-            return res.status(500).send('Error retrieving Aadhaar card');
+            console.error('Error retrieving PAN card:', err);
+            return res.status(500).send('Error retrieving PAN card');
         }
 
         if (rows.length > 0) {
             const fileData = rows[0].PANCARD;
 
-          
+            res.writeHead(200, {
+                'Content-Type': 'image/jpeg'  // Change if the image format is different (e.g., 'image/png')
+            });
 
-            res.end(fileData);
+            res.end(fileData); // Directly display the image
         } else {
-            res.status(404).send('pan card not found');
-    }
+            res.status(404).send('PAN card not found');
+        }
+    });
 });
-});
+
 module.exports = Router;
