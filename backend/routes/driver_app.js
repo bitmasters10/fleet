@@ -223,7 +223,10 @@ Router.get("/history",isDriver, (req, res) => {
     res.json(results);
   });
 });
-Router.get("drive/fuel",isDriver,(req,res)=>{
+
+
+
+Router.get("/drive/fuel",isDriver,(req,res)=>{
   const id = req.user.DRIVER_ID;
   if (!id) {
     res.status(505).json({ error: "driver not ready " });
@@ -238,5 +241,8 @@ Router.get("drive/fuel",isDriver,(req,res)=>{
     res.json(results);
   });
 })
+
+
+
 
 module.exports = Router;

@@ -9,7 +9,7 @@ export const TripProvider = ({ children }) => {
   const [trips, setTrips] = useState([]);
   const [history, setHistory] = useState([]);
   const [loading, setLoading] = useState(false);
-
+const [fuelData, setFuelData] = useState([]);
   const home = "http://192.168.0.202:3000";
   const clg = "http://172.16.255.151:3000";
 
@@ -93,6 +93,22 @@ export const TripProvider = ({ children }) => {
     }
   };
 
+
+  const fetchFuelData = async () => {
+    setLoading(true);
+    try {
+      const res = await axios.get(`${home}/driver/drive/fuel`, {
+        withCredentials: true,
+      });
+      setFuelData(res.data);
+    } catch (err) {
+      console.error("Failed to fetch fuel data:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+
   useEffect(() => {
     if (user) {
       fetchTrips();
@@ -102,7 +118,7 @@ export const TripProvider = ({ children }) => {
 
   return (
     <TripContext.Provider
-      value={{ trips, history, createTrip, completeTrip, fetchTrips, loading, verifyOtp }}
+      value={{ trips, history, createTrip, completeTrip, fetchTrips, loading, verifyOtp,fetchFuelData, fuelData }}
     >
       {children}
     </TripContext.Provider>

@@ -4,6 +4,7 @@ import {
   View,
   Text,
   TouchableOpacity,
+  Linking,
   TextInput,
   SafeAreaView,
   Dimensions,
@@ -27,13 +28,12 @@ const MapScreen = ({ isOpen }) => {
   const [pickupCoords, setPickupCoords] = useState(null);
   const [dropCoords, setDropCoords] = useState(null);
   const [otpVerify, setOtpVerify] = useState(false);
-  const [otpInput, setOtpInput] = useState("")
+  const [otpInput, setOtpInput] = useState("");
   const [showModal, setShowModal] = useState(false);
   const { verifyOtp } = useTrip();
-  
 
-console.log("Update position:", position)
-  
+  console.log("Update position:", position);
+
   const geocodeLocation = async (address, type) => {
     try {
       const response = await fetch(
@@ -59,15 +59,15 @@ console.log("Update position:", position)
   const handleOTPClick = async () => {
     const BOOK_ID = bookingData?.BOOK_ID;
     const otp = otpInput;
-  console.log(BOOK_ID)
+    console.log(BOOK_ID);
     if (!BOOK_ID || !otp) {
       Alert.alert("Error", "Please enter OTP and ensure a valid booking ID.");
       return;
     }
-  
+
     try {
       const response = await verifyOtp(otp, BOOK_ID);
-  console.log("Frontend response", response);
+      console.log("Frontend response", response);
       if (response.status == 200) {
         setOtpVerify(true);
         Alert.alert("Success", "OTP verified successfully");
@@ -76,7 +76,6 @@ console.log("Update position:", position)
       Alert.alert("Error", "Incorrect OTP or verification failed");
     }
   };
-  
 
   useEffect(() => {
     if (position && position.latitude && position.longitude) {
@@ -204,31 +203,33 @@ console.log("Update position:", position)
 
           {/* Display mobile phone number */}
           <View style={styles.locationContainer}>
-            <View style={styles.locationItem}>
+            <TouchableOpacity
+              style={styles.locationItem}
+              onPress={() => Linking.openURL(`tel:${bookingData.mobile_no}`)}
+            >
               <Icon name="phone" size={24} color="#4CAF50" />
               <View style={styles.locationInput}>
                 <Text style={styles.locationLabel}>Mobile Phone</Text>
                 <Text style={styles.locationText}>{bookingData.mobile_no}</Text>
               </View>
-            </View>
+            </TouchableOpacity>
           </View>
 
           <View style={styles.otpContainer}>
             <Text style={styles.otpLabel}>Enter OTP</Text>
-           <TextInput
-  style={styles.otpInput}
-  placeholder="Enter 4-digit OTP"
-  keyboardType="number-pad"
-  maxLength={4}
-  returnKeyType="done" 
-  value={otpInput} // Set value from state
-  onChangeText={setOtpInput} // Update state on input change
-/>
-
+            <TextInput
+              style={styles.otpInput}
+              placeholder="Enter 4-digit OTP"
+              keyboardType="number-pad"
+              maxLength={4}
+              returnKeyType="done"
+              value={otpInput} // Set value from state
+              onChangeText={setOtpInput} // Update state on input change
+            />
           </View>
 
           <TouchableOpacity style={styles.button} onPress={handleOTPClick}>
-            <Text style={styles.buttonText}  >Next</Text>
+            <Text style={styles.buttonText}>Next</Text>
           </TouchableOpacity>
         </View>
       )}

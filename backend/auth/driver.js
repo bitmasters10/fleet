@@ -51,7 +51,8 @@
 
             const adharcard = req.files?.adharcard ;
             const pancard = req.files?.pancard;
-
+            console.log("Adhaar Card:",adharcard)
+            console.log("Pan Card:",pancard)
             const newDriver = {
                 DRIVER_ID: driverId,
                 NAME: name,
@@ -63,7 +64,7 @@
                 ADHARCARD: adharcard, 
                 PANCARD: pancard    
             };
-
+            console.log("Driverdetails befor regis:", newDriver)
         
             db.query('INSERT INTO DRIVER SET ?', newDriver, (err) => {
                 if (err) return done(err);
@@ -145,7 +146,7 @@
             
                 return res.status(400).json({ success: false, message: info.message || 'Registration failed.' });
             }
-
+            console.log("Backend:", user);
             res.status(200).json({ success: true, message: 'Registration successful!', user });
         })(req, res, next);
     });

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import {
   StyleSheet,
   View,
@@ -12,50 +12,14 @@ import {
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 
 import { useNavigation } from "@react-navigation/native";
-
-// Mock data for vehicles
-const vehicles = [
-  {
-    id: "UKW 3929",
-    type: "Me-Truck",
-    image:
-      "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-09cTmPsbNhvivt0QNpNEissN6WQbHi.png",
-  },
-  {
-    id: "UKW 8876",
-    type: "Me-Truck",
-    image:
-      "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-09cTmPsbNhvivt0QNpNEissN6WQbHi.png",
-  },
-  {
-    id: "UKW 4533",
-    type: "Me-Truck",
-    image:
-      "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-09cTmPsbNhvivt0QNpNEissN6WQbHi.png",
-  },
-  {
-    id: "UKW 7654",
-    type: "Me-Truck",
-    image:
-      "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-09cTmPsbNhvivt0QNpNEissN6WQbHi.png",
-  },
-  {
-    id: "UKW 4332",
-    type: "Me-Truck",
-    image:
-      "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-09cTmPsbNhvivt0QNpNEissN6WQbHi.png",
-  },
-  {
-    id: "UKW 4325",
-    type: "Me-Truck",
-    image:
-      "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-09cTmPsbNhvivt0QNpNEissN6WQbHi.png",
-  },
-];
+import { useTrip } from "../context/TripContext";
 
 export default function FleetScreen() {
   const navigation = useNavigation();
-
+  const { fetchFuelData, fuelData } = useTrip();
+  useEffect(() => {
+    fetchFuelData();
+  }, []);
   const renderVehicle = ({ item }) => (
     <TouchableOpacity
       style={styles.listItem}
@@ -79,17 +43,17 @@ export default function FleetScreen() {
       <StatusBar barStyle="light-content" />
       <View style={styles.headerContent}>
         <Text style={styles.headerTitle}>Fuel</Text>
-       
       </View>
-
-      <FlatList
-        data={vehicles}
-        renderItem={renderVehicle}
-        keyExtractor={(item) => item.id}
-        contentContainerStyle={styles.listContent}
-      />
-
- 
+      {!fuelData ? (
+        <Text style={styles.nodata}>NO Data FOUND</Text>
+      ) : (
+        <FlatList
+          data={fuelData}
+          renderItem={renderVehicle}
+          keyExtractor={(item) => item.id}
+          contentContainerStyle={styles.listContent}
+        />
+      )}
     </SafeAreaView>
   );
 }
@@ -98,6 +62,12 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#fff",
+  },
+  nodata:{
+flex:2,
+    color: 'red',
+    zIndex: 1000,
+    fontSize: '1em'
   },
   headerContent: {
     flexDirection: "row",
