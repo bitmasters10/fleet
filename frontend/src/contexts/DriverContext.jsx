@@ -18,7 +18,6 @@ export const DriverProvider = ({ children }) => {
     setLoading(true);
     try {
       const response = await axiosInstance.get("/admin/drivers");
-      
       setDrivers(response.data);
     } catch (error) {
       console.error("Error fetching drivers:", error);
@@ -29,7 +28,6 @@ export const DriverProvider = ({ children }) => {
   };
 
   const addDriver = async (driver) => {
-    console.log("Frontend:",driver)
     try {
       const response = await axiosInstance.post(
         "/driver-auth/register",

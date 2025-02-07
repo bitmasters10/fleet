@@ -109,19 +109,20 @@ Router.post("/avail-drivers",isAdmin, (req, res) => {
   }
 
   const q = `
-   SELECT DISTINCT c.DRIVER_ID, c.NAME
-FROM DRIVER c 
-LEFT JOIN BOOKING b 
-ON c.DRIVER_ID = b.DRIVER_ID 
-WHERE b.DRIVER_ID IS NULL 
-  OR (
-    b.DATE != ? 
-    OR NOT (
-      (? >= b.TIMING AND ? < b.END_TIME) OR 
-      (? > b.TIMING AND ? <= b.END_TIME) OR 
-      (? <= b.TIMING AND ? >= b.END_TIME)
+    SELECT c.DRIVER_ID,
+    c.NAME
+    FROM DRIVER c 
+    LEFT JOIN BOOKING b 
+    ON c.DRIVER_ID = b.DRIVER_ID 
+    WHERE b.DRIVER_ID IS NULL 
+    OR (
+      b.DATE != ? 
+      OR NOT (
+        (? >= b.TIMING AND ? < b.END_TIME) OR 
+        (? > b.TIMING AND ? <= b.END_TIME) OR 
+        (? <= b.TIMING AND ? >= b.END_TIME)
+      )
     )
-  );
   `;
 
   try {
@@ -142,7 +143,7 @@ WHERE b.DRIVER_ID IS NULL
   }
 });
 
-Router.post("/myloc",(req,res)=>{
+Router.post("myloc",(req,res)=>{
   const {lat,long}=req.body
   const id=req.user.DRIVER_ID;
   const q="UPDATE DRIVER SET LATITUDE=?,LONGITUDE=? where DRIVER_ID=?"
