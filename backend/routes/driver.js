@@ -109,20 +109,19 @@ Router.post("/avail-drivers",isAdmin, (req, res) => {
   }
 
   const q = `
-    SELECT c.DRIVER_ID,
-    c.NAME
-    FROM DRIVER c 
-    LEFT JOIN BOOKING b 
-    ON c.DRIVER_ID = b.DRIVER_ID 
-    WHERE b.DRIVER_ID IS NULL 
-    OR (
-      b.DATE != ? 
-      OR NOT (
-        (? >= b.TIMING AND ? < b.END_TIME) OR 
-        (? > b.TIMING AND ? <= b.END_TIME) OR 
-        (? <= b.TIMING AND ? >= b.END_TIME)
-      )
+   SELECT DISTINCT c.DRIVER_ID, c.NAME
+FROM DRIVER c 
+LEFT JOIN BOOKING b 
+ON c.DRIVER_ID = b.DRIVER_ID 
+WHERE b.DRIVER_ID IS NULL 
+  OR (
+    b.DATE != ? 
+    OR NOT (
+      (? >= b.TIMING AND ? < b.END_TIME) OR 
+      (? > b.TIMING AND ? <= b.END_TIME) OR 
+      (? <= b.TIMING AND ? >= b.END_TIME)
     )
+  );
   `;
 
   try {

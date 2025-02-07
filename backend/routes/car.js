@@ -173,13 +173,13 @@ Router.post("/avail-cars", isAdmin, (req, res) => {
   }
 
   const q = `
-  SELECT c.CAR_ID,
+  SELECT DISTINCT c.CAR_ID,
   c.MODEL_NAME,
   c.SEATING_CAPACITY
-  FROM CARS c 
-  LEFT JOIN BOOKING b 
-  ON c.CAR_ID = b.CAR_ID 
-  WHERE (b.CAR_ID IS NULL 
+FROM CARS c 
+LEFT JOIN BOOKING b 
+ON c.CAR_ID = b.CAR_ID 
+WHERE (b.CAR_ID IS NULL 
   OR (
     b.DATE != ? 
     OR NOT (
@@ -189,6 +189,7 @@ Router.post("/avail-cars", isAdmin, (req, res) => {
     )
   )) 
   AND c.STATUS = ?
+
 `;
 
   try {
