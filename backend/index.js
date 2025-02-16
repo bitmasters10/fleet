@@ -63,6 +63,7 @@ app.use("/admin", require("./routes/user"));
 app.use("/admin/maintenance", require("./routes/maintaince"));
 app.use("/admin/insurance", require("./routes/insurance"));
 app.use("/car-health", require("./routes/car_health"));
+app.use("/admin", require("./routes/advisor"));
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '100mb', extended: true }));
 
@@ -173,6 +174,64 @@ const handleCancelledBooking = async (eventDetails) => {
     return { message: "Error processing booking cancellation." };
   }
 };
+const handleAmendedBooking = async (eventDetails) => {
+  try {
+    const { 
+      BookingReference, 
+      Title, 
+      Location, 
+      TravelDate, 
+      LeadTravelerName, 
+      HotelPickup, 
+      Status 
+    } = eventDetails;
+
+    // Ensure status is "Amended"
+    if (Status !== "Amended") {
+      console.log("Status is not Amended, skipping.");
+      return { message: "Booking is not Amended." };
+    }
+
+    // Check if the booking exists and is not Cancelled
+    const [existingRows] = await db.query(
+      "SELECT book_status FROM BOOKINGS WHERE booking_reference = ? AND status != 'Cancelled'",
+      [BookingReference]
+    );
+
+    if (existingRows.length === 0) {
+      console.log("No valid booking found for amendment.");
+      return { message: "No active booking found with this reference." };
+    }
+
+    const { book_status } = existingRows[0];
+
+    // Update the BOOKINGS table (except StartDateTime and EndDateTime)
+    await db.query(
+      `UPDATE BOOKINGS 
+       SET title = ?, location = ?, travel_date = ?, lead_traveler_name = ?, 
+           hotel_pickup = ?, status = 'Amended' 
+       WHERE booking_reference = ? AND status != 'Cancelled'`,
+      [Title, Location, TravelDate, LeadTravelerName, HotelPickup, BookingReference]
+    );
+
+    console.log("Booking details updated to Amended.");
+
+    // If book_status is "done", update the pickup location in BOOKING
+    if (book_status === "done") {
+      await db.query(
+        "UPDATE BOOKING SET PICKUP_LOC = ? WHERE br = ?",
+        [HotelPickup, BookingReference]
+      );
+      console.log("Pickup location updated in BOOKING table.");
+    }
+
+    return { message: "Booking successfully amended." };
+  } catch (error) {
+    console.error("Error processing amended booking:", error);
+    return { message: "Error processing booking amendment." };
+  }
+};
+
 
 
 app.post("/api/events", async (req, res) => {
@@ -195,12 +254,16 @@ app.post("/api/events", async (req, res) => {
     result = await handleConfirmedBooking(normalizedDetails);
   } else if (normalizedDetails.Status === "Cancelled") {
     result = await handleCancelledBooking(normalizedDetails);
+  } else if (normalizedDetails.Status === "Amended") {
+    result = await handleAmendedBooking(normalizedDetails);
   } else {
     result = { message: "Unhandled status received." };
   }
 
   res.status(200).json(result);
 });
+
+
 app.listen(port, () => {
   console.log(`Server running on port ${port}`);
 });
