@@ -110,7 +110,7 @@ function TableManage({ vehicles, setEditingVehicle, deleteVehicle }) {
                 <td className="px-6 py-4">{vehicle.COMPANY_NAME}</td>
                 <td className="px-6 py-4">{vehicle.SEATING_CAPACITY}</td>
                 <td className="px-6 py-4">{vehicle.STATUS}</td>
-                <td className="px-6 py-4 text-right">
+                <td className="px-6 py-4 flex">
                   <button
                     className="font-medium text-blue-600 dark:text-blue-500 hover:underline px-1"
                     onClick={() => setEditingVehicle(vehicle)}

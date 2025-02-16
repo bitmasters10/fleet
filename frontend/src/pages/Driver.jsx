@@ -3,20 +3,25 @@ import { useState, useEffect } from "react";
 import Heading from "../components/Heading";
 import Input from "../components/Input";
 import { useDrivers } from "../contexts/DriverContext";
+import Toast from "../components/Toast";
 
 // eslint-disable-next-line react/prop-types
 export default function Driver({ title, track }) {
-  const {
-    drivers,
-
-    fetchDrivers,
-    deleteDriver,
-    updateDriver,
-    addDriver,
-  } = useDrivers();
+  const { drivers, fetchDrivers, deleteDriver, updateDriver, addDriver } =
+    useDrivers();
   const [editingDriver, setEditingDriver] = useState(null); // Tracks the driver being edited
   const [showCreateForm, setShowCreateForm] = useState(false); // Tracks Create Form visibility
   const [searchQuery, setSearchQuery] = useState(""); // Tracks search input
+  const [toast, setToast] = useState({
+    show: false,
+    message: "",
+    type: "success",
+  });
+
+  // Add this useEffect to monitor toast state changes
+  useEffect(() => {
+    console.log("Toast state changed:", toast);
+  }, [toast]);
 
   const filteredDrivers = drivers.filter(
     (driver) =>
@@ -33,9 +38,62 @@ export default function Driver({ title, track }) {
     fetchDrivers();
   }, []);
 
+  const showToast = (message, type = "success") => {
+    console.log("Showing toast:", message, type); // Debug log
+    setToast({ show: true, message, type });
+    setTimeout(() => {
+      console.log("Hiding toast"); // Debug log
+      setToast({ show: false, message: "", type: "success" });
+    }, 3000);
+  };
+
+  const handleAddDriver = async (data) => {
+    try {
+      await addDriver(data);
+      showToast("Driver added successfully");
+      setShowCreateForm(false); // Close the form after successful addition
+    } catch (error) {
+      showToast(error.message || "Failed to add driver", "error");
+    }
+  };
+
+  const handleUpdateDriver = async (data) => {
+    try {
+      await updateDriver(data);
+      showToast("Driver updated successfully");
+      setEditingDriver(null); // Close the form after successful update
+    } catch (error) {
+      showToast(error.message || "Failed to update driver", "error");
+    }
+  };
+
+  const handleDeleteDriver = async (id) => {
+    try {
+      await deleteDriver(id);
+      console.log("Delete successful, showing toast"); // Debug log
+      showToast("Driver deleted successfully");
+    } catch (error) {
+      console.log("Delete failed, showing error toast"); // Debug log
+      showToast(error.message || "Failed to delete driver", "error");
+    }
+  };
+
   return (
-    <div>
+    <div className="relative">
+      {" "}
+      {/* Add relative positioning */}
       <Heading title={title} track={track} />
+      {/* Move toast right after Heading */}
+      {toast.show && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onClose={() => {
+            console.log("Toast closed manually"); // Debug log
+            setToast({ show: false, message: "", type: "success" });
+          }}
+        />
+      )}
       <div className="xl:max-w-[90%] max-xl:mx-auto max-w-screen-full bg-white my-20 dark:bg-gray-800">
         <div className="flex items-center justify-between px-6 pt-6">
           <h2 className="mx-4 text-3xl font-semibold">{title}</h2>
@@ -54,7 +112,7 @@ export default function Driver({ title, track }) {
         {/* Render Create Form */}
         {showCreateForm && (
           <CreateForm
-            addDriver={addDriver}
+            addDriver={handleAddDriver}
             setShowCreateForm={setShowCreateForm}
           />
         )}
@@ -63,14 +121,14 @@ export default function Driver({ title, track }) {
         <TableManage
           drivers={filteredDrivers} // Pass filtered Drivers
           setEditingDriver={setEditingDriver}
-          deleteDriver={deleteDriver}
+          deleteDriver={handleDeleteDriver}
         />
 
         {/* Render Edit Form */}
         {editingDriver && (
           <EditForm
             driver={editingDriver}
-            updateDriver={updateDriver}
+            updateDriver={handleUpdateDriver}
             setEditingDriver={setEditingDriver}
           />
         )}
@@ -103,6 +161,16 @@ function AddButton({ showCreateForm, setShowCreateForm }) {
 // Admin Table Component
 // eslint-disable-next-line react/prop-types
 function TableManage({ drivers = [], setEditingDriver, deleteDriver }) {
+  const viewDocument = (docData, docName) => {
+    if (docData) {
+      const blob = new Blob([docData], { type: "application/pdf" }); // Change type if needed
+      const url = URL.createObjectURL(blob);
+      window.open(url, "_blank");
+    } else {
+      alert(`${docName} is not available.`);
+    }
+  };
+
   return (
     <div className="max-lg:relative block overflow-x-auto shadow-md sm:rounded-lg">
       <table className="w-full lg:max-w-[95%] mx-auto text-sm text-left rtl:text-right mb-9 text-gray-500 dark:text-gray-400">
@@ -113,6 +181,7 @@ function TableManage({ drivers = [], setEditingDriver, deleteDriver }) {
             <th className="px-6 py-3">EMAIL_ID</th>
             <th className="px-6 py-3">LICENSE_NO</th>
             <th className="px-6 py-3">GENDER</th>
+            <th className="px-6 py-3">DOCUMENTS</th>
             <th className="px-6 py-3">
               <span className="sr-only">Actions</span>
             </th>
@@ -130,7 +199,20 @@ function TableManage({ drivers = [], setEditingDriver, deleteDriver }) {
                 <td className="px-6 py-4">{driver.EMAIL_ID}</td>
                 <td className="px-6 py-4">{driver.LICENSE_NO}</td>
                 <td className="px-6 py-4">{driver.GENDER}</td>
-
+                <td className="px-6 py-4 flex gap-2">
+                  <button
+                    className="font-medium text-blue-600 dark:text-blue-500 hover:underline"
+                    onClick={() => viewDocument(driver.ADHARCARD, "Aadhaar Card")}
+                  >
+                    View Aadhaar
+                  </button>
+                  <button
+                    className="font-medium text-green-600 dark:text-green-500 hover:underline"
+                    onClick={() => viewDocument(driver.PANCARD, "PAN Card")}
+                  >
+                    View PAN
+                  </button>
+                </td>
                 <td className="px-6 py-4 text-right">
                   <button
                     className="font-medium text-blue-600 dark:text-blue-500 hover:underline px-1"
@@ -149,7 +231,7 @@ function TableManage({ drivers = [], setEditingDriver, deleteDriver }) {
             ))
           ) : (
             <tr>
-              <td colSpan="4" className="text-center py-4">
+              <td colSpan="7" className="text-center py-4">
                 No drivers found.
               </td>
             </tr>
@@ -167,10 +249,13 @@ function CreateForm({ addDriver, setShowCreateForm }) {
     password: "",
     license_no: "",
     gender: "",
+    adharcard: null,
+    pancard: null,
   });
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    console.log(formData)
     addDriver(formData);
     setFormData({
       name: "",
@@ -178,6 +263,9 @@ function CreateForm({ addDriver, setShowCreateForm }) {
       password: "",
       license_no: "",
       gender: "",
+      adharcard: null,
+      pancard: null,
+      phone_no:null
     });
     setShowCreateForm(false);
   };
@@ -192,7 +280,7 @@ function CreateForm({ addDriver, setShowCreateForm }) {
           &times;
         </button>
         <h3 className="text-lg font-semibold mb-4 text-gray-700 dark:text-gray-200">
-          Create Admin
+          Create Driver
         </h3>
         <form onSubmit={handleSubmit}>
           <div className="mb-4">
@@ -265,6 +353,48 @@ function CreateForm({ addDriver, setShowCreateForm }) {
               required
             />
           </div>
+          <div className="mb-4">
+            <label className="block mb-1 text-gray-700 dark:text-gray-300">
+             
+
+             
+            </label>
+            <input type="text" name="phone_no" placeholder="Phone Number"  
+              value={formData.phone_no}
+              onChange={(e) =>
+                setFormData({ ...formData, phone_no: e.target.value })
+              }
+              className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200"
+              required></input></div>
+          
+          {/* Aadhaar Card Upload */}
+          <div className="mb-4">
+            <label className="block mb-1 text-gray-700 dark:text-gray-300">
+              Aadhaar Card
+            </label>
+            <input
+              type="file"
+              onChange={(e) =>
+                setFormData({ ...formData, adharcard: e.target.files[0] })
+              }
+              className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200"
+            />
+          </div>
+
+          {/* PAN Card Upload */}
+          <div className="mb-4">
+            <label className="block mb-1 text-gray-700 dark:text-gray-300">
+              PAN Card
+            </label>
+            <input
+              type="file"
+              onChange={(e) =>
+                setFormData({ ...formData, pancard: e.target.files[0] })
+              }
+              className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200"
+            />
+          </div>
+
           <button
             type="submit"
             className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-400"
@@ -276,6 +406,7 @@ function CreateForm({ addDriver, setShowCreateForm }) {
     </div>
   );
 }
+
 
 // Edit Form Component in Modal
 function EditForm({ driver, updateDriver, setEditingDriver }) {

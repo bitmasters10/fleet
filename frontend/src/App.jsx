@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Route, Routes} from "react-router-dom";
+import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 import Navbar from "./components/Navbar";
 import Sidebar from "./components/Sidebar";
 
@@ -6,18 +6,23 @@ import Dashboard from "./pages/Dashboard";
 import Map from "./pages/Map";
 import Admin from "./pages/Admin";
 import Driver from "./pages/Driver";
-import User from "./pages/User";
+import User from "./pages/Fuel";
 import Vehicle from "./pages/Vehicle";
 import Trip from "./pages/Trip";
 import Booking from "./pages/Booking";
 import Report from "./pages/Report";
 import Login from "./pages/Auth/Login";
 
+
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import AppLayout from "./pages/AppLayout";
 import { AdminProvider } from "./contexts/AdminContext";
 import { VehicleProvider } from "./contexts/VehicleContext";
 import { DriverProvider } from "./contexts/DriverContext";
+import { BookingProvider } from "./contexts/BookingContext";
+import { TripProvider } from "./contexts/TripContext";
+import { FuelProvider } from "./contexts/FuelContext";
+import Fuel from "./pages/Fuel";
 
 // PrivateRoute Component to protect routes
 // eslint-disable-next-line react/prop-types
@@ -40,30 +45,29 @@ const SidebarWrapper = () => {
 const NavbarWrapper = () => {
   const { isAuthenticated } = useAuth();
 
-  return <Navbar isAuthenticated={isAuthenticated}/>;
+  return <Navbar isAuthenticated={isAuthenticated} />;
 };
-
-
-
 
 function App() {
   return (
     <Router>
       <AuthProvider>
         <AdminProvider>
+        <BookingProvider>
+        <TripProvider>
+        <FuelProvider>  
           <VehicleProvider>
             <DriverProvider>
         {/* Navbar is always visible */}
         <NavbarWrapper />
 
-        {/* Conditionally render Sidebar based on authentication */}
-        <SidebarWrapper />
-        <AppLayout>
-          <div className="max-w-screen-2xl mx-auto">
-            <Routes>
-              {/* Public Routes */}
-              <Route path="/" element={<Login />} />
-              
+              {/* Conditionally render Sidebar based on authentication */}
+              <SidebarWrapper />
+              <AppLayout>
+                <div className="max-w-screen-2xl mx-auto">
+                  <Routes>
+                    {/* Public Routes */}
+                    <Route path="/" element={<Login />} />
 
               {/* Protected Routes */}
               <Route
@@ -107,10 +111,10 @@ function App() {
                 }
               />
               <Route
-                path="/user"
+                path="/fuel"
                 element={
                   <PrivateRoute>
-                    <User title="User" track="Manage" />
+                    <Fuel title="Fuel" track="Manage" />
                   </PrivateRoute>
                 }
               />
@@ -143,11 +147,14 @@ function App() {
         </AppLayout>
         </DriverProvider>
         </VehicleProvider>
+        </FuelProvider>
+        </TripProvider>
+
+        </BookingProvider>
         </AdminProvider>
       </AuthProvider>
     </Router>
   );
 }
-
 
 export default App;

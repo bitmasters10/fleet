@@ -99,15 +99,18 @@ Router.patch("/driver/:id", isAdmin, (req, res) => {
     return res.status(200).json({ message: "update doene", res: results });
   });
 });
-Router.get("/avail-drivers", (req, res) => {
+Router.post("/avail-drivers",isAdmin, (req, res) => {
   const { date, start_time, end_time } = req.body;
 
   if (!date || !start_time || !end_time) {
-    return res.status(400).send("All parameters (date, start_time, end_time) are required.");
+    return res
+      .status(400)
+      .send("All parameters (date, start_time, end_time) are required.");
   }
 
   const q = `
-    SELECT c.DRIVER_ID
+    SELECT c.DRIVER_ID,
+    c.NAME
     FROM DRIVER c 
     LEFT JOIN BOOKING b 
     ON c.DRIVER_ID = b.DRIVER_ID 
@@ -123,7 +126,29 @@ Router.get("/avail-drivers", (req, res) => {
   `;
 
   try {
-    db.query(q, [date, start_time, end_time, start_time, end_time, start_time, end_time], (err, rows) => {
+    db.query(
+      q,
+      [date, start_time, end_time, start_time, end_time, start_time, end_time],
+      (err, rows) => {
+        if (err) {
+          console.error("Error executing query:", err);
+          return res.status(500).send("Server Error");
+        }
+        return res.status(200).json(rows);
+      }
+    );
+  } catch (err) {
+    console.error("Error during retrieve:", err);
+    return res.status(500).send("Unexpected Server Error");
+  }
+});
+
+Router.post("myloc",(req,res)=>{
+  const {lat,long}=req.body
+  const id=req.user.DRIVER_ID;
+  const q="UPDATE DRIVER SET LATITUDE=?,LONGITUDE=? where DRIVER_ID=?"
+  try {
+    db.query(q,[lat,long,id], (err, rows) => {
       if (err) {
         console.error("Error executing query:", err);
         return res.status(500).send("Server Error");
@@ -131,9 +156,8 @@ Router.get("/avail-drivers", (req, res) => {
       return res.status(200).json(rows);
     });
   } catch (err) {
-    console.error("Error during retrieve:", err);
-    return res.status(500).send("Unexpected Server Error");
+    console.error("Error during retive:", err);
   }
-});
 
+})
 module.exports = Router;

@@ -15,8 +15,10 @@ export const useVehicle = () => {
 // eslint-disable-next-line react/prop-types
 export const VehicleProvider = ({ children }) => {
   const [vehicles, setVehicles] = useState([]);
+  const [availableVehicles, setAvailableVehicles] = useState([]);
   const [vehicleDetails, setVehicleDetails] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
   const axiosInstance = axios.create({
     baseURL: "http://localhost:3000", // Replace with your backend base URL
@@ -29,7 +31,8 @@ export const VehicleProvider = ({ children }) => {
       const response = await axiosInstance.get("/admin/cars");
       setVehicles(response.data);
     } catch (error) {
-      console.error("Error fetching cars:", error);
+      console.error("Error fetching vehicles:", error);
+      setError("Error fetching vehicles."); // Set error state
     } finally {
       setLoading(false);
     }
@@ -43,6 +46,24 @@ export const VehicleProvider = ({ children }) => {
       setVehicleDetails(response.data);
     } catch (error) {
       console.error("Error fetching car:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchAvailableVehicles = async (date, start_time, end_time) => {
+    setLoading(true);
+    console.log({date, start_time, end_time})
+    try {
+      const response = await axiosInstance.post("/admin/avail-cars", {
+        date,
+        start_time,
+        end_time,
+      });
+      return response.data;
+    } catch (error) {
+      console.error("Error fetching available vehicles:", error);
+      setError("Error fetching available vehicles."); // Set error state
     } finally {
       setLoading(false);
     }
@@ -66,7 +87,7 @@ export const VehicleProvider = ({ children }) => {
         `/admin/car/${updatedVehicle.CAR_ID}`, // Use the CAR_ID from updatedVehicle
         updatedVehicle // Pass the updated vehicle data as the body of the request
       );
-  
+
       // Update local state after the vehicle has been updated successfully
       setVehicles((prevVehicles) =>
         prevVehicles.map((vehicle) =>
@@ -77,13 +98,14 @@ export const VehicleProvider = ({ children }) => {
       console.error("Error updating car:", error);
     }
   };
-  
 
   // Delete a car
   const deleteVehicle = async (id) => {
     try {
       await axiosInstance.delete(`/admin/car/${id}`);
-      setVehicles((prevVehicles) => prevVehicles.filter((car) => car.CAR_ID !== id));
+      setVehicles((prevVehicles) =>
+        prevVehicles.filter((car) => car.CAR_ID !== id)
+      );
     } catch (error) {
       console.error("Error deleting car:", error);
     }
@@ -95,8 +117,11 @@ export const VehicleProvider = ({ children }) => {
         vehicles,
         vehicleDetails,
         loading,
+        error,
+        availableVehicles,
         fetchVehicles,
         fetchVehicleById,
+        fetchAvailableVehicles,
         addVehicle,
         updateVehicle,
         deleteVehicle,

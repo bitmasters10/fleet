@@ -42,29 +42,30 @@ function isAdmin(req, res, next) {
   return next(); // Proceed if authenticated and role is superadmin
 }
 
-Router.get("/available-books", isAdmin, (req, res) => {
+Router.get("/available-books", (req, res) => {
   const q = `
-        SELECT 
-            o.user_id, 
-            o.capacity, 
-            o.datetime, 
-            o.product_name, 
-            p.PID AS package_id,
-            s.id
-            p.PLACES
-        FROM 
-            success2 s
-        JOIN 
-            orders o 
-        ON 
-            REPLACE(s.order_id, 'order_id=', '') = o.order_id
-        JOIN 
-            PACKAGE p
-        ON 
-            o.product_name = p.name
-        WHERE 
-            s.order_status = ? AND s.fleet_status = ?
-    `;
+    SELECT 
+        o.user_id, 
+        o.capacity, 
+        o.datetime, 
+        o.product_name, 
+        p.PID AS package_id,
+        s.id AS success_id,
+        p.PLACES,
+        p.DURATION,
+        u.mobile_no
+    FROM 
+        success2 s
+    JOIN 
+        orders o ON REPLACE(s.order_id, 'order_id=', '') = o.order_id
+    JOIN 
+        users u ON o.user_id = u.id
+    JOIN 
+        PACKAGE p ON o.product_name = p.name
+    WHERE 
+        s.order_status = ? AND s.fleet_status = ?
+`;
+
   try {
     db.query(q, ["order_status=Success", "waiting"], (err, rows) => {
       if (err) {
@@ -119,7 +120,7 @@ Router.post("/add-package", async (req, res) => {
 Router.post("/create-book", async (req, res) => {
   let ID = await idmake("BOOKING", "BOOK_ID");
   const {
-    TIMING,
+    START_TIME,
     PICKUP_LOC,
     CAR_ID,
     USER_ID,
@@ -129,14 +130,16 @@ Router.post("/create-book", async (req, res) => {
     PACKAGE_ID,
     DROP_LOC,
     AC_NONAC,
-    stat,
+
     END_TIME,
     VID,
     DRIVER_ID,
+    mobile,
   } = req.body;
+
   db.query(
     "select * from BOOKING where CAR_ID=? AND DRIVER_ID=? AND TIMING=? AND END_TIME=?",
-    [CAR_ID, DRIVER_ID, TIMING, END_TIME],
+    [CAR_ID, DRIVER_ID, START_TIME, END_TIME],
     (err, rows) => {
       if (err) {
         console.log(err);
@@ -150,7 +153,7 @@ Router.post("/create-book", async (req, res) => {
 
       const newBook = {
         BOOK_ID: ID,
-        TIMING,
+        TIMING:START_TIME,
         PICKUP_LOC,
         CAR_ID,
         USER_ID,
@@ -160,10 +163,11 @@ Router.post("/create-book", async (req, res) => {
         PACKAGE_ID,
         DROP_LOC,
         AC_NONAC,
-        stat,
+        stat: "READY",
         END_TIME,
         VID,
         DRIVER_ID,
+        mobile_no: mobile,
       };
       console.log(ID);
       db.query(" INSERT INTO BOOKING SET ?", newBook, (err, rows) => {
@@ -188,8 +192,74 @@ Router.post("/create-book", async (req, res) => {
     }
   );
 });
+Router.post("/create-manual-book", async (req, res) => {
+  let ID = await idmake("BOOKING", "BOOK_ID");
+  const {
+    START_TIME,
+    PICKUP_LOC,
+    CAR_ID,
+    USER_ID,
+    BOOK_NO,
+    DATE,
+    NO_OF_PASSENGER,
+    PACKAGE_ID,
+    DROP_LOC,
+    AC_NONAC,
 
-Router.get("/bookings", (req, res) => {
+    END_TIME,
+
+    DRIVER_ID,
+    MOBILE_NO,
+  } = req.body;
+
+  db.query(
+    "select * from BOOKING where CAR_ID=? AND DRIVER_ID=? AND TIMING=? AND END_TIME=?",
+    [CAR_ID, DRIVER_ID, START_TIME, END_TIME],
+    (err, rows) => {
+      if (err) {
+        console.log(err);
+        return res.status(500).send("Server Error");
+      }
+      if (rows.length > 0) {
+        return res.status(409).json({
+          error: "Booking already exists for the specified time and car/driver",
+        });
+      }
+
+      const newBook = {
+        BOOK_ID: ID,
+        TIMING:START_TIME,
+        PICKUP_LOC,
+        CAR_ID,
+        USER_ID,
+        BOOK_NO,
+        DATE,
+        NO_OF_PASSENGER,
+        PACKAGE_ID,
+        DROP_LOC,
+        AC_NONAC,
+        stat: "READY",
+        END_TIME,
+        mobile_no: MOBILE_NO,
+        DRIVER_ID,
+      };
+      console.log(MOBILE_NO);
+      console.log(newBook);
+      console.log(ID);
+      db.query(" INSERT INTO BOOKING SET ?", newBook, (err, rows) => {
+        if (err) {
+          console.log(err);
+          return res.status(500).send("Server Error");
+        }
+        return res
+          .status(200)
+          .json({ message: "new book added", results: rows });
+      });
+    }
+  );
+});
+
+Router.get("/bookings", isAdmin, (req, res) => {
   try {
     db.query("SELECT * FROM BOOKING ", (err, rows) => {
       if (err) {
@@ -207,12 +277,12 @@ Router.patch("/booking/:id", (req, res) => {
   const { id } = req.params;
   const {
     TIMING,
-    
+    PICKUP_LOC,
+
     END_TIME,
-   
   } = req.body;
-  const query = "UPDATE BOOKING SET   TIMING=?, END_TIME=?	WHERE BOOK_ID = ?";
-  db.query(query, [TIMING, END_TIME, id], (err, rows) => {
+  const query = "UPDATE BOOKING SET   TIMING=?, END_TIME=?,PICKUP_LOC=?	WHERE BOOK_ID = ?";
+  db.query(query, [TIMING, END_TIME,PICKUP_LOC, id], (err, rows) => {
     if (err) {
       console.error("Error updating user:", err);
 
@@ -222,7 +292,7 @@ Router.patch("/booking/:id", (req, res) => {
   });
 });
 
-Router.get("/bookings",(req,res)=>{
+Router.get("/bookings", (req, res) => {
   try {
     db.query("SELECT * FROM BOOKING ", (err, rows) => {
       if (err) {
@@ -234,6 +304,35 @@ Router.get("/bookings",(req,res)=>{
   } catch (err) {
     console.error("Error during retrive:", err);
   }
-})
+});
+Router.delete("/booking/:id",(req,res)=>{
+  const {id}=req.params;
+  const q="delete from BOOKING where BOOK_ID=?"
+  try {
+    db.query(q,[id] ,(err, rows) => {
+      if (err) {
+        console.error("Error executing query:", err);
+        return res.status(500).send("Server Error");
+      }
+      return res.status(200).json(rows);
+    });
+  } catch (err) {
+    console.error("Error during retive:", err);
+  }
+
+  })
+Router.get("/packages", (req, res) => {
+  try {
+    db.query("SELECT * FROM PACKAGE ", (err, rows) => {
+      if (err) {
+        console.error("Error executing query:", err);
+        return res.status(500).send("Server Error");
+      }
+      return res.status(200).json(rows);
+    });
+  } catch (err) {
+    console.error("Error during retive:", err);
+  }
+});
 
 module.exports = Router;

@@ -159,7 +159,7 @@ export default function Sidebar() {
             )}
             <li>
               <NavLink
-                to="/user"
+                to="/fuel"
                 className={({ isActive }) =>
                   !isActive
                     ? "bg-white flex items-center p-2 text-gray-900 rounded-lg dark:text-white dark:bg-gray-800 hover:bg-[#F6F9FF] dark:hover:bg-gray-700 group"
@@ -175,7 +175,7 @@ export default function Sidebar() {
                 >
                   <path d="M12 2C7.58 2 4 5.58 4 10c0 3.5 2.6 6.5 6 6.5s6-3 6-6.5C20 5.58 16.42 2 12 2zm0 8c-1.38 0-2.5 1.12-2.5 2.5S10.62 15 12 15s2.5-1.12 2.5-2.5S13.38 10 12 10z" />
                 </svg>
-                <span className="ms-3">User</span>
+                <span className="ms-3">Fuel</span>
               </NavLink>
             </li>
 
@@ -267,6 +267,7 @@ export default function Sidebar() {
               </NavLink>
             </li>
 
+            
             {/* Add more NavLinks as needed */}
           </ul>
         </div>

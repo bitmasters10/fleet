@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Manual Booking Form</title>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 20px;
+      }
+      h2 {
+        text-align: center;
+      }
+      form {
+        max-width: 500px;
+        margin: auto;
+        padding: 20px;
+        border: 1px solid #ccc;
+        border-radius: 10px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      }
+      label {
+        font-weight: bold;
+        display: block;
+        margin-bottom: 5px;
+      }
+      input,
+      select,
+      button {
+        width: 100%;
+        padding: 10px;
+        margin-bottom: 15px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+      }
+      button {
+        background-color: #007bff;
+        color: white;
+        cursor: pointer;
+      }
+      button:hover {
+        background-color: #0056b3;
+      }
+    </style>
+  </head>
+  <body>
+    <h2>Manual Booking Form</h2>
+    <form id="booking-form">
+      <label for="date">Date:</label>
+      <input type="date" id="date" name="date" required /><br />
+
+      <label for="start_time">Start Time:</label>
+      <input type="time" id="start_time" name="start_time" required /><br />
+
+      <label for="end_time">End Time:</label>
+      <input type="text" id="end_time" name="end_time" readonly /><br />
+
+      <label for="pickup_loc">Pickup Location:</label>
+      <input type="text" id="pickup_loc" name="pickup_loc" required /><br />
+
+      <label for="drop_loc">Drop Location:</label>
+      <input type="text" id="drop_loc" name="drop_loc" required /><br />
+
+      <label for="car_id">Car ID:</label>
+      <select id="car_id" name="car_id" required>
+        <option value="">Select a car</option>
+      </select><br />
+
+      <label for="driver_id">Driver ID:</label>
+      <select id="driver_id" name="driver_id" required>
+        <option value="">Select a driver</option>
+      </select><br />
+
+      <label for="user_id">User ID:</label>
+      <input type="text" id="user_id" name="user_id" required /><br />
+
+      <label for="book_no">Booking Number:</label>
+      <input type="text" id="book_no" name="book_no" required /><br />
+
+      <label for="no_of_passenger">Number of Passengers:</label>
+      <input type="number" id="no_of_passenger" name="no_of_passenger" required /><br />
+
+      <label for="package_id">Package:</label>
+      <select id="package_id" name="package_id" required>
+        <option value="">Select a package</option>
+      </select><br />
+
+      <label for="places">Places:</label>
+      <input type="text" id="places" name="places" readonly /><br />
+
+      <label for="duration">Duration (hours):</label>
+      <input type="text" id="duration" name="duration" readonly /><br />
+
+      <label for="ac_nonac">AC/Non-AC:</label>
+      <select id="ac_nonac" name="ac_nonac" required>
+        <option value="">Select</option>
+        <option value="ac">AC</option>
+        <option value="nonac">Non-AC</option>
+      </select><br />
+
+      <label for="mobile_no">Mobile No:</label>
+      <input type="tel" id="mobile_no" name="mobile_no" required /><br />
+
+      <button type="button" id="fetch-btn">Fetch Available Cars and Drivers</button>
+      <button type="submit">Submit</button>
+    </form>
+
+    <script>
+      const packageDropdown = document.getElementById("package_id");
+      const carDropdown = document.getElementById("car_id");
+      const driverDropdown = document.getElementById("driver_id");
+      const startTimeInput = document.getElementById("start_time");
+      const endTimeInput = document.getElementById("end_time");
+      const fetchBtn = document.getElementById("fetch-btn");
+      const bookingForm = document.getElementById("booking-form");
+
+      // Fetch available bookings
+      async function fetchAvailableBookings() {
+        try {
+          const response = await axios.get("http://localhost:3000/admin/available-books");
+          const bookings = response.data;
+          packageDropdown.innerHTML = '<option value="">Select a package</option>';
+
+          bookings.forEach((book) => {
+            const option = document.createElement("option");
+            option.value = book.success_id;
+            option.textContent = book.product_name;
+            option.dataset.duration = book.DURATION;
+            option.dataset.places = book.PLACES;
+            option.dataset.mobile = book.mobile_no;
+            packageDropdown.appendChild(option);
+          });
+        } catch (error) {
+          console.error("Error fetching available bookings:", error);
+        }
+      }
+
+      // Populate additional fields when package is selected
+      function updatePackageDetails() {
+        const selectedPackage = packageDropdown.options[packageDropdown.selectedIndex];
+        if (selectedPackage) {
+          document.getElementById("places").value = selectedPackage.dataset.places;
+          document.getElementById("duration").value = selectedPackage.dataset.duration;
+          document.getElementById("mobile_no").value = selectedPackage.dataset.mobile;
+        }
+      }
+
+      // Fetch available cars and drivers
+      async function fetchCarsAndDrivers() {
+        // Implement fetchCarsAndDrivers logic similar to previous code
+      }
+
+      // Handle form submission
+      bookingForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const formData = new FormData(bookingForm);
+        const data = Object.fromEntries(formData.entries());
+
+        data.TIMING = data.start_time;
+        data.END_TIME = endTimeInput.value;
+        data.DURATION = document.getElementById("duration").value;
+        data.PLACES = document.getElementById("places").value;
+
+        try {
+          const response = await axios.post("http://localhost:3000/admin/create-mannual-book", {
+            TIMING: data.TIMING,
+            PICKUP_LOC: data.pickup_loc,
+            CAR_ID: data.car_id,
+            USER_ID: data.user_id,
+            BOOK_NO: data.book_no,
+            DATE: data.date,
+            NO_OF_PASSENGER: data.no_of_passenger,
+            PACKAGE_ID: data.package_id,
+            DROP_LOC: data.drop_loc,
+            AC_NONAC: data.ac_nonac,
+            END_TIME: data.END_TIME,
+            DRIVER_ID: data.driver_id,
+            MOBILE_NO: data.mobile_no,
+            PLACES: data.PLACES,
+            DURATION: data.DURATION,
+          });
+          alert("Booking created successfully!");
+        } catch (error) {
+          console.error("Error creating booking:", error);
+        }
+      });
+
+      // Event Listeners
+      packageDropdown.addEventListener("change", updatePackageDetails);
+      fetchBtn.addEventListener("click", fetchCarsAndDrivers);
+
+      // Initialize the form
+      fetchAvailableBookings();
+    </script>
+  </body>
+</html>
