@@ -53,7 +53,7 @@ passport.use(
       passReqToCallback: true,
     },
     async (req, email, password, done) => {
-      const { first_name, last_name, mobile_no, sex } = req.body;
+      const { first_name, last_name, mobile_no, sex,age } = req.body;
 
       try {
         const hashedPassword = await bcrypt.hash(password, 10);
@@ -64,6 +64,7 @@ passport.use(
           mobile_no,
           sex,
           email: email,
+          age,
           password: hashedPassword,
         };
 
@@ -87,6 +88,7 @@ passport.use(
                 mobile_no,
                 sex,
                 email: email,
+                age
               });
             }
           );
@@ -99,7 +101,7 @@ passport.use(
   )
 );
 
-Router.post("/register", (req, res, next) => {
+Router.post("/register",isAdmin, (req, res, next) => {
   passport.authenticate("user-local-register", (err, user, info) => {
     if (err) {
       console.error(err);
@@ -123,7 +125,7 @@ Router.post("/register", (req, res, next) => {
     });
   })(req, res, next);
 });
-Router.get("/users", (req, res) => {
+Router.get("/users", isAdmin , (req, res) => {
   try {
     db.query("SELECT * FROM users ", (err, rows) => {
       if (err) {

@@ -6,7 +6,9 @@ import Dashboard from "./pages/Dashboard";
 import Map from "./pages/Map";
 import Admin from "./pages/Admin";
 import Driver from "./pages/Driver";
-import User from "./pages/Fuel";
+import User from "./pages/User";
+
+
 import Vehicle from "./pages/Vehicle";
 import Trip from "./pages/Trip";
 import Booking from "./pages/Booking";
@@ -22,6 +24,8 @@ import { DriverProvider } from "./contexts/DriverContext";
 import { BookingProvider } from "./contexts/BookingContext";
 import { TripProvider } from "./contexts/TripContext";
 import { FuelProvider } from "./contexts/FuelContext";
+import { UserProvider } from "./contexts/UserContext";
+
 import Fuel from "./pages/Fuel";
 
 // PrivateRoute Component to protect routes
@@ -58,6 +62,7 @@ function App() {
         <FuelProvider>  
           <VehicleProvider>
             <DriverProvider>
+              <UserProvider>
         {/* Navbar is always visible */}
         <NavbarWrapper />
 
@@ -102,6 +107,15 @@ function App() {
                     </PrivateRoute>
                 }
               />
+                <Route
+                path="/user"
+                element={
+                  <PrivateRoute>
+                    <User title="User" track="Manage" />
+                  </PrivateRoute>
+                }
+              />
+
               <Route
                 path="/driver"
                 element={
@@ -145,6 +159,7 @@ function App() {
             </Routes>
           </div>
         </AppLayout>
+        </UserProvider>
         </DriverProvider>
         </VehicleProvider>
         </FuelProvider>
