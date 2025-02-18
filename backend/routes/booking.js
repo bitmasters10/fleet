@@ -334,5 +334,74 @@ Router.get("/packages", (req, res) => {
     console.error("Error during retive:", err);
   }
 });
+Router.post("/create-adv-book", async (req, res) => {
+  let ID = await idmake("BOOKING", "BOOK_ID");
+  const {
+    BR,
+    START_TIME,
+    PICKUP_LOC,
+    CAR_ID,
+    USER_ID,
+    BOOK_NO,
+    DATE,
+    NO_OF_PASSENGER,
+    PACKAGE_ID,
+    DROP_LOC,
+    AC_NONAC,
+
+    END_TIME,
+
+    DRIVER_ID,
+    MOBILE_NO,
+  } = req.body;
+
+  db.query(
+    "select * from BOOKING where CAR_ID=? AND DRIVER_ID=? AND TIMING=? AND END_TIME=?",
+    [CAR_ID, DRIVER_ID, START_TIME, END_TIME],
+    (err, rows) => {
+      if (err) {
+        console.log(err);
+        return res.status(500).send("Server Error");
+      }
+      if (rows.length > 0) {
+        return res.status(409).json({
+          error: "Booking already exists for the specified time and car/driver",
+        });
+      }
+
+      const newBook = {
+        BOOK_ID: ID,
+        TIMING:START_TIME,
+        PICKUP_LOC,
+        CAR_ID,
+        USER_ID,
+        BOOK_NO,
+        DATE,
+        NO_OF_PASSENGER,
+        PACKAGE_ID,
+        DROP_LOC,
+        AC_NONAC,
+        stat: "READY",
+        END_TIME,
+        mobile_no: MOBILE_NO,
+        DRIVER_ID,
+        br:BR
+      };
+      console.log(MOBILE_NO);
+      console.log(newBook);
+      console.log(ID);
+      db.query(" INSERT INTO BOOKING SET ?", newBook, (err, rows) => {
+        if (err) {
+          console.log(err);
+          return res.status(500).send("Server Error");
+        }
+        return res
+          .status(200)
+          .json({ message: "new book added", results: rows });
+      });
+    }
+  );
+});
+
 
 module.exports = Router;

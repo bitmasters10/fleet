@@ -84,7 +84,9 @@ Router.get('/fuel-view/:id', (req, res) => {
 
         if (rows.length > 0) {
             const fileData = rows[0].PHOTO;
-
+            res.writeHead(200, {
+                'Content-Type': 'image/jpeg'  // Change to appropriate image type
+            });
            
 
             res.end(fileData);
