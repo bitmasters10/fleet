@@ -118,9 +118,9 @@ Router.get("/trips", isAdmin, (req, res) => {
 Router.get("/location",(req,res)=>{
   function formatDate() {
     date=new Date();
-    const day = String(date.getDate()).padStart(2, '0'); // Get day and add leading zero if needed
-    const month = String(date.getMonth() + 1).padStart(2, '0'); // Get month (0-indexed) and add leading zero
-    const year = date.getFullYear(); // Get year
+    const day = String(date.getDate()).padStart(2, '0'); 
+    const month = String(date.getMonth() + 1).padStart(2, '0'); 
+    const year = date.getFullYear(); 
   
     return `${day}-${month}-${year}`;
   }

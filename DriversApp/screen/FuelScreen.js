@@ -1,159 +1,196 @@
-import React from "react";
-import {
-  StyleSheet,
-  View,
-  Text,
-  Image,
-  TouchableOpacity,
-  SafeAreaView,
-  FlatList,
-  StatusBar,
-} from "react-native";
-import Icon from "react-native-vector-icons/MaterialCommunityIcons";
+import React, { useState, useEffect } from 'react';
+import { View, Text, TextInput, Button, Image, StyleSheet, Alert, FlatList } from 'react-native';
+import * as ImagePicker from 'expo-image-picker';
+import DropDownPicker from 'react-native-dropdown-picker';
+import { useFuel } from '../context/FuelContext';
 
-import { useNavigation } from "@react-navigation/native";
+export default function FuelScreen() {
+  const { getVehicles, createFuelRecord, fuelData, loading, error } = useFuel();
+  const [cameraPermission, setCameraPermission] = useState(null);
+  const [photoList, setPhotoList] = useState([]);
+  const [selectedVehicle, setSelectedVehicle] = useState('');
+  const [fuelAmount, setFuelAmount] = useState('');
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [permissionDenied, setPermissionDenied] = useState(false);  // Track permission denial
 
-// Mock data for vehicles
-const vehicles = [
-  {
-    id: "UKW 3929",
-    type: "Me-Truck",
-    image:
-      "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-09cTmPsbNhvivt0QNpNEissN6WQbHi.png",
-  },
-  {
-    id: "UKW 8876",
-    type: "Me-Truck",
-    image:
-      "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-09cTmPsbNhvivt0QNpNEissN6WQbHi.png",
-  },
-  {
-    id: "UKW 4533",
-    type: "Me-Truck",
-    image:
-      "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-09cTmPsbNhvivt0QNpNEissN6WQbHi.png",
-  },
-  {
-    id: "UKW 7654",
-    type: "Me-Truck",
-    image:
-      "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-09cTmPsbNhvivt0QNpNEissN6WQbHi.png",
-  },
-  {
-    id: "UKW 4332",
-    type: "Me-Truck",
-    image:
-      "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-09cTmPsbNhvivt0QNpNEissN6WQbHi.png",
-  },
-  {
-    id: "UKW 4325",
-    type: "Me-Truck",
-    image:
-      "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-09cTmPsbNhvivt0QNpNEissN6WQbHi.png",
-  },
-];
+  useEffect(() => {
+    (async () => {
+      const { status } = await ImagePicker.requestCameraPermissionsAsync();
+      setCameraPermission(status === 'granted');
+      setPermissionDenied(status === 'denied');  // If denied, allow the option to ask again
+    })();
+    getVehicles(); // Fetch vehicles when screen loads
+  }, []);
 
-export default function FleetScreen() {
-  const navigation = useNavigation();
+  const handleTakePhoto = async () => {
+    if (!cameraPermission) {
+      Alert.alert('Permission Denied', 'Camera permission is required to take a photo.');
+      return;
+    }
 
-  const renderVehicle = ({ item }) => (
-    <TouchableOpacity
-      style={styles.listItem}
-      onPress={() => navigation.navigate("Vehicle", { vehicle: item })}
-    >
-      <View style={styles.itemLeft}>
-        <View style={styles.vehicleIconContainer}>
-          <Icon name="truck" size={24} color="#4FA89B" />
-        </View>
-        <View style={styles.itemInfo}>
-          <Text style={styles.itemTitle}>{item.id}</Text>
-          <Text style={styles.itemSubtitle}>{item.type}</Text>
-        </View>
-      </View>
-      <Icon name="chevron-right" size={24} color="#666" />
-    </TouchableOpacity>
-  );
+    try {
+      const result = await ImagePicker.launchCameraAsync({
+        allowsEditing: true,
+        quality: 0.8,
+      });
+
+      if (result.cancelled) {
+        Alert.alert('Cancelled', 'Photo capture was cancelled.');
+        return;
+      }
+
+      if (result.uri) {
+        setPhotoList((prevPhotos) => [...prevPhotos, result.uri]); // Save photo URI
+      }
+    } catch (error) {
+      Alert.alert('Error', 'Something went wrong while accessing the camera.');
+      console.error('Camera Error:', error);
+    }
+  };
+
+  const handlePickFromGallery = async () => {
+    try {
+      const result = await ImagePicker.launchImageLibraryAsync({
+        allowsEditing: true,
+        quality: 0.8,
+      });
+
+      if (result.cancelled) {
+        Alert.alert('Cancelled', 'Photo selection was cancelled.');
+        return;
+      }
+
+      if (result.uri) {
+        setPhotoList((prevPhotos) => [...prevPhotos, result.uri]); // Save photo URI
+      }
+    } catch (error) {
+      Alert.alert('Error', 'Something went wrong while accessing the gallery.');
+      console.error('Gallery Error:', error);
+    }
+  };
+
+  const requestCameraPermission = async () => {
+    const { status } = await ImagePicker.requestCameraPermissionsAsync();
+    setCameraPermission(status === 'granted');
+    setPermissionDenied(status === 'denied');
+  };
+
+  const handleSubmit = () => {
+    if (!selectedVehicle || !fuelAmount || photoList.length === 0) {
+      Alert.alert('Error', 'Please complete all fields and capture at least one photo.');
+      return;
+    }
+
+    const fuelRecordData = {
+      CAR_ID: selectedVehicle,
+      DATE: new Date().toISOString(),
+      COST: fuelAmount,
+      PHOTO: photoList.map(uri => ({ uri })), // Send multiple photos if necessary
+    };
+
+    createFuelRecord(fuelRecordData); // Call the context API to create the fuel record
+    setSelectedVehicle('');
+    setFuelAmount('');
+    setPhotoList([]);
+  };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="light-content" />
-      <View style={styles.headerContent}>
-        <Text style={styles.headerTitle}>Fuel</Text>
-       
-      </View>
-
-      <FlatList
-        data={vehicles}
-        renderItem={renderVehicle}
-        keyExtractor={(item) => item.id}
-        contentContainerStyle={styles.listContent}
+    <View style={styles.container}>
+      <Text style={styles.label}>Select Vehicle:</Text>
+      <DropDownPicker
+        open={dropdownOpen}
+        value={selectedVehicle}
+        items={fuelData.map(vehicle => ({ label: `Car ${vehicle.CAR_ID}`, value: vehicle.CAR_ID }))} 
+        setOpen={setDropdownOpen}
+        setValue={setSelectedVehicle}
+        placeholder="Select a vehicle"
+        style={styles.dropdown}
+        dropDownContainerStyle={styles.dropdownContainer}
       />
 
- 
-    </SafeAreaView>
+      <Text style={styles.label}>Fuel Amount (in liters):</Text>
+      <TextInput
+        style={styles.input}
+        keyboardType="numeric"
+        placeholder="Enter fuel amount"
+        value={fuelAmount}
+        onChangeText={setFuelAmount}
+      />
+
+      <Text style={styles.label}>Photos:</Text>
+      <Button title="Take Photo" onPress={handleTakePhoto} />
+      <Button title="Pick Photo from Gallery" onPress={handlePickFromGallery} />
+
+      {permissionDenied && (
+        <Button title="Request Camera Permission" onPress={requestCameraPermission} />
+      )}
+
+      {photoList.length > 0 && (
+        <View style={styles.previewSection}>
+          <Text style={styles.subLabel}>Captured Photos:</Text>
+          <FlatList
+            data={photoList}
+            renderItem={({ item }) => <Image source={{ uri: item }} style={styles.photoPreview} />}
+            keyExtractor={(item, index) => index.toString()}
+            horizontal
+          />
+        </View>
+      )}
+
+      <View style={styles.submitButton}>
+        <Button title="Submit" onPress={handleSubmit} />
+      </View>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#fff",
-  },
-  headerContent: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    paddingHorizontal: 20,
-    paddingTop: 20,
-    paddingBottom: 40,
-    backgroundColor: "#4FA89B",
-  },
-  headerTitle: {
-    fontSize: 20,
-    fontWeight: "bold",
-    color: "#fff",
-  },
-  headerRight: {
-    flexDirection: "row",
-  },
-  headerButton: {
-    marginLeft: 20,
-  },
-  listContent: {
     padding: 20,
+    backgroundColor: '#f8f8f8',
   },
-  listItem: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: "#F0F0F0",
-  },
-  itemLeft: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  vehicleIconContainer: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: "#F5F5F5",
-    justifyContent: "center",
-    alignItems: "center",
-    marginRight: 12,
-  },
-  itemInfo: {
-    justifyContent: "center",
-  },
-  itemTitle: {
+  label: {
     fontSize: 16,
-    fontWeight: "500",
-    color: "#333",
+    marginBottom: 8,
+    fontWeight: 'bold',
   },
-  itemSubtitle: {
+  dropdown: {
+    borderColor: '#ccc',
+    marginBottom: 20,
+  },
+  dropdownContainer: {
+    borderColor: '#ccc',
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: '#ccc',
+    padding: 10,
+    marginBottom: 20,
+    borderRadius: 5,
+    backgroundColor: '#fff',
+  },
+  previewSection: {
+    marginTop: 20,
+  },
+  subLabel: {
     fontSize: 14,
-    color: "#666",
-    marginTop: 2,
+    marginBottom: 8,
+    fontWeight: '600',
+  },
+  photoPreview: {
+    width: 100,
+    height: 100,
+    marginRight: 10,
+    borderRadius: 5,
+  },
+  submitButton: {
+    marginTop: 20,
+  },
+  loadingText: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    textAlign: 'center',
+    marginTop: 50,
   },
 });

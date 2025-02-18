@@ -35,7 +35,7 @@ function isDriver(req, res, next) {
     console.log("User role is not driver:", req.user.role);
     return res
       .status(403)
-      .json({ message: "Forbidden: You are not a superadmin." });
+      .json({ message: "Forbidden: You are not a helo"+req.user.role });
   }
   return next();
 }
@@ -260,4 +260,39 @@ Router.post("/myloc",(req,res)=>{
   }
 
 })
+// Router.post("/create-fuel", upload.single("photo"), async (req, res) => {
+//   try {
+//     // Generate a unique F_ID
+//     const F_ID = await idmake("FUEL_CONSUMPTION", "F_ID");
+
+//     const { CAR_ID,  DATE, COST } = req.body;
+//     const DRIVER_ID=req.user.DRIVER_ID;
+
+//     // Check if the photo file is uploaded
+//     if (!req.file) {
+//       return res.status(400).json({ error: "Photo is required" });
+//     }
+
+//     // Convert the photo file to a buffer
+//     const PHOTO = req.file.buffer;
+
+//     // Create the fuel consumption record
+//     const query =
+//       "INSERT INTO FUEL_CONSUMPTION (F_ID, CAR_ID, DRIVER_ID, DATE, COST, PHOTO) VALUES (?, ?, ?, ?, ?, ?)";
+//     const values = [F_ID, CAR_ID, DRIVER_ID, DATE, COST, PHOTO];
+
+//     db.query(query, values, (err, results) => {
+//       if (err) {
+//         console.error("Error executing query:", err);
+//         return res.status(500).json({ error: "Database insertion failed" });
+//       }
+
+//       // Respond with the created record's ID and status
+//       return res.status(201).json({ message: "Fuel consumption record created", F_ID });
+//     });
+//   } catch (error) {
+//     console.error("Error in /create-fuel:", error);
+//     return res.status(500).json({ error: "Internal server error" });
+//   }
+// });
 module.exports = Router;
