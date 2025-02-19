@@ -2,51 +2,61 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, Button, Image, StyleSheet, Alert, FlatList } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import DropDownPicker from 'react-native-dropdown-picker';
-import { useFuel } from '../context/FuelContext';
 
 export default function FuelScreen() {
-  const { getVehicles, createFuelRecord, fuelData, loading, error } = useFuel();
   const [cameraPermission, setCameraPermission] = useState(null);
-  const [photoList, setPhotoList] = useState([]);
+  const [photo, setPhoto] = useState("");  // Store the photo in a single variable
   const [selectedVehicle, setSelectedVehicle] = useState('');
   const [fuelAmount, setFuelAmount] = useState('');
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [permissionDenied, setPermissionDenied] = useState(false);  // Track permission denial
-
+  const [fuelData, setFuelData] = useState([]);  // Store vehicle data locally
+  
+  // Fetch vehicles when the component loads
   useEffect(() => {
     (async () => {
       const { status } = await ImagePicker.requestCameraPermissionsAsync();
       setCameraPermission(status === 'granted');
       setPermissionDenied(status === 'denied');  // If denied, allow the option to ask again
     })();
-    getVehicles(); // Fetch vehicles when screen loads
+    fetchVehicles(); // Fetch vehicles data from the backend
   }, []);
+
+  // Fetch vehicles data from the backend
+  const fetchVehicles = async () => {
+    try {
+      const response = await fetch('http://192.168.1.243:3000/driver/cars');  // Replace with actual backend URL
+      const data = await response.json();
+      setFuelData(data); // Store fetched vehicles data
+    } catch (error) {
+      console.error('Error fetching vehicles:', error);
+    }
+  };
 
   const handleTakePhoto = async () => {
     if (!cameraPermission) {
       Alert.alert('Permission Denied', 'Camera permission is required to take a photo.');
       return;
     }
-
+  
     try {
       const result = await ImagePicker.launchCameraAsync({
         allowsEditing: true,
         quality: 0.8,
       });
-
-      if (result.cancelled) {
-        Alert.alert('Cancelled', 'Photo capture was cancelled.');
-        return;
-      }
-
-      if (result.uri) {
-        setPhotoList((prevPhotos) => [...prevPhotos, result.uri]); // Save photo URI
+  
+      console.log('Result:', result);
+  
+      if (!result.canceled && result.assets?.length > 0) {
+        setPhoto(result.assets[0].uri);
+        console.log('Captured Photo URI:', result.assets[0].uri);
       }
     } catch (error) {
       Alert.alert('Error', 'Something went wrong while accessing the camera.');
       console.error('Camera Error:', error);
     }
   };
+  
 
   const handlePickFromGallery = async () => {
     try {
@@ -54,20 +64,19 @@ export default function FuelScreen() {
         allowsEditing: true,
         quality: 0.8,
       });
-
-      if (result.cancelled) {
-        Alert.alert('Cancelled', 'Photo selection was cancelled.');
-        return;
-      }
-
-      if (result.uri) {
-        setPhotoList((prevPhotos) => [...prevPhotos, result.uri]); // Save photo URI
+  
+      console.log('Result:', result);
+  
+      if (!result.canceled && result.assets?.length > 0) {
+        setPhoto(result.assets[0].uri);
+        console.log('Selected Photo URI:', result.assets[0].uri);
       }
     } catch (error) {
       Alert.alert('Error', 'Something went wrong while accessing the gallery.');
       console.error('Gallery Error:', error);
     }
   };
+  
 
   const requestCameraPermission = async () => {
     const { status } = await ImagePicker.requestCameraPermissionsAsync();
@@ -75,24 +84,54 @@ export default function FuelScreen() {
     setPermissionDenied(status === 'denied');
   };
 
-  const handleSubmit = () => {
-    if (!selectedVehicle || !fuelAmount || photoList.length === 0) {
-      Alert.alert('Error', 'Please complete all fields and capture at least one photo.');
+  const handleSubmit = async () => {
+    if (!selectedVehicle || !fuelAmount || !photo) {
+      Alert.alert("Error", "Please complete all fields and capture a photo.");
       return;
     }
-
-    const fuelRecordData = {
-      CAR_ID: selectedVehicle,
-      DATE: new Date().toISOString(),
-      COST: fuelAmount,
-      PHOTO: photoList.map(uri => ({ uri })), // Send multiple photos if necessary
-    };
-
-    createFuelRecord(fuelRecordData); // Call the context API to create the fuel record
-    setSelectedVehicle('');
-    setFuelAmount('');
-    setPhotoList([]);
+  
+    // Convert the image to base64 (required for BLOB storage)
+    const response = await fetch(photo);
+    const blob = await response.blob();
+  
+    const formData = new FormData();
+    formData.append("CAR_ID", selectedVehicle);
+    formData.append("DATE", new Date().toISOString());
+    formData.append("COST", fuelAmount);
+    formData.append("photo", {
+      uri: photo,
+      type: "image/jpeg", // Adjust type if needed (e.g., "image/png")
+      name: "fuel_photo.jpg",
+    });
+  
+    try {
+      const res = await fetch("http://192.168.1.243:3000/admin/create-fuel", {
+        method: "POST",
+        body: formData,
+        headers: {
+          "Accept": "application/json",
+        },
+      });
+  
+      const textResponse = await res.text(); // Debugging response
+      console.log("Raw Response:", textResponse);
+  
+      const responseData = JSON.parse(textResponse);
+  
+      if (res.ok) {
+        Alert.alert("Success", "Fuel record created successfully");
+        setSelectedVehicle("");
+        setFuelAmount("");
+        setPhoto(null);
+      } else {
+        Alert.alert("Error", responseData.error || "Failed to create fuel record");
+      }
+    } catch (error) {
+      Alert.alert("Error", "Something went wrong while submitting the fuel record.");
+      console.error("Submit Error:", error);
+    }
   };
+  
 
   return (
     <View style={styles.container}>
@@ -125,15 +164,10 @@ export default function FuelScreen() {
         <Button title="Request Camera Permission" onPress={requestCameraPermission} />
       )}
 
-      {photoList.length > 0 && (
+      {photo && (
         <View style={styles.previewSection}>
-          <Text style={styles.subLabel}>Captured Photos:</Text>
-          <FlatList
-            data={photoList}
-            renderItem={({ item }) => <Image source={{ uri: item }} style={styles.photoPreview} />}
-            keyExtractor={(item, index) => index.toString()}
-            horizontal
-          />
+          <Text style={styles.subLabel}>Captured Photo:</Text>
+          <Image source={{ uri: photo }} style={styles.photoPreview} />
         </View>
       )}
 
@@ -186,11 +220,5 @@ const styles = StyleSheet.create({
   },
   submitButton: {
     marginTop: 20,
-  },
-  loadingText: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    textAlign: 'center',
-    marginTop: 50,
   },
 });
