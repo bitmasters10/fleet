@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import {
   StyleSheet,
   View,
@@ -6,15 +6,29 @@ import {
   FlatList,
   SafeAreaView,
   ActivityIndicator,
+  Image,
+  TouchableOpacity,
+  Modal,
 } from "react-native";
-import { useFuel } from "../context/FuelContext"; // Adjust the import path as needed
+import { useFuel } from "../context/FuelContext"; // Ensure the correct import path
 
 export default function FuelHistory() {
   const { fuelData, getFuelRecords, loading, error } = useFuel();
+  const [selectedImage, setSelectedImage] = useState(null);
+  const [modalVisible, setModalVisible] = useState(false);
+  const HOME = "http://192.168.1.243:3000";
+  const home = HOME;
 
   useEffect(() => {
     getFuelRecords();
   }, []);
+
+  // Fetch image directly from the backend
+  const handleViewImage = (fuelId) => {
+    const imageUrl = `${home}/admin/img/fuel-view/${fuelId}`; // Replace with actual backend endpoint
+    setSelectedImage(imageUrl);
+    setModalVisible(true);
+  };
 
   const renderItem = ({ item }) => (
     <View style={styles.row}>
@@ -23,6 +37,9 @@ export default function FuelHistory() {
       <Text style={styles.cell}>{item.DATE}</Text>
       <Text style={styles.cell}>{item.COST}</Text>
       <Text style={styles.cell}>{item.stat}</Text>
+      <TouchableOpacity onPress={() => handleViewImage(item.F_ID)}>
+        <Text style={styles.viewImageText}>View Image</Text>
+      </TouchableOpacity>
     </View>
   );
 
@@ -51,12 +68,27 @@ export default function FuelHistory() {
         <Text style={styles.headerCell}>Date</Text>
         <Text style={styles.headerCell}>Cost</Text>
         <Text style={styles.headerCell}>Status</Text>
+        <Text style={styles.headerCell}>Photo</Text>
       </View>
       <FlatList
         data={fuelData}
         renderItem={renderItem}
-        keyExtractor={(item) => item.F_ID}
+        keyExtractor={(item) => (item.F_ID ? item.F_ID.toString() : Math.random().toString())}
       />
+
+      {/* Modal for displaying image */}
+      <Modal visible={modalVisible} transparent={true} animationType="slide">
+        <View style={styles.modalContainer}>
+          <View style={styles.modalContent}>
+            <TouchableOpacity onPress={() => setModalVisible(false)}>
+              <Text style={styles.closeText}>Close</Text>
+            </TouchableOpacity>
+            {selectedImage && (
+              <Image source={{ uri: selectedImage }} style={styles.image} />
+            )}
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -96,6 +128,11 @@ const styles = StyleSheet.create({
     textAlign: "center",
     color: "#333",
   },
+  viewImageText: {
+    color: "#007BFF",
+    textAlign: "center",
+    textDecorationLine: "underline",
+  },
   loadingContainer: {
     flex: 1,
     justifyContent: "center",
@@ -109,5 +146,28 @@ const styles = StyleSheet.create({
   errorText: {
     color: "red",
     fontSize: 16,
+  },
+  modalContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(0, 0, 0, 0.7)",
+  },
+  modalContent: {
+    backgroundColor: "white",
+    padding: 20,
+    borderRadius: 10,
+    alignItems: "center",
+  },
+  closeText: {
+    color: "red",
+    fontSize: 18,
+    marginBottom: 10,
+    textAlign: "center",
+  },
+  image: {
+    width: 300,
+    height: 300,
+    borderRadius: 10,
   },
 });

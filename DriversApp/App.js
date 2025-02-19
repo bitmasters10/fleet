@@ -10,12 +10,15 @@ import ProfileScreen from "./screen/ProfileScreen";
 import FleetScreen from "./screen/FleetScreen"; 
 import VehicleScreen from "./screen/VehicleScreen";
 import FuelHistory from "./screen/FuelHistory";
+import BookingScreen from "./screen/BookingScreen";
 import Fuel from "./screen/FuelScreen"; 
 import { StyleSheet } from "react-native";
 import ErrorBoundary from "./ErrorBoundary"; 
 import { AuthProvider } from "./context/AuthContext"; 
 import { TripProvider } from "./context/TripContext";
 import { FuelProvider } from './context/FuelContext'; 
+import { BookProvider } from './context/BookingContext'; 
+import { CarProvider } from './context/CarContext'; 
 
 const Stack = createNativeStackNavigator();
 
@@ -25,6 +28,8 @@ export default function App() {
       <ErrorBoundary>
         <AuthProvider>
           <TripProvider>
+            <BookProvider>
+              <CarProvider>
             <FuelProvider>
               <NavigationContainer>
                 <Stack.Navigator initialRouteName="Login">
@@ -37,9 +42,12 @@ export default function App() {
                   <Stack.Screen name="Profile" component={ProfileScreen} options={{ headerShown: false }} />
                   <Stack.Screen name="Fuel" component={Fuel} options={{ headerShown: false }} />
                   <Stack.Screen name="FuelHistory" component={FuelHistory} options={{ headerShown: false }} />
+                  <Stack.Screen name="Booking" component={BookingScreen} options={{ headerShown: false }} />
                 </Stack.Navigator>
               </NavigationContainer>
             </FuelProvider>
+            </CarProvider>
+            </BookProvider>
           </TripProvider>
         </AuthProvider>
       </ErrorBoundary>

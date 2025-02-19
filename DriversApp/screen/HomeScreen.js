@@ -6,9 +6,7 @@ import {
   Image,
   TouchableOpacity,
   SafeAreaView,
-  Dimensions,
   FlatList,
-  Modal,
 } from "react-native";
 import Icon from "react-native-vector-icons/Feather";
 import { useNavigation } from "@react-navigation/native";
@@ -19,66 +17,17 @@ import { useTrip } from "../context/TripContext";
 const HomeScreen = () => {
   const navigation = useNavigation();
   const { user } = useContext(AuthContext);
-  const { 
-    trips = [], 
-    history = [],
-    loading, 
-    error,
-    fetchTrips,
-    fetchTripsByDate,
-    fetchHistory 
-  } = useTrip() || {};
-  
-  const [isSheetOpen, setIsSheetOpen] = useState(false);
-  const [modalTrips, setModalTrips] = useState([]);
-  const [activeTab, setActiveTab] = useState('today'); // 'today', 'upcoming', or 'history'
+  const { trips = [], loading, error, fetchTrips } = useTrip() || {};
 
-  // Initial trips fetch
   useEffect(() => {
     fetchTrips();
   }, []);
-
-  // Handle today's trips
-  const handleTodayTrips = async () => {
-    setActiveTab('today');
-    try {
-      const today = new Date().toISOString().split('T')[0];
-      const todayTrips = await fetchTripsByDate(today);
-      setModalTrips(todayTrips || []);
-    } catch (error) {
-      console.error("Failed to fetch today's trips:", error);
-    }
-  };
-
-  // Handle upcoming trips
-  const handleUpcomingTrips = async () => {
-    setActiveTab('upcoming');
-    try {
-      const response = await fetchTrips();
-      const upcomingTrips = response || [];
-      setModalTrips(upcomingTrips);
-    } catch (error) {
-      console.error("Failed to fetch upcoming trips:", error);
-    }
-  };
-
-  // Handle history view
-  const handleViewHistory = async () => {
-    setActiveTab('history');
-    try {
-      await fetchHistory();
-      setModalTrips(history || []);
-    } catch (error) {
-      console.error("Failed to fetch history:", error);
-    }
-  };
 
   const handleClick = (item) => {
     navigation.navigate("Map", { bookingData: item });
   };
 
-  // Modal Trip Card Component
-  const ModalTripCard = ({ item }) => (
+  const TripCard = ({ item }) => (
     <View style={styles.requestCard}>
       <View style={styles.requestHeader}>
         <View style={styles.requestType}>
@@ -95,25 +44,22 @@ const HomeScreen = () => {
         <Text style={styles.locationText}>{item.PICKUP_LOC}</Text>
       </View>
 
-      {activeTab !== 'history' && (
-        <View style={styles.actionButtons}>
-          <TouchableOpacity style={styles.rejectButton}>
-            <Text style={styles.rejectButtonText}>Reject</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.acceptButton}
-            onPress={() => handleClick(item)}
-          >
-            <Text style={styles.acceptButtonText}>Start Trip</Text>
-          </TouchableOpacity>
-        </View>
-      )}
+      <View style={styles.actionButtons}>
+        <TouchableOpacity style={styles.rejectButton}>
+          <Text style={styles.rejectButtonText}>Reject</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.acceptButton}
+          onPress={() => handleClick(item)}
+        >
+          <Text style={styles.acceptButtonText}>Start Trip</Text>
+        </TouchableOpacity>
+      </View>
     </View>
   );
 
   return (
     <SafeAreaView style={styles.container}>
-      {/* Header */}
       <View style={styles.header}>
         <View style={styles.userInfo}>
           <Image
@@ -127,7 +73,9 @@ const HomeScreen = () => {
             <Text style={styles.userName}>{user?.NAME}</Text>
           </View>
         </View>
-        <TouchableOpacity style={styles.notificationButton}>
+        <TouchableOpacity
+         onPress={() => navigation.navigate("Booking")}
+           style={styles.notificationButton}>
           <Icon name="bell" size={24} color="#4FA89B" />
         </TouchableOpacity>
       </View>
@@ -135,7 +83,6 @@ const HomeScreen = () => {
       <FlatList
         ListHeaderComponent={
           <>
-            {/* Live GPS Section */}
             <View style={styles.section}>
               <View style={styles.sectionHeader}>
                 <Text style={styles.sectionTitle}>Live GPS</Text>
@@ -148,7 +95,6 @@ const HomeScreen = () => {
               </View>
             </View>
 
-            {/* Available Requests Section */}
             <View style={styles.section}>
               <View style={styles.sectionHeader}>
                 <Text style={styles.sectionTitle}>Available Requests</Text>
@@ -170,94 +116,11 @@ const HomeScreen = () => {
             <Text style={styles.emptyText}>No trips available</Text>
           )
         }
-        renderItem={({ item }) => <ModalTripCard item={item} />}
+        renderItem={({ item }) => <TripCard item={item} />}
       />
-
-      <TouchableOpacity
-        style={styles.floatingButton}
-        onPress={() => {
-          setIsSheetOpen(true);
-          handleTodayTrips(); // Default to today's trips when opening modal
-        }}
-      >
-        <Icon name="chevron-up" size={30} color="#fff" />
-      </TouchableOpacity>
-
-      <Modal
-        animationType="slide"
-        transparent={true}
-        visible={isSheetOpen}
-        onRequestClose={() => setIsSheetOpen(false)}
-      >
-        <View style={styles.modalContainer}>
-          <View style={styles.sheet}>
-            <View style={styles.topButtonsContainer}>
-              <TouchableOpacity 
-                style={[
-                  styles.topButton,
-                  activeTab === 'today' && styles.activeTopButton
-                ]}
-                onPress={handleTodayTrips}
-              >
-                <Text style={[
-                  styles.topButtonText,
-                  activeTab === 'today' && styles.activeTopButtonText
-                ]}>Today's Trips</Text>
-              </TouchableOpacity>
-              
-              <TouchableOpacity 
-                style={[
-                  styles.topButton,
-                  activeTab === 'upcoming' && styles.activeTopButton
-                ]}
-                onPress={handleUpcomingTrips}
-              >
-                <Text style={[
-                  styles.topButtonText,
-                  activeTab === 'upcoming' && styles.activeTopButtonText
-                ]}>Upcoming Trips</Text>
-              </TouchableOpacity>
-              
-              <TouchableOpacity 
-                style={[
-                  styles.topButton,
-                  activeTab === 'history' && styles.activeTopButton
-                ]}
-                onPress={handleViewHistory}
-              >
-                <Text style={[
-                  styles.topButtonText,
-                  activeTab === 'history' && styles.activeTopButtonText
-                ]}>History</Text>
-              </TouchableOpacity>
-            </View>
-
-            <FlatList
-              data={modalTrips}
-              keyExtractor={(item) => item.BOOK_ID}
-              renderItem={({ item }) => <ModalTripCard item={item} />}
-              ListEmptyComponent={
-                loading ? (
-                  <Text style={styles.emptyText}>Loading...</Text>
-                ) : (
-                  <Text style={styles.emptyText}>No trips available</Text>
-                )
-              }
-            />
-
-            <TouchableOpacity
-              style={styles.closeButton}
-              onPress={() => setIsSheetOpen(false)}
-            >
-              <Icon name="x" size={24} color="#fff" />
-            </TouchableOpacity>
-          </View>
-        </View>
-      </Modal>
     </SafeAreaView>
   );
 };
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -406,70 +269,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: "500",
   },
-  floatingButton: {
-    position: "absolute",
-    bottom: 30,
-    right: 30,
-    backgroundColor: "#007bff",
-    padding: 15,
-    borderRadius: 50,
-    elevation: 5,
-  },
-  modalContainer: {
-    flex: 1,
-    justifyContent: "flex-end",
-    backgroundColor: "rgba(0,0,0,0.5)",
-  },
-  sheet: {
-    backgroundColor: "white",
-    padding: 20,
-    borderTopLeftRadius: 15,
-    borderTopRightRadius: 15,
-    height: Dimensions.get("window").height * 0.7, // Increased height
-    alignItems: "center",
-  },
-  topButtonsContainer: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    width: "100%",
-    marginBottom: 20,
-  },
-  topButton: {
-    flex: 1,
-    padding: 10,
-    alignItems: "center",
-    backgroundColor: "#F5F5F5",
-    borderRadius: 8,
-    marginHorizontal: 5,
-  },
-  topButtonText: {
-    fontSize: 14,
-    color: "#333",
-  },
-  closeButton: {
-    position: "absolute",
-    top: 10,
-    right: 10,
-    backgroundColor: "#dc3545",
-    padding: 10,
-    borderRadius: 50,
-  },
-  // activeTopButton: {
-  //   backgroundColor: '#4FA89B',
-  // },
-  // activeTopButtonText: {
-  //   color: '#fff',
-  // },
-  // errorText: {
-  //   color: 'red',
-  //   textAlign: 'center',
-  //   padding: 20,
-  // },
-  // emptyText: {
-  //   textAlign: 'center',
-  //   padding: 20,
-  //   color: '#666',
-  // },
+  
 });
 
 export default HomeScreen;
