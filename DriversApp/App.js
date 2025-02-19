@@ -1,76 +1,49 @@
 import React from "react";
 import { NavigationContainer } from "@react-navigation/native";
-import { createNativeStackNavigator } from "@react-navigation/native-stack"; // Use native stack navigator
-import BottomTabNavigator from "./navigation/BottomTabNavigator"; // Import BottomTabNavigator
-import LoginScreen from "./screen/auth/LoginScreen"; // Import LoginScreen
-import HomeScreen from "./screen/HomeScreen"; // Import HomeScreen
-import MapScreen from "./screen/MapScreen"; // Import MapScreen
-import ProfileScreen from "./screen/ProfileScreen"; // Import ProfileScreen
-import FleetScreen from "./screen/FleetScreen"; // Import FleetScreen
+import { createNativeStackNavigator } from "@react-navigation/native-stack"; 
+import { GestureHandlerRootView } from "react-native-gesture-handler"; // Import GestureHandlerRootView
+import BottomTabNavigator from "./navigation/BottomTabNavigator"; 
+import LoginScreen from "./screen/auth/LoginScreen"; 
+import HomeScreen from "./screen/HomeScreen"; 
+import MapScreen from "./screen/MapScreen"; 
+import ProfileScreen from "./screen/ProfileScreen"; 
+import FleetScreen from "./screen/FleetScreen"; 
 import VehicleScreen from "./screen/VehicleScreen";
+import FuelHistory from "./screen/FuelHistory";
 import Fuel from "./screen/FuelScreen"; 
 import { StyleSheet } from "react-native";
-import ErrorBoundary from "./ErrorBoundary"; // Import ErrorBoundary
-import { AuthProvider } from "./context/AuthContext"; // Import AuthProvider
+import ErrorBoundary from "./ErrorBoundary"; 
+import { AuthProvider } from "./context/AuthContext"; 
 import { TripProvider } from "./context/TripContext";
-import { FuelProvider } from './context/FuelContext'; // Import FuelProvider
+import { FuelProvider } from './context/FuelContext'; 
 
-const Stack = createNativeStackNavigator(); // Create native stack navigator
+const Stack = createNativeStackNavigator();
 
 export default function App() {
   return (
-    <ErrorBoundary>
-      <AuthProvider>
-        <TripProvider>
-          <FuelProvider> {/* Wrap the FuelProvider around the app components */}
-            <NavigationContainer>
-              <Stack.Navigator initialRouteName="Login">
-                <Stack.Screen
-                  name="Login"
-                  component={LoginScreen}
-                  options={{ headerShown: false }} // Hide the header for Login
-                />
-                <Stack.Screen
-                  name="Main"
-                  component={BottomTabNavigator}
-                  options={{ headerShown: false }} // Hide the header for BottomTabNavigator
-                />
-                <Stack.Screen
-                  name="Home"
-                  component={HomeScreen}
-                  options={{ headerShown: false }} // Hide the header for HomeScreen
-                />
-                <Stack.Screen
-                  name="Fleet"
-                  component={FleetScreen}
-                  options={{ headerShown: false }} // Hide the header for FleetScreen
-                />
-                <Stack.Screen
-                  name="Vehicle"
-                  component={VehicleScreen}
-                  options={{ headerShown: true }} // Show header for VehicleScreen
-                />
-                <Stack.Screen
-                  name="Map"
-                  component={MapScreen}
-                  options={{ headerShown: false }} // Hide the header for MapScreen
-                />
-                <Stack.Screen
-                  name="Profile"
-                  component={ProfileScreen}
-                  options={{ headerShown: false }} // Hide the header for ProfileScreen
-                />
-                <Stack.Screen
-                  name="Fuel"
-                  component={Fuel}
-                  options={{ headerShown: false }} // Hide the header for ProfileScreen
-                />
-              </Stack.Navigator>
-            </NavigationContainer>
-          </FuelProvider>
-        </TripProvider>
-      </AuthProvider>
-    </ErrorBoundary>
+    <GestureHandlerRootView style={{ flex: 1 }}> {/* Wrap the entire app */}
+      <ErrorBoundary>
+        <AuthProvider>
+          <TripProvider>
+            <FuelProvider>
+              <NavigationContainer>
+                <Stack.Navigator initialRouteName="Login">
+                  <Stack.Screen name="Login" component={LoginScreen} options={{ headerShown: false }} />
+                  <Stack.Screen name="Main" component={BottomTabNavigator} options={{ headerShown: false }} />
+                  <Stack.Screen name="Home" component={HomeScreen} options={{ headerShown: false }} />
+                  <Stack.Screen name="Fleet" component={FleetScreen} options={{ headerShown: false }} />
+                  <Stack.Screen name="Vehicle" component={VehicleScreen} options={{ headerShown: true }} />
+                  <Stack.Screen name="Map" component={MapScreen} options={{ headerShown: false }} />
+                  <Stack.Screen name="Profile" component={ProfileScreen} options={{ headerShown: false }} />
+                  <Stack.Screen name="Fuel" component={Fuel} options={{ headerShown: false }} />
+                  <Stack.Screen name="FuelHistory" component={FuelHistory} options={{ headerShown: false }} />
+                </Stack.Navigator>
+              </NavigationContainer>
+            </FuelProvider>
+          </TripProvider>
+        </AuthProvider>
+      </ErrorBoundary>
+    </GestureHandlerRootView>
   );
 }
 

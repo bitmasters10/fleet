@@ -1,75 +1,115 @@
-import React, { useContext, useEffect } from "react";
+import React, { useState, useContext, useEffect } from "react";
 import {
   StyleSheet,
   View,
   Text,
   Image,
-  ScrollView,
   TouchableOpacity,
   SafeAreaView,
   Dimensions,
   FlatList,
+  Modal,
 } from "react-native";
-import Icon from "react-native-vector-icons/MaterialCommunityIcons";
-import MapView, { Marker } from "react-native-maps";
-
+import Icon from "react-native-vector-icons/Feather";
 import { useNavigation } from "@react-navigation/native";
 import { AuthContext } from "../context/AuthContext";
 import MapScreen from "./MapScreen";
 import { useTrip } from "../context/TripContext";
 
-// Mock data for the spending graph
-const spendingData = {
-  labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug"],
-  datasets: [
-    {
-      data: [800, 950, 875, 925, 1250, 1100, 1000, 900],
-    },
-  ],
-};
-
-// Mock location data
-const initialRegion = {
-  latitude: 37.78825,
-  longitude: -122.4324,
-  latitudeDelta: 0.0922,
-  longitudeDelta: 0.0421,
-};
-
-
 const HomeScreen = () => {
   const navigation = useNavigation();
-  const screenWidth = Dimensions.get("window").width;
   const { user } = useContext(AuthContext);
-  const { trips = [], fetchTrips, createTrip, loading } = useTrip() || {}; // ✅ Safe fallback
-  // ✅ Get trip functions
-console.log("User:",user)
-  // Fetch trips when the screen loads
+  const { 
+    trips = [], 
+    history = [],
+    loading, 
+    error,
+    fetchTrips,
+    fetchTripsByDate,
+    fetchHistory 
+  } = useTrip() || {};
+  
+  const [isSheetOpen, setIsSheetOpen] = useState(false);
+  const [modalTrips, setModalTrips] = useState([]);
+  const [activeTab, setActiveTab] = useState('today'); // 'today', 'upcoming', or 'history'
 
+  // Initial trips fetch
   useEffect(() => {
     fetchTrips();
   }, []);
 
-  // Function to start a trip
-  const handleStartTrip = async (trip) => {
+  // Handle today's trips
+  const handleTodayTrips = async () => {
+    setActiveTab('today');
     try {
-      const newTrip = {
-        BOOK_NO: trip.BOOK_NO,
-        BOOK_ID: trip.BOOK_ID,
-        ROUTE: trip.ROUTE,
-        date: trip.date,
-      };
-      await createTrip(newTrip);
-      alert("Trip started successfully!");
+      const today = new Date().toISOString().split('T')[0];
+      const todayTrips = await fetchTripsByDate(today);
+      setModalTrips(todayTrips || []);
     } catch (error) {
-      alert("Failed to start trip");
+      console.error("Failed to fetch today's trips:", error);
     }
   };
-  
-const handleClick = (item) => {
-  
-  navigation.navigate("Map", { bookingData: item }); // Send booking data to the Map screen
-};
+
+  // Handle upcoming trips
+  const handleUpcomingTrips = async () => {
+    setActiveTab('upcoming');
+    try {
+      const response = await fetchTrips();
+      const upcomingTrips = response || [];
+      setModalTrips(upcomingTrips);
+    } catch (error) {
+      console.error("Failed to fetch upcoming trips:", error);
+    }
+  };
+
+  // Handle history view
+  const handleViewHistory = async () => {
+    setActiveTab('history');
+    try {
+      await fetchHistory();
+      setModalTrips(history || []);
+    } catch (error) {
+      console.error("Failed to fetch history:", error);
+    }
+  };
+
+  const handleClick = (item) => {
+    navigation.navigate("Map", { bookingData: item });
+  };
+
+  // Modal Trip Card Component
+  const ModalTripCard = ({ item }) => (
+    <View style={styles.requestCard}>
+      <View style={styles.requestHeader}>
+        <View style={styles.requestType}>
+          <Icon name="car" size={20} color="#4FA89B" />
+          <Text style={styles.requestTypeText}>
+            {item.PICKUP_LOC} to {item.DROP_LOC}
+          </Text>
+        </View>
+        <Text style={styles.recipientText}>Recipient: User {item.USER_ID}</Text>
+      </View>
+
+      <View style={styles.locationInfo}>
+        <Icon name="map-marker" size={20} color="#4FA89B" />
+        <Text style={styles.locationText}>{item.PICKUP_LOC}</Text>
+      </View>
+
+      {activeTab !== 'history' && (
+        <View style={styles.actionButtons}>
+          <TouchableOpacity style={styles.rejectButton}>
+            <Text style={styles.rejectButtonText}>Reject</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.acceptButton}
+            onPress={() => handleClick(item)}
+          >
+            <Text style={styles.acceptButtonText}>Start Trip</Text>
+          </TouchableOpacity>
+        </View>
+      )}
+    </View>
+  );
 
   return (
     <SafeAreaView style={styles.container}>
@@ -91,8 +131,7 @@ const handleClick = (item) => {
           <Icon name="bell" size={24} color="#4FA89B" />
         </TouchableOpacity>
       </View>
-  
-      {/* ✅ Replace ScrollView with FlatList */}
+
       <FlatList
         ListHeaderComponent={
           <>
@@ -108,7 +147,7 @@ const handleClick = (item) => {
                 <MapScreen isOpen="true" />
               </View>
             </View>
-  
+
             {/* Available Requests Section */}
             <View style={styles.section}>
               <View style={styles.sectionHeader}>
@@ -122,43 +161,101 @@ const handleClick = (item) => {
         }
         data={trips}
         keyExtractor={(item) => item.BOOK_ID}
-        ListEmptyComponent={<Text style={styles.emptyText}>No trips available</Text>}
-        renderItem={({ item }) => (
-          <View style={styles.section}>  {/* Added section here */}
-            <View style={styles.requestCard}>
-              <View style={styles.requestHeader}>
-                <View style={styles.requestType}>
-                  <Icon name="car" size={20} color="#4FA89B" />
-                  <Text style={styles.requestTypeText}>
-                    {item.PICKUP_LOC} to {item.DROP_LOC}  {/* Showing pickup and drop locations as route */}
-                  </Text>
-                </View>
-                <Text style={styles.recipientText}>Receipient: User {item.USER_ID}</Text> {/* Displaying USER_ID as recipient */}
-              </View>
-  
-              <View style={styles.locationInfo}>
-                <Icon name="map-marker" size={20} color="#4FA89B" />
-                <Text style={styles.locationText}>{item.PICKUP_LOC}</Text> {/* Pickup Location */}
-              </View>
-  
-              <View style={styles.actionButtons}>
-                <TouchableOpacity style={styles.rejectButton}>
-                  <Text style={styles.rejectButtonText}>Reject</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={styles.acceptButton}
-                  onPress={() => handleClick(item)} 
-                >
-                  <Text style={styles.acceptButtonText}  >Start Trip</Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-          </View>
-        )}
+        ListEmptyComponent={
+          loading ? (
+            <Text style={styles.emptyText}>Loading...</Text>
+          ) : error ? (
+            <Text style={styles.errorText}>{error}</Text>
+          ) : (
+            <Text style={styles.emptyText}>No trips available</Text>
+          )
+        }
+        renderItem={({ item }) => <ModalTripCard item={item} />}
       />
+
+      <TouchableOpacity
+        style={styles.floatingButton}
+        onPress={() => {
+          setIsSheetOpen(true);
+          handleTodayTrips(); // Default to today's trips when opening modal
+        }}
+      >
+        <Icon name="chevron-up" size={30} color="#fff" />
+      </TouchableOpacity>
+
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={isSheetOpen}
+        onRequestClose={() => setIsSheetOpen(false)}
+      >
+        <View style={styles.modalContainer}>
+          <View style={styles.sheet}>
+            <View style={styles.topButtonsContainer}>
+              <TouchableOpacity 
+                style={[
+                  styles.topButton,
+                  activeTab === 'today' && styles.activeTopButton
+                ]}
+                onPress={handleTodayTrips}
+              >
+                <Text style={[
+                  styles.topButtonText,
+                  activeTab === 'today' && styles.activeTopButtonText
+                ]}>Today's Trips</Text>
+              </TouchableOpacity>
+              
+              <TouchableOpacity 
+                style={[
+                  styles.topButton,
+                  activeTab === 'upcoming' && styles.activeTopButton
+                ]}
+                onPress={handleUpcomingTrips}
+              >
+                <Text style={[
+                  styles.topButtonText,
+                  activeTab === 'upcoming' && styles.activeTopButtonText
+                ]}>Upcoming Trips</Text>
+              </TouchableOpacity>
+              
+              <TouchableOpacity 
+                style={[
+                  styles.topButton,
+                  activeTab === 'history' && styles.activeTopButton
+                ]}
+                onPress={handleViewHistory}
+              >
+                <Text style={[
+                  styles.topButtonText,
+                  activeTab === 'history' && styles.activeTopButtonText
+                ]}>History</Text>
+              </TouchableOpacity>
+            </View>
+
+            <FlatList
+              data={modalTrips}
+              keyExtractor={(item) => item.BOOK_ID}
+              renderItem={({ item }) => <ModalTripCard item={item} />}
+              ListEmptyComponent={
+                loading ? (
+                  <Text style={styles.emptyText}>Loading...</Text>
+                ) : (
+                  <Text style={styles.emptyText}>No trips available</Text>
+                )
+              }
+            />
+
+            <TouchableOpacity
+              style={styles.closeButton}
+              onPress={() => setIsSheetOpen(false)}
+            >
+              <Icon name="x" size={24} color="#fff" />
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
-  
 };
 
 const styles = StyleSheet.create({
@@ -237,11 +334,11 @@ const styles = StyleSheet.create({
     marginTop: 12,
   },
   requestCard: {
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
     borderRadius: 12,
     padding: 16,
     marginBottom: 12,
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOffset: {
       width: 0,
       height: 2,
@@ -254,36 +351,36 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   requestType: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     marginBottom: 4,
   },
   requestTypeText: {
     fontSize: 16,
-    fontWeight: '600',
-    color: '#333',
+    fontWeight: "600",
+    color: "#333",
     marginLeft: 8,
   },
   recipientText: {
     fontSize: 14,
-    color: '#666',
+    color: "#666",
   },
   locationInfo: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#F5F5F5',
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#F5F5F5",
     padding: 12,
     borderRadius: 8,
     marginBottom: 12,
   },
   locationText: {
     fontSize: 14,
-    color: '#333',
+    color: "#333",
     marginLeft: 8,
   },
   actionButtons: {
-    flexDirection: 'row',
-    justifyContent: 'flex-end',
+    flexDirection: "row",
+    justifyContent: "flex-end",
     gap: 12,
   },
   rejectButton: {
@@ -291,75 +388,88 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: '#E0E0E0',
+    borderColor: "#E0E0E0",
   },
   rejectButtonText: {
-    color: '#666',
+    color: "#666",
     fontSize: 14,
-    fontWeight: '500',
+    fontWeight: "500",
   },
   acceptButton: {
-    backgroundColor: '#006A60',
+    backgroundColor: "#006A60",
     paddingVertical: 8,
     paddingHorizontal: 16,
     borderRadius: 8,
   },
   acceptButtonText: {
-    color: '#fff',
+    color: "#fff",
     fontSize: 14,
-    fontWeight: '500',
-  },
-  deadlineItem: {
-    flexDirection: "row",
-    alignItems: "center",
-    padding: 15,
-    backgroundColor: "#F5F5F5",
-    borderRadius: 12,
-    marginBottom: 10,
-  },
-  activeDeadline: {
-    backgroundColor: "#4FA89B",
-  },
-  deadlineIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: "#fff",
-    justifyContent: "center",
-    alignItems: "center",
-    marginRight: 12,
-  },
-  deadlineInfo: {
-    flex: 1,
-  },
-  deadlineTitle: {
-    fontSize: 16,
     fontWeight: "500",
+  },
+  floatingButton: {
+    position: "absolute",
+    bottom: 30,
+    right: 30,
+    backgroundColor: "#007bff",
+    padding: 15,
+    borderRadius: 50,
+    elevation: 5,
+  },
+  modalContainer: {
+    flex: 1,
+    justifyContent: "flex-end",
+    backgroundColor: "rgba(0,0,0,0.5)",
+  },
+  sheet: {
+    backgroundColor: "white",
+    padding: 20,
+    borderTopLeftRadius: 15,
+    borderTopRightRadius: 15,
+    height: Dimensions.get("window").height * 0.7, // Increased height
+    alignItems: "center",
+  },
+  topButtonsContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    width: "100%",
+    marginBottom: 20,
+  },
+  topButton: {
+    flex: 1,
+    padding: 10,
+    alignItems: "center",
+    backgroundColor: "#F5F5F5",
+    borderRadius: 8,
+    marginHorizontal: 5,
+  },
+  topButtonText: {
+    fontSize: 14,
     color: "#333",
   },
-  deadlineDate: {
-    fontSize: 14,
-    color: "#666",
-    marginTop: 4,
+  closeButton: {
+    position: "absolute",
+    top: 10,
+    right: 10,
+    backgroundColor: "#dc3545",
+    padding: 10,
+    borderRadius: 50,
   },
-  activeDeadlineTitle: {
-    fontSize: 16,
-    fontWeight: "500",
-    color: "#fff",
-  },
-  activeDeadlineDate: {
-    fontSize: 14,
-    color: "#E0E0E0",
-    marginTop: 4,
-  },
-  arrowRight: {
-    fontSize: 20,
-    color: "#666",
-  },
-  activeArrowRight: {
-    fontSize: 20,
-    color: "#fff",
-  },
+  // activeTopButton: {
+  //   backgroundColor: '#4FA89B',
+  // },
+  // activeTopButtonText: {
+  //   color: '#fff',
+  // },
+  // errorText: {
+  //   color: 'red',
+  //   textAlign: 'center',
+  //   padding: 20,
+  // },
+  // emptyText: {
+  //   textAlign: 'center',
+  //   padding: 20,
+  //   color: '#666',
+  // },
 });
 
 export default HomeScreen;

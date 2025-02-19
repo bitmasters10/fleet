@@ -118,6 +118,7 @@ Router.post("/otp", isDriver,(req, res) => {
 Router.get("/all/book", (req, res) => {
   console.log("Request body:", req.body);
 console.log("Request user:", req.user);
+console.log("req came ")
 
   const id = req.user.DRIVER_ID;
   const q = "select * from BOOKING where DRIVER_ID=? AND stat=? ";
@@ -295,4 +296,17 @@ Router.post("/myloc",(req,res)=>{
 //     return res.status(500).json({ error: "Internal server error" });
 //   }
 // });
+Router.get("/fuels",(req,res)=>{
+  try {
+    db.query("SELECT * FROM FUEL_CONSUMPTION ", (err, rows) => {
+      if (err) {
+        console.error("Error executing query:", err);
+        return res.status(500).send("Server Error");
+      }
+      return res.status(200).json(rows);
+    });
+  } catch (err) {
+    console.error("Error during retrive:", err);
+  }
+})
 module.exports = Router;

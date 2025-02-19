@@ -1,13 +1,18 @@
 import React, { createContext, useState, useContext } from 'react';
 import axios from 'axios';
 
+
+
+
 const FuelContext = createContext();
 
 export const FuelProvider = ({ children }) => {
   const [fuelData, setFuelData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const home = "http://192.168.1.243:3000"; // Make sure this is the correct IP address of your backend
+  const HOME="http://192.168.1.243:3000"
+   const home = HOME;
+
 
   // Fetch vehicles when the screen is loaded
   const getVehicles = async () => {
@@ -49,9 +54,20 @@ export const FuelProvider = ({ children }) => {
       alert('Error submitting fuel entry');
     }
   };
+  const getFuelRecords = async () => {
+    setLoading(true);
+    try {
+      const response = await axios.get(`${home}/driver/fuels`);
+      setFuelData(response.data);
+      setError(null);
+    } catch (err) {
+      setError("Failed to fetch fuel records");
+    }
+    setLoading(false);
+  };
 
   return (
-    <FuelContext.Provider value={{ fuelData, getVehicles, createFuelRecord, loading, error }}>
+    <FuelContext.Provider value={{ fuelData, getVehicles, createFuelRecord, getFuelRecords,loading, error }}>
       {children}
     </FuelContext.Provider>
   );
