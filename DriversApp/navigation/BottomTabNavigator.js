@@ -13,7 +13,7 @@ const BottomTabNavigator = () => {
     <Tab.Navigator>
       <Tab.Screen
         name="Home"
-        component={() => require("../screen/HomeScreen").default}
+        component={HomeScreen}
         options={{
           tabBarIcon: ({ color }) => (
             <Icon name="home" color={color} size={24} />
@@ -22,7 +22,7 @@ const BottomTabNavigator = () => {
       />
       <Tab.Screen
         name="Fleet"
-        component={() => require("../screen/FleetScreen").default}
+        component={FleetScreen}
         options={{
           tabBarIcon: ({ color }) => (
             <Icon name="car" color={color} size={24} />

@@ -175,8 +175,6 @@ export default function Booking({ title, track }) {
           bookings={bookings}
           loading={loading}
           deleteBooking={deleteBooking}
-          
-          setEditingBooking={setEditingBooking}
         />
       </div>
     </div>
@@ -502,7 +500,7 @@ function CreateForm({
 
 
 
-
+346732
 
 // Edit Form Component in Modal
 function EditForm({ booking, updateBooking, setEditingBooking }) {
@@ -604,7 +602,7 @@ function EditForm({ booking, updateBooking, setEditingBooking }) {
 
 // TableManage component
 // eslint-disable-next-line react/prop-types
-function TableManage({ bookings, loading, deleteBooking, setEditingBooking }) {
+function TableManage({ bookings, loading, deleteBooking }) {
   if (loading) {
     return <div>Loading...</div>;
   }
@@ -659,7 +657,7 @@ function TableManage({ bookings, loading, deleteBooking, setEditingBooking }) {
               <td className="px-6 py-3">{booking.PICKUP_LOC}</td>
               <td className="px-6 py-3">{booking.TIMING}</td>
               <td className="px-6 py-4 flex">
-                <button className="font-medium text-blue-600 dark:text-blue-500 hover:underline px-1"  onClick={() => setEditingBooking(booking)}>
+                <button className="font-medium text-blue-600 dark:text-blue-500 hover:underline px-1">
                   Edit
                 </button>
                 <button

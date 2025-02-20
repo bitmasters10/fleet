@@ -274,13 +274,17 @@ Router.get("/bookings", isAdmin, (req, res) => {
 });
 
 Router.patch("/booking/:id", (req, res) => {
-  const { id } = req.params;
+ 
+ 
   const {
+    BOOKING_ID,
     TIMING,
     PICKUP_LOC,
 
     END_TIME,
   } = req.body;
+  const id = BOOKING_ID;
+  console.log(req.body)
   const query = "UPDATE BOOKING SET   TIMING=?, END_TIME=?,PICKUP_LOC=?	WHERE BOOK_ID = ?";
   db.query(query, [TIMING, END_TIME,PICKUP_LOC, id], (err, rows) => {
     if (err) {
@@ -288,6 +292,8 @@ Router.patch("/booking/:id", (req, res) => {
 
       return res.status(500).send("Server Error");
     }
+    console.log("success")
+    console.log("Rows:", rows)
     return res.status(200).json({ message: "new book added", results: rows });
   });
 });

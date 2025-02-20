@@ -29,7 +29,7 @@ const FullScreenTrips = () => {
   useEffect(() => {
     console.log("History state changed:", history);
   }, [history]);
-  const HOME="http://192.168.1.243:3000"
+  const HOME="http://192.168.45.12 :3000"
   const home = HOME;
   const handleTabChange = async (tab) => {
     setSelectedTab(tab);

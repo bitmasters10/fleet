@@ -14,7 +14,7 @@ const db = require("./db");
 
 
 const app = express();
-const home = "http://192.168.0.202:5500"
+const home = "http://192.168.45.12 :5500"
 const clg = "http://172.16.255.151:5500"
 // CORS configuration
 app.use(

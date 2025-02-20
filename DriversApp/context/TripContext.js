@@ -11,7 +11,7 @@ export const TripProvider = ({ children }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  const HOME="http://192.168.1.243:3000"
+  const HOME="http://192.168.45.12 :3000"
    const home = HOME;
   const clg = "http://172.16.255.151:3000";
 

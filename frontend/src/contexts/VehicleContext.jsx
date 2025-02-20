@@ -19,7 +19,7 @@ export const VehicleProvider = ({ children }) => {
   const [vehicleDetails, setVehicleDetails] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-
+  const [vehicleCount, setVehicleCount] = useState(0);
   const axiosInstance = axios.create({
     baseURL: "http://localhost:3000", // Replace with your backend base URL
     withCredentials: true, // Important: This ensures that cookies (session) are included in requests
@@ -30,6 +30,7 @@ export const VehicleProvider = ({ children }) => {
     try {
       const response = await axiosInstance.get("/admin/cars");
       setVehicles(response.data);
+      setVehicleCount(response.data.length)
     } catch (error) {
       console.error("Error fetching vehicles:", error);
       setError("Error fetching vehicles."); // Set error state
@@ -116,6 +117,7 @@ export const VehicleProvider = ({ children }) => {
       value={{
         vehicles,
         vehicleDetails,
+        vehicleCount,
         loading,
         error,
         availableVehicles,

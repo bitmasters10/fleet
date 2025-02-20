@@ -18,6 +18,7 @@ const HomeScreen = () => {
   const navigation = useNavigation();
   const { user } = useContext(AuthContext);
   const { trips = [], loading, error, fetchTrips } = useTrip() || {};
+  
 
   useEffect(() => {
     fetchTrips();
@@ -86,7 +87,7 @@ const HomeScreen = () => {
             <View style={styles.section}>
               <View style={styles.sectionHeader}>
                 <Text style={styles.sectionTitle}>Live GPS</Text>
-                <TouchableOpacity onPress={() => navigation.navigate("Map", bookingData)}>
+                <TouchableOpacity onPress={() => navigation.navigate("Map")}>
                   <Text style={styles.seeAllText}>See all</Text>
                 </TouchableOpacity>
               </View>

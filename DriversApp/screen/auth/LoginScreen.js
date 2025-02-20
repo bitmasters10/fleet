@@ -7,11 +7,14 @@ import {
   TouchableOpacity,
   Image,
   Pressable,
+  Alert,
+  Platform,
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { Feather } from "@expo/vector-icons";
 import * as Location from "expo-location"; 
 import { AuthContext } from "../../context/AuthContext";
+
 export default function LoginScreen() {
 
 
@@ -22,15 +25,24 @@ export default function LoginScreen() {
   const navigation = useNavigation();
 
   const handleLogin = async () => {
+    if (!email || !password) {
+      Alert.alert('Error', 'Please enter both email and password');
+      return;
+    }
+
     try {
       const response = await login(email, password);
       if (response.success) {
         await requestLocationPermission();
         navigation.navigate("Main");
       } else {
-        console.error("Login failed");
+        Alert.alert('Login Failed', response.message || 'Invalid credentials');
       }
     } catch (error) {
+      Alert.alert(
+        'Login Error',
+        error.message || 'An error occurred while logging in. Please try again.'
+      );
       console.error("Login failed:", error);
     }
   };
@@ -49,6 +61,10 @@ export default function LoginScreen() {
   useEffect(() => {
     console.log("Position updated:", position);
   }, [position]);
+
+  // Add this function to test connectivity
+
+
   return (
     <View style={styles.container}>
       <Image

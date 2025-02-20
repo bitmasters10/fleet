@@ -1,5 +1,12 @@
 import Heading from "../components/Heading";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell } from "recharts";
+import { useAdmin } from "../contexts/AdminContext";
+import { useUsers } from "../contexts/UserContext";
+import { useBooking } from "../contexts/BookingContext";
+import { useVehicle } from "../contexts/VehicleContext";
+import { useDrivers } from "../contexts/DriverContext";
+import { useTrip } from "../contexts/TripContext";
+import { useEffect } from "react";
 
 // Sample data for fleet management charts
 const vehicleUtilizationData = [
@@ -30,12 +37,44 @@ const DARK_COLORS = ["#4C9AFF", "#66D9E8", "#FFD54F", "#FF6E40"];
 export default function Dashboard({ title, track }) {
   // Detect dark mode
   const isDarkMode = typeof window !== "undefined" && window.matchMedia("(prefers-color-scheme: dark)").matches;
+const {adminCount , fetchAdmins} = useAdmin();
+const {userCount, fetchUsers} = useUsers();
+const {bookingCount, fetchBookings} = useBooking();
+const {vehicleCount, fetchVehicles} =useVehicle();
+const  {driverCount, fetchDrivers}  = useDrivers();
+const {tripCount, fetchTrips} = useTrip();
 
+
+useEffect(()=>{
+  fetchAdmins();
+  fetchBookings();
+  fetchDrivers();
+  fetchUsers();
+  fetchTrips();
+  fetchVehicles();
+},[adminCount,userCount,bookingCount,vehicleCount,driverCount,tripCount])
   return (
     <div className="p-6">
       <Heading title={title} track={track} />
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
+      {/* Summary Boxes */}
+      <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4 mt-4">
+        {[
+          { label: "Total Users", count: userCount },
+          { label: "Drivers", count: driverCount },
+          { label: "Admins", count: adminCount },
+          { label: "Vehicles", count: vehicleCount },
+          { label: "Trips", count: tripCount },
+          { label: "Bookings", count: bookingCount },
+        ].map((item, index) => (
+          <div key={index} className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-lg text-center">
+            <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100">{item.count}</h3>
+            <p className="text-gray-600 dark:text-gray-300">{item.label}</p>
+          </div>
+        ))}
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
         {/* Vehicle Utilization Bar Chart */}
         <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-lg">
           <h2 className="text-lg font-semibold mb-2 text-gray-900 dark:text-gray-100">Vehicle Utilization</h2>
@@ -80,4 +119,3 @@ export default function Dashboard({ title, track }) {
     </div>
   );
 }
-

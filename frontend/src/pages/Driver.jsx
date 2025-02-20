@@ -161,14 +161,17 @@ function AddButton({ showCreateForm, setShowCreateForm }) {
 // Admin Table Component
 // eslint-disable-next-line react/prop-types
 function TableManage({ drivers = [], setEditingDriver, deleteDriver }) {
-  const viewDocument = (docData, docName) => {
-    if (docData) {
-      const blob = new Blob([docData], { type: "application/pdf" }); // Change type if needed
-      const url = URL.createObjectURL(blob);
-      window.open(url, "_blank");
-    } else {
-      alert(`${docName} is not available.`);
-    }
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedDoc, setSelectedDoc] = useState(null);
+
+  const openModal = (docName) => {
+    setSelectedDoc(docName);
+    setIsModalOpen(true);
+  };
+
+  const closeModal = () => {
+    setIsModalOpen(false);
+    setSelectedDoc(null);
   };
 
   return (
@@ -202,13 +205,13 @@ function TableManage({ drivers = [], setEditingDriver, deleteDriver }) {
                 <td className="px-6 py-4 flex gap-2">
                   <button
                     className="font-medium text-blue-600 dark:text-blue-500 hover:underline"
-                    onClick={() => viewDocument(driver.ADHARCARD, "Aadhaar Card")}
+                    onClick={() => openModal(`http://localhost:3000/admin/img/driver-view/${driver.DRIVER_ID}/adharcard`)}
                   >
                     View Aadhaar
                   </button>
                   <button
                     className="font-medium text-green-600 dark:text-green-500 hover:underline"
-                    onClick={() => viewDocument(driver.PANCARD, "PAN Card")}
+                    onClick={() => openModal(`http://localhost:3000/admin/img/driver-view/${driver.DRIVER_ID}/pancard`)}
                   >
                     View PAN
                   </button>
@@ -238,10 +241,34 @@ function TableManage({ drivers = [], setEditingDriver, deleteDriver }) {
           )}
         </tbody>
       </table>
+
+      {/* Modal */}
+      {isModalOpen && (
+  <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+    <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg w-96 relative">
+      {/* Close (X) Button */}
+      <button
+        className="absolute top-5.5 right-5  text-gray-600 dark:text-gray-300 text-2xl"
+        onClick={closeModal}
+      >
+        &times;
+      </button>
+
+      <h2 className="text-lg font-semibold mb-4 text-gray-900 dark:text-gray-100 text-center">
+        Identity Document
+      </h2>
+      <img
+        src={selectedDoc}
+        alt="Identity Document"
+        className="w-full h-auto rounded"
+      />
+    </div>
+  </div>
+)}
+
     </div>
   );
 }
-
 function CreateForm({ addDriver, setShowCreateForm }) {
   const [formData, setFormData] = useState({
     name: "",

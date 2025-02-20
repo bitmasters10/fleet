@@ -12,6 +12,7 @@ export const BookingProvider = ({ children }) => {
   const [bookingDetails, setBookingDetails] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [bookingCount, setBookingCount] = useState(0);
 
   const axiosInstance = axios.create({
     baseURL: "http://localhost:3000", // Replace with your backend base URL
@@ -25,6 +26,7 @@ export const BookingProvider = ({ children }) => {
     try {
       const response = await axiosInstance.get("/admin/bookings");
       setBookings(response.data);
+      setBookingCount(response.data.length)
     } catch (error) {
       console.error("Error fetching bookings:", error);
       setError(error.response?.data?.message || "Error fetching bookings.");
@@ -95,20 +97,22 @@ export const BookingProvider = ({ children }) => {
 
   // Update an existing booking
   const updateBooking = async (updatedBooking) => {
+    console.log(updatedBooking.BOOK_ID);
     setError(null);
     try {
       const response = await axiosInstance.patch(
-        `/admin/booking/${updatedBooking.BOOKING_ID}`,
+        `/admin/booking/${updatedBooking.BOOK_ID}`,
         updatedBooking
       );
 
       setBookings((prevBookings) =>
         prevBookings.map((booking) =>
-          booking.BOOKING_ID === updatedBooking.BOOKING_ID
+          booking.BOOK_ID === updatedBooking.BOOK_ID
             ? updatedBooking
             : booking
         )
       );
+      console.log(response.status)
     } catch (error) {
       console.error("Error updating booking:", error);
       setError("Error updating booking.");
@@ -208,6 +212,7 @@ export const BookingProvider = ({ children }) => {
     <BookingContext.Provider
       value={{
         bookings,
+        bookingCount,
         bookingDetails,
         loading,
         error,
