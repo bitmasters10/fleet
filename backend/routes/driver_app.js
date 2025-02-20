@@ -56,32 +56,48 @@ Router.get("/book/:date",isDriver, (req, res) => {
     res.json(results);
   });
 });
-Router.patch("/trip-complete",isDriver, (req, res) => {
-  const id = req.user.DRIVER_ID;
+Router.patch("/trip-complete", isDriver, (req, res) => {
+  const id = req.user.DRIVER_ID; // Get the driver's ID from the authenticated user
   const { BOOK_ID } = req.body;
-  JavaScript
 
-const now = new Date();
+  // Get the current date and time
+  const now = new Date();
 
-const hours = now.getHours(); // Get the current hour (0-23)
-const minutes = now.getMinutes();
+  // Format the time as HH:MM
+  const hours = now.getHours(); // Get the current hour (0-23)
+  const minutes = now.getMinutes();
+  const formattedHours = String(hours).padStart(2, "0");
+  const formattedMinutes = String(minutes).padStart(2, "0");
+  const formattedTime = `${formattedHours}:${formattedMinutes}`;
 
-// Pad the hours and minutes with leading zeros if necessary
-const formattedHours = String(hours).padStart(2, '0');
-const formattedMinutes = String(minutes).padStart(2, '0');
+  // Format the date as yyyy-mm-dd
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, "0"); // Months are 0-indexed
+  const day = String(now.getDate()).padStart(2, "0");
+  const formattedDate = `${year}-${month}-${day}`;
 
-const formattedTime = `${formattedHours}:${formattedMinutes}`;
+  console.log("Formatted Time (24-hour):", formattedTime);
+  console.log("Formatted Date (yyyy-mm-dd):", formattedDate);
 
-console.log("Formatted Time (24-hour):", formattedTime);
-  const q = "update TRIP set STAT=?,END_TIME=? where  DRIVER_ID=? AND BOOK_ID=?";
-  db.query(q, ["COMPLETED", formattedTime,id, BOOK_ID], (err, results) => {
-    if (err) {
-      console.error("Error executing query:", err);
-      return res.status(500).json({ error: "Database query failed" });
+  // Update the TRIP table
+  const q = "UPDATE TRIP SET STAT=?, END_TIME=?, date=? WHERE DRIVER_ID=? AND BOOK_ID=?";
+  db.query(
+    q,
+    ["COMPLETED", formattedTime, formattedDate, id, BOOK_ID],
+    (err, results) => {
+      if (err) {
+        console.error("Error executing query:", err);
+        return res.status(500).json({ error: "Database query failed" });
+      }
+
+      // Check if any rows were affected
+      if (results.affectedRows === 0) {
+        return res.status(404).json({ error: "No matching trip found" });
+      }
+
+      res.json({ message: "Trip marked as completed", results });
     }
-
-    res.json(results);
-  });
+  );
 });
 Router.post("/otp", isDriver,(req, res) => {
   const { otp, BOOK_ID } = req.body;
@@ -326,4 +342,29 @@ Router.get("/fuels",(req,res)=>{
     console.error("Error during retrive:", err);
   }
 })
+Router.get("/curr-trips", async (req, res) => {
+  try {
+      const driverId = req.user.DRIVER_ID; // Extract the DRIVER_ID from the authenticated user
+      const todayDate = new Date().toISOString().split("T")[0]; // Get today's date in YYYY-MM-DD format
+
+      const query = `
+          SELECT * FROM trip 
+          WHERE DRIVER_ID = ? 
+          AND STAT IN ('JUST', 'ONGOING') 
+          AND date = ?;
+      `;
+
+      db.query(query, [driverId, todayDate], (err, results) => {
+          if (err) {
+              console.error("Error fetching trips:", err);
+              return res.status(500).json({ error: "Internal Server Error" });
+          }
+          res.json(results);
+      });
+  } catch (error) {
+      console.error("Unexpected error:", error);
+      res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
 module.exports = Router;

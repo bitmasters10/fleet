@@ -7,7 +7,7 @@ export const FuelProvider = ({ children }) => {
   const [fuelData, setFuelData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const HOME = "http://192.168.1.243:3000";
+  const HOME = "http://172.20.10.2:3000";
   const home = HOME;
 
   // Fetch vehicles when the screen is loaded

@@ -11,14 +11,14 @@ import {
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 import { AuthContext } from "../context/AuthContext";
 import { useNavigation } from "@react-navigation/native";
-const HOME="http://192.168.1.243:3000"
+const HOME="http://172.20.10.2:3000"
 const home = HOME;
 
 
 const ProfileScreen = () => {
   const { user, logout } = useContext(AuthContext);
   const navigation = useNavigation();
-  const HOME="http://192.168.1.243:3000"
+  const HOME="http://172.20.10.2:3000"
    const home = HOME;
 
 

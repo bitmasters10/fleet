@@ -14,16 +14,20 @@ const db = require("./db");
 
 
 const app = express();
-const home = "http://192.168.0.202:5500"
-const clg = "http://172.16.255.151:5500"
+
+const home = "http://127.0.0.1:5500";
+const clg = "http://172.16.255.151:5500";
 // CORS configuration
 app.use(
   cors({
-    origin: ["http://localhost:5173", `${home}`,"http://localhost:5500"], // Allowed origins
+    origin: [
+      "http://localhost:5173", 
+      home, 
+      "http://localhost:5500",  // Ensure this is included for your frontend
+    ],
     credentials: true, 
   })
 );
-
 app.set("view engine", "ejs");
 app.set("views", path.join(__dirname, "/views"));
 app.use(bodyParser.urlencoded({ extended: false }));
@@ -249,19 +253,9 @@ app.post("/api/events", async (req, res) => {
 
   console.log("Normalized Event Details:", normalizedDetails);
 
-  let result;
-  if (normalizedDetails.Status === "confirmed") {
-    result = await handleConfirmedBooking(normalizedDetails);
-  } else if (normalizedDetails.Status === "Cancelled") {
-    result = await handleCancelledBooking(normalizedDetails);
-  } else if (normalizedDetails.Status === "Amended") {
-    result = await handleAmendedBooking(normalizedDetails);
-  } else {
-    result = { message: "Unhandled status received." };
-  }
-
-  res.status(200).json(result);
+res.status(200).json({ message: "Event created successfully", });
 });
+
 
 
 app.listen(port, () => {

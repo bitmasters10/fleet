@@ -12,7 +12,7 @@ export default function FuelScreen() {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [permissionDenied, setPermissionDenied] = useState(false);  // Track permission denial
   const [fuelData, setFuelData] = useState([]);  // Store vehicle data locally
-  const HOME="http://192.168.1.243:3000"
+  const HOME="http://172.20.10.2:3000"
    const home = HOME;
 
   // Fetch vehicles when the component loads
@@ -96,10 +96,10 @@ export default function FuelScreen() {
     // Convert the image to base64 (required for BLOB storage)
     const response = await fetch(photo);
     const blob = await response.blob();
-  
+    const formattedDate = new Date().toISOString().split("T")[0];
     const formData = new FormData();
     formData.append("CAR_ID", selectedVehicle);
-    formData.append("DATE", new Date().toISOString());
+    formData.append("DATE",formattedDate);
     formData.append("COST", fuelAmount);
     formData.append("photo", {
       uri: photo,

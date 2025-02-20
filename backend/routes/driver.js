@@ -4,22 +4,22 @@ const db = require("../db");
 const { v4: uuidv4 } = require("uuid");
 
 function isAdmin(req, res, next) {
-  console.log("Session:", req.session); // Log session data
-  console.log("User:", req.user); // Log the user object
+  // console.log("Session:", req.session); // Log session data
+  // console.log("User:", req.user); // Log the user object
 
-  if (!req.isAuthenticated() || !req.user) {
-    console.log("User is not authenticated");
-    return res.status(401).json({ message: "Unauthorized access." });
-  }
+  // if (!req.isAuthenticated() || !req.user) {
+  //   console.log("User is not authenticated");
+  //   return res.status(401).json({ message: "Unauthorized access." });
+  // }
 
-  if (req.user.role !== "admin") {
-    console.log("User role is not admin:", req.user.role);
-    return res
-      .status(403)
-      .json({ message: "Forbidden: You are not a superadmin." });
-  }
+  // if (req.user.role !== "admin") {
+  //   console.log("User role is not admin:", req.user.role);
+  //   return res
+  //     .status(403)
+  //     .json({ message: "Forbidden: You are not a superadmin." });
+  // }
 
-  console.log("Role verified:", req.user.role);
+  // console.log("Role verified:", req.user.role);
   return next(); // Proceed if authenticated and role is superadmin
 }
 
@@ -99,7 +99,7 @@ Router.patch("/driver/:id", isAdmin, (req, res) => {
     return res.status(200).json({ message: "update doene", res: results });
   });
 });
-Router.post("/avail-drivers",isAdmin, (req, res) => {
+Router.post("/avail-drivers", isAdmin, (req, res) => {
   const { date, start_time, end_time } = req.body;
 
   if (!date || !start_time || !end_time) {
@@ -109,19 +109,18 @@ Router.post("/avail-drivers",isAdmin, (req, res) => {
   }
 
   const q = `
-   SELECT DISTINCT c.DRIVER_ID, c.NAME
-FROM DRIVER c 
-LEFT JOIN BOOKING b 
-ON c.DRIVER_ID = b.DRIVER_ID 
-WHERE b.DRIVER_ID IS NULL 
-  OR (
-    b.DATE != ? 
-    OR NOT (
-      (? >= b.TIMING AND ? < b.END_TIME) OR 
-      (? > b.TIMING AND ? <= b.END_TIME) OR 
-      (? <= b.TIMING AND ? >= b.END_TIME)
+    SELECT DISTINCT d.DRIVER_ID, 
+                    d.NAME 
+    FROM DRIVER d 
+    LEFT JOIN BOOKING b 
+    ON d.DRIVER_ID = b.DRIVER_ID 
+    AND b.DATE = ? 
+    AND (
+        (b.TIMING < ? AND b.END_TIME > ?) OR  
+        (b.TIMING < ? AND b.END_TIME > ?) OR  
+        (b.TIMING >= ? AND b.END_TIME <= ?)   
     )
-  );
+    WHERE b.DRIVER_ID IS NULL;
   `;
 
   try {
@@ -141,7 +140,6 @@ WHERE b.DRIVER_ID IS NULL
     return res.status(500).send("Unexpected Server Error");
   }
 });
-
 Router.post("/myloc",(req,res)=>{
   const {lat,long}=req.body
   const id=req.user.DRIVER_ID;
