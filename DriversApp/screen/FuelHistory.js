@@ -16,7 +16,7 @@ export default function FuelHistory() {
   const { fuelData, getFuelRecords, loading, error } = useFuel();
   const [selectedImage, setSelectedImage] = useState(null);
   const [modalVisible, setModalVisible] = useState(false);
-  const HOME = "http://172.20.10.2:3000";
+  const HOME = "http://192.168.1.243:3000";
   const home = HOME;
 
   useEffect(() => {
