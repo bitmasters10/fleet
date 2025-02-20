@@ -67,12 +67,14 @@ function TableManage({ fuelRecords, acceptFuelRecord, rejectFuelRecord }) {
               <td className="px-6 py-4">${record.COST}</td>
               <td className="px-6 py-4">{record.stat}</td>
               <td className="px-6 py-4 text-right">
-                <button onClick={() => acceptFuelRecord(record.F_ID)} className="text-green-600 hover:underline px-2">
-                  Accept
-                </button>
-                <button onClick={() => rejectFuelRecord(record.F_ID)} className="text-red-600 hover:underline px-2">
-                  Reject
-                </button>
+                <div className="flex space-x-2">
+                  <button onClick={() => acceptFuelRecord(record.F_ID)} className="text-green-600 hover:underline px-2">
+                    Accept
+                  </button>
+                  <button onClick={() => rejectFuelRecord(record.F_ID)} className="text-red-600 hover:underline px-2">
+                    Reject
+                  </button>
+                </div>
               </td>
             </tr>
           ))}
