@@ -50,8 +50,22 @@ Router.get("/book/:date",isDriver, (req, res) => {
 Router.patch("/trip-complete",isDriver, (req, res) => {
   const id = req.user.DRIVER_ID;
   const { BOOK_ID } = req.body;
-  const q = "update TRIP set STAT=? where  DRIVER_ID=? AND BOOK_ID=?";
-  db.query(q, ["COMPLETED", id, BOOK_ID], (err, results) => {
+  JavaScript
+
+const now = new Date();
+
+const hours = now.getHours(); // Get the current hour (0-23)
+const minutes = now.getMinutes();
+
+// Pad the hours and minutes with leading zeros if necessary
+const formattedHours = String(hours).padStart(2, '0');
+const formattedMinutes = String(minutes).padStart(2, '0');
+
+const formattedTime = `${formattedHours}:${formattedMinutes}`;
+
+console.log("Formatted Time (24-hour):", formattedTime);
+  const q = "update TRIP set STAT=?,END_TIME=? where  DRIVER_ID=? AND BOOK_ID=?";
+  db.query(q, ["COMPLETED", formattedTime,id, BOOK_ID], (err, results) => {
     if (err) {
       console.error("Error executing query:", err);
       return res.status(500).json({ error: "Database query failed" });
@@ -112,6 +126,7 @@ console.log(id)
 Router.get("/all/book", (req, res) => {
   console.log("Request body:", req.body);
 console.log("Request user:", req.user);
+console.log("req came ")
 
   const id = req.user.DRIVER_ID;
   console.log(id)
@@ -210,6 +225,8 @@ Router.get("/test", (req, res) => {
 });
 Router.get("/history",isDriver, (req, res) => {
   const id = req.user.DRIVER_ID;
+  console.log("helo req fro history ")
+  console.log(id)
   if (!id) {
     res.status(505).json({ error: "driver not ready " });
   }
@@ -219,7 +236,8 @@ Router.get("/history",isDriver, (req, res) => {
       console.error("Error executing query:", err);
       return res.status(500).json({ error: "Database query failed" });
     }
-
+console.log("res send")
+console.log(results)
     res.json(results);
   });
 });
@@ -293,4 +311,17 @@ Router.post("/myloc",(req,res)=>{
 //     return res.status(500).json({ error: "Internal server error" });
 //   }
 // });
+Router.get("/fuels",(req,res)=>{
+  try {
+    db.query("SELECT * FROM FUEL_CONSUMPTION ", (err, rows) => {
+      if (err) {
+        console.error("Error executing query:", err);
+        return res.status(500).send("Server Error");
+      }
+      return res.status(200).json(rows);
+    });
+  } catch (err) {
+    console.error("Error during retrive:", err);
+  }
+})
 module.exports = Router;

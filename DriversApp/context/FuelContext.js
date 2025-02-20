@@ -7,23 +7,36 @@ export const FuelProvider = ({ children }) => {
   const [fuelData, setFuelData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const home = "http://192.168.1.243:3000"; // Make sure this is the correct IP address of your backend
+  const HOME = "http://192.168.1.243:3000";
+  const home = HOME;
 
   // Fetch vehicles when the screen is loaded
   const getVehicles = async () => {
     try {
       setLoading(true);
       const response = await axios.get(`${home}/driver/cars`);
-      console.log(response.data)
       setFuelData(response.data);
-      setLoading(false);
     } catch (err) {
       setError('Error fetching vehicles');
+    } finally {
       setLoading(false);
     }
   };
 
-  // Create a fuel record by sending the data to the backend
+  // Fetch fuel records
+  const getFuelRecords = async () => {
+    try {
+      setLoading(true);
+      const response = await axios.get(`${home}/driver/fuels`);
+      setFuelData(response.data);
+    } catch (err) {
+      setError("Failed to fetch fuel records");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Create a fuel record
   const createFuelRecord = async (fuelRecordData) => {
     try {
       const { CAR_ID, DATE, COST, PHOTO } = fuelRecordData;
@@ -32,17 +45,17 @@ export const FuelProvider = ({ children }) => {
       formData.append('DATE', DATE);
       formData.append('COST', COST);
       formData.append('PHOTO', {
-        uri: PHOTO.uri, 
-        type: 'image/jpeg', 
+        uri: PHOTO.uri,
+        type: 'image/jpeg',
         name: 'photo.jpg'
-      }); // Ensure proper file handling in the form data
-      
+      });
 
       await axios.post(`${home}/admin/create-fuel`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
       });
+
       alert('Fuel entry submitted successfully!');
     } catch (err) {
       console.error('Error submitting fuel record:', err);
@@ -50,8 +63,22 @@ export const FuelProvider = ({ children }) => {
     }
   };
 
+  // Fetch fuel bill image
+  const getFuelImage = (fuelId) => {
+    if (!fuelId) return null;
+    return `${home}/fuel-view/${fuelId}`;
+  };
+
   return (
-    <FuelContext.Provider value={{ fuelData, getVehicles, createFuelRecord, loading, error }}>
+    <FuelContext.Provider value={{ 
+      fuelData, 
+      getVehicles, 
+      createFuelRecord, 
+      getFuelRecords, 
+      getFuelImage,
+      loading, 
+      error 
+    }}>
       {children}
     </FuelContext.Provider>
   );

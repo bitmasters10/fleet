@@ -3,6 +3,7 @@ import { View, Text, TextInput, Button, Image, StyleSheet, Alert, FlatList } fro
 import * as ImagePicker from 'expo-image-picker';
 import DropDownPicker from 'react-native-dropdown-picker';
 
+
 export default function FuelScreen() {
   const [cameraPermission, setCameraPermission] = useState(null);
   const [photo, setPhoto] = useState("");  // Store the photo in a single variable
@@ -11,7 +12,9 @@ export default function FuelScreen() {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [permissionDenied, setPermissionDenied] = useState(false);  // Track permission denial
   const [fuelData, setFuelData] = useState([]);  // Store vehicle data locally
-  
+  const HOME="http://192.168.1.243:3000"
+   const home = HOME;
+
   // Fetch vehicles when the component loads
   useEffect(() => {
     (async () => {
@@ -25,7 +28,7 @@ export default function FuelScreen() {
   // Fetch vehicles data from the backend
   const fetchVehicles = async () => {
     try {
-      const response = await fetch('http://192.168.1.243:3000/driver/cars');  // Replace with actual backend URL
+      const response = await fetch(`${home}/driver/cars`);  // Replace with actual backend URL
       const data = await response.json();
       setFuelData(data); // Store fetched vehicles data
     } catch (error) {
@@ -105,7 +108,7 @@ export default function FuelScreen() {
     });
   
     try {
-      const res = await fetch("http://192.168.1.243:3000/admin/create-fuel", {
+      const res = await fetch(`${home}/admin/create-fuel`, {
         method: "POST",
         body: formData,
         headers: {

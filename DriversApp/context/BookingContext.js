@@ -2,9 +2,9 @@ import React, { createContext, useState, useContext, useEffect } from "react";
 import axios from "axios";
 import { useAuth } from "./AuthContext";
 
-const TripContext = createContext();
+const BookingContext = createContext();
 
-export const TripProvider = ({ children }) => {
+export const BookProvider = ({ children }) => {
   const { user } = useAuth();
   const [trips, setTrips] = useState([]);
   const [history, setHistory] = useState([]);
@@ -141,7 +141,6 @@ export const TripProvider = ({ children }) => {
       setLoading(false);
     }
   };
-  
 
   // Update driver's location
   const updateDriverLocation = async (lat, long) => {
@@ -164,22 +163,6 @@ export const TripProvider = ({ children }) => {
     }
   };
 
-
-  const fetchFuelData = async () => {
-    setLoading(true);
-    try {
-      const res = await axios.get(`${home}/driver/drive/fuel`, {
-        withCredentials: true,
-      });
-      setFuelData(res.data);
-    } catch (err) {
-      console.error("Failed to fetch fuel data:", err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-
   useEffect(() => {
     if (user) {
       fetchTrips();
@@ -192,8 +175,7 @@ export const TripProvider = ({ children }) => {
     history,
     loading,
     error,
-    fetchTrips,
-    fetchTripsByDate,
+   
     fetchHistory,
     createTrip,
     completeTrip,
@@ -201,12 +183,12 @@ export const TripProvider = ({ children }) => {
     updateDriverLocation,
   };
 
-  return <TripContext.Provider value={value}>{children}</TripContext.Provider>;
+  return <BookingContext.Provider value={value}>{children}</BookingContext.Provider>;
 };
 
 // Custom Hook to Use Trip Context
 export const useTrip = () => {
-  return useContext(TripContext);
+  return useContext(BookingContext);
 };
 
-export default TripProvider;
+export default BookProvider;

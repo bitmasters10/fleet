@@ -1,61 +1,25 @@
-import React from "react";
+import React, { useEffect } from "react";
 import {
   StyleSheet,
   View,
   Text,
-  Image,
   TouchableOpacity,
   SafeAreaView,
   FlatList,
   StatusBar,
-  Button
+  ActivityIndicator,
 } from "react-native";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
-
 import { useNavigation } from "@react-navigation/native";
-
-// Mock data for vehicles
-const vehicles = [
-  {
-    id: "UKW 3929",
-    type: "Me-Truck",
-    image:
-      "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-09cTmPsbNhvivt0QNpNEissN6WQbHi.png",
-  },
-  {
-    id: "UKW 8876",
-    type: "Me-Truck",
-    image:
-      "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-09cTmPsbNhvivt0QNpNEissN6WQbHi.png",
-  },
-  {
-    id: "UKW 4533",
-    type: "Me-Truck",
-    image:
-      "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-09cTmPsbNhvivt0QNpNEissN6WQbHi.png",
-  },
-  {
-    id: "UKW 7654",
-    type: "Me-Truck",
-    image:
-      "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-09cTmPsbNhvivt0QNpNEissN6WQbHi.png",
-  },
-  {
-    id: "UKW 4332",
-    type: "Me-Truck",
-    image:
-      "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-09cTmPsbNhvivt0QNpNEissN6WQbHi.png",
-  },
-  {
-    id: "UKW 4325",
-    type: "Me-Truck",
-    image:
-      "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-09cTmPsbNhvivt0QNpNEissN6WQbHi.png",
-  },
-];
+import { useFuel } from "../context/FuelContext"; // Import useFuel
 
 export default function FleetScreen() {
   const navigation = useNavigation();
+  const { fuelData, getVehicles, loading, error } = useFuel();
+
+  useEffect(() => {
+    getVehicles(); // Fetch vehicles when the screen loads
+  }, []);
 
   const renderVehicle = ({ item }) => (
     <TouchableOpacity
@@ -67,8 +31,8 @@ export default function FleetScreen() {
           <Icon name="truck" size={24} color="#4FA89B" />
         </View>
         <View style={styles.itemInfo}>
-          <Text style={styles.itemTitle}>{item.id}</Text>
-          <Text style={styles.itemSubtitle}>{item.type}</Text>
+          <Text style={styles.itemTitle}>{item.CAR_ID}</Text>
+          <Text style={styles.itemSubtitle}>{item.type || "Unknown Type"}</Text>
         </View>
       </View>
       <Icon name="chevron-right" size={24} color="#666" />
@@ -83,17 +47,23 @@ export default function FleetScreen() {
         <TouchableOpacity onPress={() => navigation.navigate("Fuel")}>
           <Text>+</Text>
         </TouchableOpacity>
-       
+        <TouchableOpacity onPress={() => navigation.navigate("FuelHistory")}>
+          <Text>fuel history</Text>
+        </TouchableOpacity>
       </View>
 
-      <FlatList
-        data={vehicles}
-        renderItem={renderVehicle}
-        keyExtractor={(item) => item.id}
-        contentContainerStyle={styles.listContent}
-      />
-
- 
+      {loading ? (
+        <ActivityIndicator size="large" color="#4FA89B" />
+      ) : error ? (
+        <Text style={styles.errorText}>{error}</Text>
+      ) : (
+        <FlatList
+          data={fuelData}
+          renderItem={renderVehicle}
+          keyExtractor={(item) => item.CAR_ID.toString()}
+          contentContainerStyle={styles.listContent}
+        />
+      )}
     </SafeAreaView>
   );
 }
@@ -116,12 +86,6 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: "bold",
     color: "#fff",
-  },
-  headerRight: {
-    flexDirection: "row",
-  },
-  headerButton: {
-    marginLeft: 20,
   },
   listContent: {
     padding: 20,
@@ -159,5 +123,10 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: "#666",
     marginTop: 2,
+  },
+  errorText: {
+    textAlign: "center",
+    color: "red",
+    marginTop: 20,
   },
 });
