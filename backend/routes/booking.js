@@ -297,13 +297,13 @@ Router.patch("/booking/:id", (req, res) => {
  
  
   const {
-    BOOKING_ID,
+    BOOK_ID,
     TIMING,
     PICKUP_LOC,
 
     END_TIME,
   } = req.body;
-  const id = BOOKING_ID;
+  const id = BOOK_ID;
   console.log(req.body)
   const query = "UPDATE BOOKING SET   TIMING=?, END_TIME=?,PICKUP_LOC=?	WHERE BOOK_ID = ?";
   db.query(query, [TIMING, END_TIME,PICKUP_LOC, id], (err, rows) => {

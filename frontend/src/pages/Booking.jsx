@@ -175,6 +175,7 @@ export default function Booking({ title, track }) {
           bookings={bookings}
           loading={loading}
           deleteBooking={deleteBooking}
+          setEditingBooking={setEditingBooking}
         />
       </div>
     </div>
@@ -504,7 +505,7 @@ function CreateForm({
 // Edit Form Component in Modal
 function EditForm({ booking, updateBooking, setEditingBooking }) {
   const [formData, setFormData] = useState({
-    
+    BOOK_ID:booking.BOOK_ID,
     END_TIME: booking.END_TIME,
     PICKUP_LOC: booking.PICKUP_LOC,
     TIMING: booking.TIMING,
@@ -513,6 +514,8 @@ function EditForm({ booking, updateBooking, setEditingBooking }) {
   const handleSubmit = (e) => {
     e.preventDefault();
     updateBooking({
+    BOOK_ID: booking.BOOK_ID,
+
       END_TIME: formData.END_TIME,
       PICKUP_LOC: formData.PICKUP_LOC,
       TIMING: formData.TIMING,
@@ -601,7 +604,7 @@ function EditForm({ booking, updateBooking, setEditingBooking }) {
 
 // TableManage component
 // eslint-disable-next-line react/prop-types
-function TableManage({ bookings, loading, deleteBooking }) {
+function TableManage({ bookings, loading, deleteBooking , setEditingBooking }) {
   if (loading) {
     return <div>Loading...</div>;
   }
@@ -656,7 +659,7 @@ function TableManage({ bookings, loading, deleteBooking }) {
               <td className="px-6 py-3">{booking.PICKUP_LOC}</td>
               <td className="px-6 py-3">{booking.TIMING}</td>
               <td className="px-6 py-4 flex">
-                <button className="font-medium text-blue-600 dark:text-blue-500 hover:underline px-1">
+                <button className="font-medium text-blue-600 dark:text-blue-500 hover:underline px-1"  onClick={() => setEditingBooking(booking)}>
                   Edit
                 </button>
                
