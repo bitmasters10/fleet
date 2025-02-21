@@ -18,7 +18,7 @@ import { useTrip } from "../context/TripContext";
 
 const { width } = Dimensions.get("window");
 
-const socket = io("ws://172.16.239.81:3001");
+const socket = io("ws://192.168.1.243:3001");
 
 const MapScreen = ({ isOpen }) => {
   const route = useRoute();
@@ -30,8 +30,25 @@ const MapScreen = ({ isOpen }) => {
   const [otpInput, setOtpInput] = useState("")
   const [showModal, setShowModal] = useState(false);
   const { verifyOtp } = useTrip();
+  
   console.log(bookingData);
 console.log(otpInput)
+useEffect(() => {
+  if (bookingData?.BOOK_ID) {
+    socket.emit("room", bookingData.BOOK_ID);
+  }
+  socket.emit("room", "all"); // Join 'all' room for testing
+}, [bookingData]);
+
+useEffect(() => {
+  if (position && position.latitude && position.longitude) {
+    socket.emit("loc", {
+      room: bookingData?.BOOK_ID || "all",
+      lat: position.latitude,
+      long: position.longitude,
+    });
+  }
+}, [position, bookingData]);
   const geocodeLocation = async (address, type) => {
     try {
       const response = await fetch(
@@ -74,15 +91,7 @@ console.log(otpInput)
   }
 };
 
-  useEffect(() => {
-    if (position && position.latitude && position.longitude) {
-      socket.emit("loc", {
-        room: "all",
-        lat: position.latitude,
-        long: position.longitude,
-      });
-    }
-  }, [position]);
+
 
   if (!position || !position.latitude || !position.longitude) {
     return (
