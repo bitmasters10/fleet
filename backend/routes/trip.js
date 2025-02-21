@@ -122,7 +122,7 @@ Router.get("/location",(req,res)=>{
     const month = String(date.getMonth() + 1).padStart(2, '0'); 
     const year = date.getFullYear(); 
   
-    return `${day}-${month}-${year}`;
+    return `${year}-${month}-${day}`;
   }
   
   const currentDate = formatDate()
@@ -140,5 +140,30 @@ try {
 }
   
 })
+Router.get("/curr-trips", async (req, res) => {
+  try {
+  
+      const todayDate = new Date().toISOString().split("T")[0]; // Get today's date in YYYY-MM-DD format
+
+      const query = `
+          SELECT * FROM trip 
+       
+          WHERE STAT IN ('JUST', 'ONGOING') 
+          AND date = ?;
+      `;
+
+      db.query(query, [ todayDate], (err, results) => {
+          if (err) {
+              console.error("Error fetching trips:", err);
+              return res.status(500).json({ error: "Internal Server Error" });
+          }
+          res.json(results);
+      });
+  } catch (error) {
+      console.error("Unexpected error:", error);
+      res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
 
 module.exports = Router;

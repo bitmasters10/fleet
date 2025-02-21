@@ -6,6 +6,8 @@ const TripContext = createContext();
 // eslint-disable-next-line react/prop-types
 export const TripProvider = ({ children }) => {
   const [trips, setTrips] = useState([]);
+  const [currentRooms, setCurrentRooms] = useState([]); // New state for rooms
+  const [currentTrips, setCurrentTrips] = useState([]); // New state for current trips
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [tripCount, setTripCount] = useState(0);
@@ -14,16 +16,15 @@ export const TripProvider = ({ children }) => {
     withCredentials: true,
   });
 
+  // Existing fetchTrips function
   const fetchTrips = async () => {
     setLoading(true);
     setError(null);
     try {
       const response = await axiosInstance.get("/admin/trips");
-      console.log("Trips response:", response.data);
       setTrips(response.data);
       setTripCount(response.data.length);
     } catch (error) {
-      console.error("Full error:", error);
       setError(error.message || "Failed to fetch trips");
       setTrips([]);
     } finally {
@@ -31,8 +32,50 @@ export const TripProvider = ({ children }) => {
     }
   };
 
+  // New function to fetch current rooms
+  const fetchCurrentRooms = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await axiosInstance.get("/location");
+      setCurrentRooms(response.data);
+    } catch (error) {
+      setError(error.message || "Failed to fetch current rooms");
+      setCurrentRooms([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // New function to fetch current trips
+  const fetchCurrentTrips = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await axiosInstance.get("/curr-trips");
+      setCurrentTrips(response.data);
+    } catch (error) {
+      setError(error.message || "Failed to fetch current trips");
+      setCurrentTrips([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
-    <TripContext.Provider value={{ trips, tripCount, loading, error, fetchTrips }}>
+    <TripContext.Provider 
+      value={{ 
+        trips, 
+        tripCount,
+        currentRooms, // Add to context value
+        currentTrips, // Add to context value
+        loading, 
+        error, 
+        fetchTrips, 
+        fetchCurrentRooms, // Add to context value
+        fetchCurrentTrips // Add to context value
+      }}
+    >
       {children}
     </TripContext.Provider>
   );
