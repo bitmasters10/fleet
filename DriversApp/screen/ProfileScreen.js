@@ -18,7 +18,7 @@ const home = HOME;
 const ProfileScreen = () => {
   const { user, logout } = useContext(AuthContext);
   const navigation = useNavigation();
-  const HOME="http://192.168.45.12 :3000"
+  const HOME="http://192.168.1.123 :3000"
    const home = HOME;
 
 

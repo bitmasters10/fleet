@@ -12,7 +12,7 @@ export default function FuelScreen() {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [permissionDenied, setPermissionDenied] = useState(false);  // Track permission denial
   const [fuelData, setFuelData] = useState([]);  // Store vehicle data locally
-  const HOME="http://192.168.45.12 :3000"
+  const HOME="http://192.168.1.123 :3000"
    const home = HOME;
 
   // Fetch vehicles when the component loads

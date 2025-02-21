@@ -20,6 +20,8 @@ export const VehicleProvider = ({ children }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [vehicleCount, setVehicleCount] = useState(0);
+  const [carTripStats, setCarTripStats] = useState([]); // Store car trip stats
+
   const axiosInstance = axios.create({
     baseURL: "http://localhost:3000", // Replace with your backend base URL
     withCredentials: true, // Important: This ensures that cookies (session) are included in requests
@@ -69,6 +71,21 @@ export const VehicleProvider = ({ children }) => {
       setLoading(false);
     }
   };
+
+
+  const fetchCarTripStats = async () => {
+    setLoading(true);
+    try {
+      const response = await axiosInstance.get("/admin/car-trip-stats"); // Fetch data from the backend
+      setCarTripStats(response.data); // Store in state
+    } catch (error) {
+      console.error("Error fetching car trip stats:", error);
+      setError("Error fetching car trip stats.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
 
   // Add a new car
   const addVehicle = async (carData) => {
@@ -120,6 +137,8 @@ export const VehicleProvider = ({ children }) => {
         vehicleCount,
         loading,
         error,
+        carTripStats,
+        fetchCarTripStats, 
         availableVehicles,
         fetchVehicles,
         fetchVehicleById,

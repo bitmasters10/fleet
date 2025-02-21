@@ -40,7 +40,7 @@ const BottomTabNavigator = () => {
       />
       <Tab.Screen
         name="Profile"
-        component={() => require("../screen/ProfileScreen").default}
+        component={ProfileScreen}
         options={{
           tabBarIcon: ({ color }) => (
             <Icon name="account" color={color} size={24} />

@@ -18,7 +18,6 @@ const HomeScreen = () => {
   const navigation = useNavigation();
   const { user } = useContext(AuthContext);
   const { trips = [], loading, error, fetchTrips } = useTrip() || {};
-  
 
   useEffect(() => {
     fetchTrips();
@@ -71,7 +70,7 @@ const HomeScreen = () => {
           />
           <View>
             <Text style={styles.welcomeText}>Welcome!</Text>
-            <Text style={styles.userName}>{user?.NAME || "Guest"}</Text>
+            <Text style={styles.userName}>{user?.NAME}</Text>
           </View>
         </View>
         <TouchableOpacity
@@ -92,7 +91,7 @@ const HomeScreen = () => {
                 </TouchableOpacity>
               </View>
               <View style={styles.mapContainer}>
-                <MapScreen isOpen="true" bookingData={bookingData} />
+                <MapScreen isOpen="true" />
               </View>
             </View>
 

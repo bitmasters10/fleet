@@ -139,7 +139,9 @@ function TableManage({ vehicles, setEditingVehicle, deleteVehicle }) {
             ))
           ) : (
             <tr>
-              <td colSpan="9" className="text-center py-4">No vehicles found.</td>
+              <td colSpan="10" className="text-center py-4">
+                No vehicles found.
+              </td>
             </tr>
           )}
         </tbody>

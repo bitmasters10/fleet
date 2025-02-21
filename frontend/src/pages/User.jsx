@@ -171,10 +171,10 @@ function TableManage({ users = []}) {
             ))
           ) : (
             <tr>
-              <td colSpan="7" className="text-center py-4">
-                No users found.
-              </td>
-            </tr>
+            <td colSpan="10" className="text-center py-4">
+              No users found.
+            </td>
+          </tr>
           )}
         </tbody>
       </table>
