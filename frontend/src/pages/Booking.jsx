@@ -500,7 +500,6 @@ function CreateForm({
 
 
 
-346732
 
 // Edit Form Component in Modal
 function EditForm({ booking, updateBooking, setEditingBooking }) {
@@ -660,6 +659,8 @@ function TableManage({ bookings, loading, deleteBooking }) {
                 <button className="font-medium text-blue-600 dark:text-blue-500 hover:underline px-1">
                   Edit
                 </button>
+               
+
                 <button
                   className="font-medium text-red-600 dark:text-red-500 hover:underline pl-1"
                   onClick={() => handleDelete(booking.BOOK_ID)}

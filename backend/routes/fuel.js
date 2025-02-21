@@ -111,5 +111,28 @@ Router.get("/fuels",(req,res)=>{
     console.error("Error during retrive:", err);
   }
 })
+Router.get("/fuel-cost-per-month", async (req, res) => {
+  try {
+      const query = `
+          SELECT 
+              DATE_FORMAT(STR_TO_DATE(DATE, '%Y-%m-%d'), '%Y-%m') AS month,
+              SUM(COST) AS total_cost
+          FROM fuel_consumption
+          WHERE stat = 'accepted' -- Only include accepted fuel costs
+          GROUP BY month
+          ORDER BY month ASC;
+      `;
 
+      db.query(query, (err, results) => {
+          if (err) {
+              console.error("Error fetching fuel costs:", err);
+              return res.status(500).json({ error: "Internal Server Error" });
+          }
+          res.json(results);
+      });
+  } catch (error) {
+      console.error("Unexpected error:", error);
+      res.status(500).json({ error: "Internal Server Error" });
+  }
+});
 module.exports = Router;

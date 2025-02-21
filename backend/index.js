@@ -9,7 +9,7 @@ const cors = require("cors");
 const dotenv = require("dotenv");
 const port = 3000;
 dotenv.config();
-
+const mysql2 = require('mysql2/promise');
 const db = require("./db");
 
 
@@ -19,11 +19,14 @@ const clg = "http://172.16.255.151:5500"
 // CORS configuration
 app.use(
   cors({
-    origin: ["http://localhost:5173", `${home}`,"http://localhost:5500"], // Allowed origins
+    origin: [
+      "http://localhost:5173", 
+      home, 
+      "http://localhost:5500",  // Ensure this is included for your frontend
+    ],
     credentials: true, 
   })
 );
-
 app.set("view engine", "ejs");
 app.set("views", path.join(__dirname, "/views"));
 app.use(bodyParser.urlencoded({ extended: false }));
@@ -67,8 +70,20 @@ app.use("/admin", require("./routes/advisor"));
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '100mb', extended: true }));
 
+const pool = mysql2.createPool({
+  host: 'localhost',     // Replace with your host
+  user: 'root',          // Replace with your username
+ password: '',  // Replace with your password
+ database: 'u820563802_Linda_fleet',
+ waitForConnections: true,
+ connectionLimit: 10,
+ queueLimit: 0,
+ connectTimeout: 10000,
+});
+
 
 const handleConfirmedBooking = async (eventDetails) => {
+  const connection = await pool.getConnection();
   try {
     const {
       BookingReference,
@@ -88,7 +103,7 @@ const handleConfirmedBooking = async (eventDetails) => {
     }
 
     // Check if the booking already exists
-    const [existingRows] = await db.query(
+    const [existingRows] = await  connection.query(
       "SELECT 1 FROM bookings WHERE booking_reference = ?",
       [BookingReference]
     );
@@ -99,7 +114,7 @@ const handleConfirmedBooking = async (eventDetails) => {
     }
 
     // Insert new booking with "not booked" status
-    await db.query(
+    await  connection.query(
       `INSERT INTO bookings 
       (booking_reference, location, travel_date, lead_traveler_name, hotel_pickup, status, start_datetime, end_datetime, book_status) 
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
@@ -117,14 +132,16 @@ const handleConfirmedBooking = async (eventDetails) => {
     );
 
     console.log("New booking inserted successfully.");
+    connection.release();
     return { message: "Booking inserted successfully." };
+    
   } catch (error) {
     console.error("Error inserting booking:", error);
     return { message: "Error processing booking." };
   }
 };
-
 const handleCancelledBooking = async (eventDetails) => {
+  const connection = await pool.getConnection();
   try {
     const { BookingReference, Status } = eventDetails;
 
@@ -135,8 +152,8 @@ const handleCancelledBooking = async (eventDetails) => {
     }
 
     // Check if the booking exists in BOOKINGS
-    const [existingRows] = await db.query(
-      "SELECT status, book_status FROM BOOKINGS WHERE booking_reference = ?",
+    const [existingRows] = await  connection.query(
+      "SELECT status, book_status FROM bookings WHERE booking_reference = ?",
       [BookingReference]
     );
 
@@ -155,19 +172,20 @@ const handleCancelledBooking = async (eventDetails) => {
 
     // If book_status is "done", delete from BOOKING first
     if (book_status === "done") {
-      await db.query("DELETE FROM BOOKING WHERE booking_reference = ?", [
+      await  connection.query("DELETE FROM booking WHERE booking_reference = ?", [
         BookingReference,
       ]);
       console.log("Deleted from BOOKING table.");
     }
 
-    // If book_status is not "booked", just update the status to Cancelled
-    await db.query(
-      "UPDATE BOOKINGS SET status = 'Cancelled' WHERE booking_reference = ?",
+    // Update the status to Cancelled
+    await  connection.query(
+      "UPDATE bookings SET status = 'Cancelled' WHERE booking_reference = ?",
       [BookingReference]
     );
 
     console.log("Booking status updated to Cancelled.");
+    connection.release();
     return { message: "Booking status updated to Cancelled." };
   } catch (error) {
     console.error("Error processing cancelled booking:", error);
@@ -175,6 +193,7 @@ const handleCancelledBooking = async (eventDetails) => {
   }
 };
 const handleAmendedBooking = async (eventDetails) => {
+  const connection = await pool.getConnection();
   try {
     const { 
       BookingReference, 
@@ -193,8 +212,8 @@ const handleAmendedBooking = async (eventDetails) => {
     }
 
     // Check if the booking exists and is not Cancelled
-    const [existingRows] = await db.query(
-      "SELECT book_status FROM BOOKINGS WHERE booking_reference = ? AND status != 'Cancelled'",
+    const [existingRows] = await  connection.query(
+      "SELECT book_status FROM bookings WHERE booking_reference = ? AND status != 'Cancelled'",
       [BookingReference]
     );
 
@@ -206,8 +225,8 @@ const handleAmendedBooking = async (eventDetails) => {
     const { book_status } = existingRows[0];
 
     // Update the BOOKINGS table (except StartDateTime and EndDateTime)
-    await db.query(
-      `UPDATE BOOKINGS 
+    await  connection.query(
+      `UPDATE bookings 
        SET title = ?, location = ?, travel_date = ?, lead_traveler_name = ?, 
            hotel_pickup = ?, status = 'Amended' 
        WHERE booking_reference = ? AND status != 'Cancelled'`,
@@ -218,12 +237,13 @@ const handleAmendedBooking = async (eventDetails) => {
 
     // If book_status is "done", update the pickup location in BOOKING
     if (book_status === "done") {
-      await db.query(
-        "UPDATE BOOKING SET PICKUP_LOC = ? WHERE br = ?",
+      await  connection.query(
+        "UPDATE booking SET PICKUP_LOC = ? WHERE br = ?",
         [HotelPickup, BookingReference]
       );
       console.log("Pickup location updated in BOOKING table.");
     }
+    connection.release();
 
     return { message: "Booking successfully amended." };
   } catch (error) {
@@ -233,7 +253,6 @@ const handleAmendedBooking = async (eventDetails) => {
 };
 
 
-
 app.post("/api/events", async (req, res) => {
   const eventDetails = req.body;
 
@@ -241,27 +260,28 @@ app.post("/api/events", async (req, res) => {
     return res.status(400).json({ message: "Invalid request. No data received." });
   }
 
-  const normalizedDetails = Object.entries(eventDetails).reduce((acc, [key, value]) => {
-    const newKey = key.replace(/[:\s]/g, ""); // Remove colons and spaces
-    acc[newKey] = value;
-    return acc;
-  }, {});
-
-  console.log("Normalized Event Details:", normalizedDetails);
-
-  let result;
-  if (normalizedDetails.Status === "confirmed") {
-    result = await handleConfirmedBooking(normalizedDetails);
-  } else if (normalizedDetails.Status === "Cancelled") {
-    result = await handleCancelledBooking(normalizedDetails);
-  } else if (normalizedDetails.Status === "Amended") {
-    result = await handleAmendedBooking(normalizedDetails);
-  } else {
-    result = { message: "Unhandled status received." };
+  try {
+    let result;
+    switch (eventDetails.Status) {
+      case "confirmed":
+        result = await handleConfirmedBooking(eventDetails);
+        break;
+      case "Cancelled":
+        result = await handleCancelledBooking(eventDetails);
+        break;
+        case "Amended":
+        result = await handleAmendedBooking(eventDetails);
+        break;
+      default:
+        result = { message: "Unsupported booking status." };
+    }
+    res.status(200).json(result);
+  } catch (error) {
+    console.error("Error processing event:", error);
+    res.status(500).json({ message: "Internal server error." });
   }
-
-  res.status(200).json(result);
 });
+
 
 
 app.listen(port, () => {

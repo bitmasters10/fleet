@@ -28,27 +28,31 @@ async function idmake(table, column) {
 
 Router.post("/", isAuthenticated, async (req, res) => {
   try {
-    const { CAR_ID, RATING, MESSAGE, STATUS, LAST_MAINTENANCE, TIME_STAMP ,DESCRIPTION} = req.body;
+    const { CAR_ID, RATING, MESSAGE, STATUS, LAST_MAINTENANCE, TIME_STAMP, DESCRIPTION } = req.body;
 
-    if (!CAR_ID || !RATING || !MESSAGE || !STATUS || !LAST_MAINTENANCE || !TIME_STAMP||DESCRIPTION) {
+    // Fix: Ensure DESCRIPTION is checked properly
+    if (!CAR_ID || !RATING || !MESSAGE || !STATUS || !LAST_MAINTENANCE || !TIME_STAMP || !DESCRIPTION) {
       return res.status(400).json({ message: "All fields are required." });
     }
 
     const HEALTH_ID = await idmake("CAR_HEALTH", "HEALTH_ID");
     const DRIVER_ID = req.user.DRIVER_ID; 
+    console.log(DRIVER_ID);
+    const stat=STATUS;
 
-    const query = `INSERT INTO CAR_HEALTH (HEALTH_ID, CAR_ID, RATING, DRIVER_ID, MESSAGE, STATUS, LAST_MAINTENANCE, TIME_STAMP,DESCRIPTION) 
-                   VALUES (?, ?, ?, ?, ?, ?, ?, ?,?)`;
+    const query = `INSERT INTO CAR_HEALTH (HEALTH_ID, CAR_ID, RATING, DRIVER_ID, MESSAGE, STAT, LAST_MAINTENANCE, TIME_STAMP, DESCRIPTION) 
+                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`;
 
-    db.query(query, [HEALTH_ID, CAR_ID, RATING, DRIVER_ID, MESSAGE, STATUS, LAST_MAINTENANCE, TIME_STAMP,DESCRIPTION], (err, result) => {
+    db.query(query, [HEALTH_ID, CAR_ID, RATING, DRIVER_ID, MESSAGE, STATUS, LAST_MAINTENANCE, TIME_STAMP, DESCRIPTION], (err, result) => {
       if (err) return res.status(500).json({ message: "Database error", error: err });
       res.status(201).json({ message: "Car health record added", HEALTH_ID });
     });
 
   } catch (error) {
-    res.status(500).json({ message: "Internal server error", error });
+    res.status(500).json({ message: "Server error", error });
   }
 });
+
 
 
 Router.get("/", isAuthenticated, (req, res) => {

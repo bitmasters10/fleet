@@ -50,6 +50,11 @@ export default function FleetScreen() {
         <TouchableOpacity onPress={() => navigation.navigate("FuelHistory")}>
           <Text>fuel history</Text>
         </TouchableOpacity>
+
+
+        <TouchableOpacity onPress={() => navigation.navigate("FeedBackScreen")}>
+          <Text>feedback</Text>
+        </TouchableOpacity>
       </View>
 
       {loading ? (

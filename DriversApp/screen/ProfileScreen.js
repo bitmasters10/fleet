@@ -11,7 +11,7 @@ import {
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 import { AuthContext } from "../context/AuthContext";
 import { useNavigation } from "@react-navigation/native";
-const HOME="http://192.168.45.12 :3000"
+const HOME="http://172.20.10.2:3000"
 const home = HOME;
 
 

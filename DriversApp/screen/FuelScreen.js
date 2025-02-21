@@ -96,10 +96,10 @@ export default function FuelScreen() {
     // Convert the image to base64 (required for BLOB storage)
     const response = await fetch(photo);
     const blob = await response.blob();
-  
+    const formattedDate = new Date().toISOString().split("T")[0];
     const formData = new FormData();
     formData.append("CAR_ID", selectedVehicle);
-    formData.append("DATE", new Date().toISOString());
+    formData.append("DATE",formattedDate);
     formData.append("COST", fuelAmount);
     formData.append("photo", {
       uri: photo,

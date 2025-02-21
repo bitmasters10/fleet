@@ -4,36 +4,25 @@ import axios from 'axios';
 const CarContext = createContext();
 
 export const CarProvider = ({ children }) => {
-  
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const HOME = "http://192.168.45.12 :3000";
-  const home = HOME;
-
-  // Fetch vehicles when the screen is loaded
+  const HOME = "http://192.168.1.243:3000";
+  
   const getVehicles = async () => {
     try {
       setLoading(true);
-      const response = await axios.get(`${home}/driver/cars`);
-      console.log(response.data);
-      setFuelData(response.data);
+      const response = await axios.get(`${HOME}/driver/cars`);
       setLoading(false);
+      return response.data; // Return the fetched data
     } catch (err) {
       setError('Error fetching vehicles');
       setLoading(false);
+      return []; // Return empty array on error
     }
   };
 
-  // Fetch fuel records
- 
   return (
-    <CarContext.Provider value={{ 
-      
-      getVehicles, 
-     
-      loading, 
-      error 
-    }}>
+    <CarContext.Provider value={{ getVehicles, loading, error }}>
       {children}
     </CarContext.Provider>
   );
