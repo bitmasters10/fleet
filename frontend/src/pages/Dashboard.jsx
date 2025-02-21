@@ -100,11 +100,11 @@ export default function Dashboard({ title, track }) {
       <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4 mt-4">
         {[
           { label: "Total Users", count: userCount },
-          { label: "Drivers", count: driverCount },
-          { label: "Admins", count: adminCount },
-          { label: "Vehicles", count: vehicleCount },
-          { label: "Trips", count: tripCount },
-          { label: "Bookings", count: bookingCount },
+          { label: "Total Drivers", count: driverCount },
+          { label: "Total Admins", count: adminCount },
+          { label: "Total Vehicles", count: vehicleCount },
+          { label: "Total Trips", count: tripCount },
+          { label: "Total Bookings", count: bookingCount },
         ].map((item, index) => (
           <div key={index} className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-lg text-center">
             <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100">{item.count}</h3>
