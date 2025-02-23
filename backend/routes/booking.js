@@ -117,29 +117,65 @@ Router.post("/add-package", async (req, res) => {
     console.error("Error during registration:", err);
   }
 });
+
 Router.post("/create-book", async (req, res) => {
   let ID = await idmake("BOOKING", "BOOK_ID");
   const {
-    START_TIME,
+    START_TIME: startTime,
     PICKUP_LOC,
     CAR_ID,
     USER_ID,
     BOOK_NO,
-    DATE,
+    DATE: date,
     NO_OF_PASSENGER,
     PACKAGE_ID,
     DROP_LOC,
     AC_NONAC,
-
-    END_TIME,
+    END_TIME: endTime,
     VID,
     DRIVER_ID,
     mobile,
   } = req.body;
 
+  // Validate and format date and times
+  let formattedDate, formattedStartTime, formattedEndTime;
+  try {
+    // Parse and format DATE
+    const dateObj = new Date(date);
+    if (isNaN(dateObj.getTime())) {
+      throw new Error('Invalid DATE');
+    }
+    formattedDate = dateObj.toISOString().split('T')[0];
+
+    // Parse and format START_TIME
+    const startTimeObj = new Date(startTime);
+    if (isNaN(startTimeObj.getTime())) {
+      throw new Error('Invalid START_TIME');
+    }
+    const startIsoTime = startTimeObj.toISOString().split('T')[1];
+    formattedStartTime = startIsoTime.substring(0, 8); // Extracts 'HH:MM:SS'
+
+    // Parse and format END_TIME
+    const endTimeObj = new Date(endTime);
+    if (isNaN(endTimeObj.getTime())) {
+      throw new Error('Invalid END_TIME');
+    }
+    const endIsoTime = endTimeObj.toISOString().split('T')[1];
+    formattedEndTime = endIsoTime.substring(0, 8); // Extracts 'HH:MM:SS'
+  } catch (error) {
+    console.error(error);
+    return res.status(400).json({ error: error.message });
+  }
+
+  // Check for overlapping bookings on the same date
   db.query(
-    "select * from BOOKING where CAR_ID=? AND DRIVER_ID=? AND TIMING=? AND END_TIME=?",
-    [CAR_ID, DRIVER_ID, START_TIME, END_TIME],
+    `SELECT * FROM BOOKING 
+     WHERE CAR_ID = ? 
+     AND DRIVER_ID = ? 
+     AND DATE = ? 
+     AND TIMING < ? 
+     AND END_TIME > ?`,
+    [CAR_ID, DRIVER_ID, formattedDate, formattedEndTime, formattedStartTime],
     (err, rows) => {
       if (err) {
         console.log(err);
@@ -147,45 +183,51 @@ Router.post("/create-book", async (req, res) => {
       }
       if (rows.length > 0) {
         return res.status(409).json({
-          error: "Booking already exists for the specified time and car/driver",
+          error: "Booking overlaps with an existing one for the same car/driver and date",
         });
       }
 
+      // Prepare new booking data with formatted date/time
       const newBook = {
         BOOK_ID: ID,
-        TIMING:START_TIME,
+        TIMING: formattedStartTime,
         PICKUP_LOC,
         CAR_ID,
         USER_ID,
         BOOK_NO,
-        DATE,
+        DATE: formattedDate,
         NO_OF_PASSENGER,
         PACKAGE_ID,
         DROP_LOC,
         AC_NONAC,
         stat: "READY",
-        END_TIME,
+        END_TIME: formattedEndTime,
         VID,
         DRIVER_ID,
         mobile_no: mobile,
       };
-      console.log(ID);
-      db.query(" INSERT INTO BOOKING SET ?", newBook, (err, rows) => {
+
+      // Insert new booking
+      db.query("INSERT INTO BOOKING SET ?", newBook, (err, result) => {
         if (err) {
           console.log(err);
           return res.status(500).send("Server Error");
         }
+        
+        // Update fleet status
         db.query(
-          "update success2 set fleet_status=? where id=?",
+          "UPDATE success2 SET fleet_status = ? WHERE id = ?",
           ["done", VID],
-          (err, rows) => {
+          (err, updateResult) => {
             if (err) {
               console.log(err);
               return res.status(500).send("Server Error");
             }
-            return res
-              .status(200)
-              .json({ message: "new book added", results: rows });
+            return res.status(200).json({
+              message: "Booking created successfully",
+              bookingId: ID,
+              results: updateResult
+            });
           }
         );
       });

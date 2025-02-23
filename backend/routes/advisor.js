@@ -9,9 +9,16 @@ Router.get("/adv", async (req, res) => {
         JOIN PACKAGE P ON B.title = P.NAME
         WHERE B.status != 'Cancelled' AND B.book_status != 'done'
       `;
+      db.query(query, (err, results) => {
+        if (err) {
+            console.error('Error fetching:', err);
+            res.status(500).send('Server Error');
+            return;
+        }
+        return res.status(200).json({res:results})
+    });
   
-      const [results] = await db.query(query);
-      res.status(200).json(results);
+      
     } catch (error) {
       console.error("Error fetching advanced booking data:", error);
       res.status(500).json({ message: "Error retrieving data" });
