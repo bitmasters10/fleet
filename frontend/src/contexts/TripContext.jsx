@@ -36,7 +36,7 @@ export const TripProvider = ({ children }) => {
     setLoading(true);
     setError(null);
     try {
-      const response = await axiosInstance.get("/location");
+      const response = await axiosInstance.get("/admin/location");
       setCurrentRooms(response.data);
     } catch (error) {
       setError(error.message || "Failed to fetch current rooms");
@@ -51,7 +51,7 @@ export const TripProvider = ({ children }) => {
     setLoading(true);
     setError(null);
     try {
-      const response = await axiosInstance.get("/curr-trips");
+      const response = await axiosInstance.get("/admin/curr-trips");
       setCurrentTrips(response.data);
     } catch (error) {
       setError(error.message || "Failed to fetch current trips");

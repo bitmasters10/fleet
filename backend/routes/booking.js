@@ -137,7 +137,7 @@ Router.post("/create-book", async (req, res) => {
     mobile,
   } = req.body;
 
-  // Validate and format date and times
+ 
   let formattedDate, formattedStartTime, formattedEndTime;
   try {
     // Parse and format DATE
@@ -367,22 +367,55 @@ Router.get("/bookings", (req, res) => {
     console.error("Error during retrive:", err);
   }
 });
-Router.delete("/booking/:id",(req,res)=>{
-  const {id}=req.params;
-  const q="delete from BOOKING where BOOK_ID=?"
+Router.delete("/booking/:id", (req, res) => {
+  const { id } = req.params;
+
+  // First, check if there is a corresponding row in the `trip` table
+  const checkTripQuery = "SELECT * FROM trip WHERE BOOK_ID = ?";
+  const deleteTripQuery = "DELETE FROM trip WHERE BOOK_ID = ?";
+  const deleteBookingQuery = "DELETE FROM booking WHERE BOOK_ID = ?";
+
   try {
-    db.query(q,[id] ,(err, rows) => {
+    // Check if there is a row in the `trip` table
+    db.query(checkTripQuery, [id], (err, tripRows) => {
       if (err) {
         console.error("Error executing query:", err);
         return res.status(500).send("Server Error");
       }
-      return res.status(200).json(rows);
+
+      // If a row exists in the `trip` table, delete it
+      if (tripRows.length > 0) {
+        db.query(deleteTripQuery, [id], (err, result) => {
+          if (err) {
+            console.error("Error deleting from trip table:", err);
+            return res.status(500).send("Server Error");
+          }
+
+          // After deleting from the `trip` table, delete from the `booking` table
+          db.query(deleteBookingQuery, [id], (err, result) => {
+            if (err) {
+              console.error("Error deleting from booking table:", err);
+              return res.status(500).send("Server Error");
+            }
+            return res.status(200).json({ message: "Booking and associated trip deleted successfully" });
+          });
+        });
+      } else {
+        // If no row exists in the `trip` table, just delete from the `booking` table
+        db.query(deleteBookingQuery, [id], (err, result) => {
+          if (err) {
+            console.error("Error deleting from booking table:", err);
+            return res.status(500).send("Server Error");
+          }
+          return res.status(200).json({ message: "Booking deleted successfully" });
+        });
+      }
     });
   } catch (err) {
-    console.error("Error during retive:", err);
+    console.error("Error during deletion:", err);
+    return res.status(500).send("Server Error");
   }
-
-  })
+});
 Router.get("/packages", (req, res) => {
   try {
     db.query("SELECT * FROM PACKAGE ", (err, rows) => {
