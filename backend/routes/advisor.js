@@ -5,7 +5,7 @@ Router.get("/adv", async (req, res) => {
     try {
       const query = `
         SELECT B.*, P.PID, P.PROD_ID, P.PLACES, P.DURATION 
-        FROM BOOKINGS B
+        FROM bookings B
         JOIN PACKAGE P ON B.title = P.NAME
         WHERE B.status != 'Cancelled' AND B.book_status != 'done'
       `;

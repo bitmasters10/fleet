@@ -443,15 +443,13 @@ Router.post("/create-adv-book", async (req, res) => {
     PACKAGE_ID,
     DROP_LOC,
     AC_NONAC,
-
     END_TIME,
-
     DRIVER_ID,
     MOBILE_NO,
   } = req.body;
 
   db.query(
-    "select * from BOOKING where CAR_ID=? AND DRIVER_ID=? AND TIMING=? AND END_TIME=?",
+    "SELECT * FROM BOOKING WHERE CAR_ID=? AND DRIVER_ID=? AND TIMING=? AND END_TIME=?",
     [CAR_ID, DRIVER_ID, START_TIME, END_TIME],
     (err, rows) => {
       if (err) {
@@ -466,7 +464,7 @@ Router.post("/create-adv-book", async (req, res) => {
 
       const newBook = {
         BOOK_ID: ID,
-        TIMING:START_TIME,
+        TIMING: START_TIME,
         PICKUP_LOC,
         CAR_ID,
         USER_ID,
@@ -480,23 +478,43 @@ Router.post("/create-adv-book", async (req, res) => {
         END_TIME,
         mobile_no: MOBILE_NO,
         DRIVER_ID,
-        br:BR
+        br: BR,
       };
+
       console.log(MOBILE_NO);
       console.log(newBook);
       console.log(ID);
-      db.query(" INSERT INTO BOOKING SET ?", newBook, (err, rows) => {
+
+      // Insert into BOOKING table
+      db.query("INSERT INTO BOOKING SET ?", newBook, (err, rows) => {
         if (err) {
           console.log(err);
           return res.status(500).send("Server Error");
         }
-        return res
-          .status(200)
-          .json({ message: "new book added", results: rows });
+
+        // Update bookings table after successful insertion
+        const updateQuery = "UPDATE bookings SET book_status=? WHERE booking_reference=?";
+        db.query(updateQuery, ["done", BR], (err, result) => {
+          if (err) {
+            console.log(err);
+            return res.status(500).send("Server Error");
+          }
+
+          // Check if the update was successful
+          if (result.affectedRows > 0) {
+            return res.status(200).json({
+              message: "New book added and bookings table updated successfully",
+              results: rows,
+            });
+          } else {
+            return res.status(404).json({
+              error: "No matching booking_reference found in bookings table",
+            });
+          }
+        });
       });
     }
   );
 });
-
 
 module.exports = Router;
