@@ -9,6 +9,7 @@ const BookingContext = createContext();
 // eslint-disable-next-line react/prop-types
 export const BookingProvider = ({ children }) => {
   const [bookings, setBookings] = useState([]);
+  const [availableBookings, setAvailableBookings] = useState([]);
   const [bookingDetails, setBookingDetails] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -50,6 +51,19 @@ export const BookingProvider = ({ children }) => {
     }
   };
 
+
+  const fetchAvailableBookings = async () => {
+    setLoading(true);
+    try {
+      const response = await axiosInstance.get("/admin/available-books");
+
+      setAvailableBookings(response.data);
+    } catch (err) {
+      console.error("Error fetching bookings:", err);
+      setError(err.message);
+    }
+    setLoading(false);
+  };
   // Create a new booking
   const createBooking = async (bookingData) => {
     console.log("Creating booking with data:", bookingData);
@@ -214,10 +228,12 @@ export const BookingProvider = ({ children }) => {
         bookings,
         bookingCount,
         bookingDetails,
+        availableBookings,
         loading,
         error,
         fetchBookings,
         fetchBookingById,
+        fetchAvailableBookings,
         createBooking,
         createManualBooking,
         fetchPackages,

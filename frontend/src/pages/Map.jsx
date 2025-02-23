@@ -8,7 +8,7 @@ import markerIcon from "/marker.svg";
 import markerShadow from "leaflet/dist/images/marker-shadow.png";
 import carIconSrc from "../assets/car.png";
 import { io } from "socket.io-client";
-import { useTrip } from "../context/TripContext";
+import { useTrip } from "../contexts/TripContext";
 
 // Initialize Socket.IO
 const socket = io("ws://localhost:3001", {
