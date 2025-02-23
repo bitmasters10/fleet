@@ -28,6 +28,8 @@ import { FuelProvider } from "./contexts/FuelContext";
 import { UserProvider } from "./contexts/UserContext";
 
 import Fuel from "./pages/Fuel";
+import Service from "./pages/Service";
+import { ServiceProvider } from "./contexts/ServiceContext";
 
 // PrivateRoute Component to protect routes
 // eslint-disable-next-line react/prop-types
@@ -64,6 +66,7 @@ function App() {
           <VehicleProvider>
             <DriverProvider>
               <UserProvider>
+                <ServiceProvider>
         {/* Navbar is always visible */}
         <NavbarWrapper />
 
@@ -116,6 +119,14 @@ function App() {
                   </PrivateRoute>
                 }
               />
+                <Route
+                path="/service"
+                element={
+                  <PrivateRoute>
+                    <Service title="Service" track="Manage" />
+                  </PrivateRoute>
+                }
+              />
 
               <Route
                 path="/driver"
@@ -160,6 +171,7 @@ function App() {
             </Routes>
           </div>
         </AppLayout>
+        </ServiceProvider>
         </UserProvider>
         </DriverProvider>
         </VehicleProvider>
