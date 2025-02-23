@@ -7,8 +7,10 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null); // Store user data in state
   const [loading, setLoading] = useState(false); // Loading state
    const [position, setPosition] = useState(null);
-const home = "http://192.168.0.202:3000"
-const clg = "http://172.16.248.135:3000"
+   const HOME="http://192.168.1.243:3000"
+   const home = HOME;
+
+const clg = "http://192.168.1.243:3000"
   const login = async (email, password) => {
     try {
       setLoading(true); // Set loading to true while logging in
@@ -17,9 +19,11 @@ const clg = "http://172.16.248.135:3000"
         {
           email,
           password,
-        }
+        },
+       
       );
       if (response.data.success) {
+        console.log("Response", response.data)
         setUser(response.data.user); // Set user data in state
       }
       return response.data; // Return response data

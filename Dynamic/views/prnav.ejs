@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <title>Admin Scheduling Form</title>
+</head>
+<body>
+<div class="container mt-5">
+    <h2>Schedule a Trip</h2>
+    <form>
+        <div class="form-group">
+            <label for="userSelect">User</label>
+            <select class="form-control" id="userSelect">
+                <option>Select User</option>
+                <!-- Populate with users from the database -->
+                <option value="1">User 1</option>
+                <option value="2">User 2</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="packageSelect">Package</label>
+            <select class="form-control" id="packageSelect">
+                <option>Select Package</option>
+                <!-- Populate with packages from the database -->
+                <option value="package1">Package 1</option>
+                <option value="package2">Package 2</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="driverSelect">Driver</label>
+            <select class="form-control" id="driverSelect">
+                <option>Select Driver</option>
+                <!-- Populate with drivers from the database -->
+                <option value="driver1">Driver 1</option>
+                <option value="driver2">Driver 2</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="vehicleSelect">Vehicle Type</label>
+            <select class="form-control" id="vehicleSelect">
+                <option>Select Vehicle</option>
+                <option value="AC">AC</option>
+                <option value="Non-AC">Non-AC</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="dateTime">Date and Time</label>
+            <input type="datetime-local" class="form-control" id="dateTime">
+        </div>
+
+        <div class="form-group">
+            <label for="passengers">Number of Passengers</label>
+            <input type="number" class="form-control" id="passengers" min="1">
+        </div>
+
+        <div class="form-group">
+            <label for="notes">Additional Notes</label>
+            <textarea class="form-control" id="notes" rows="3"></textarea>
+        </div>
+
+        <button type="submit" class="btn btn-primary">Schedule Trip</button>
+    </form>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>

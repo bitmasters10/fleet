@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Add New User</title>
+  <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+  <div class="container mt-5">
+    <h2>Add New User</h2>
+    <form id="addUserForm">
+      <div class="form-group">
+        <label for="username">Username</label>
+        <input type="text" class="form-control" id="username" placeholder="Enter username" required>
+      </div>
+      <div class="form-group">
+        <label for="email">Email address</label>
+        <input type="email" class="form-control" id="email" placeholder="Enter email" required>
+      </div>
+      <div class="form-group">
+        <label for="password">Password</label>
+        <input type="password" class="form-control" id="password" placeholder="Enter password" required>
+      </div>
+      <button type="submit" class="btn btn-primary">Add User</button>
+    </form>
+  </div>
+
+  <script>
+    document.getElementById('addUserForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const username = document.getElementById('username').value;
+      const email = document.getElementById('email').value;
+      const password = document.getElementById('password').value;
+
+      try {
+        const response = await fetch('/add-user', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ username, email, password })
+        });
+
+        const result = await response.json();
+        if (response.ok) {
+          alert('User added successfully');
+          // Optionally reset the form
+          document.getElementById('addUserForm').reset();
+        } else {
+          alert(result.message || 'Error adding user');
+        }
+      } catch (error) {
+        console.error('Error:', error);
+        alert('An error occurred');
+      }
+    });
+  </script>
+</body>
+</html>

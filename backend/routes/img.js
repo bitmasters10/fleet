@@ -73,4 +73,77 @@ Router.get('/fuel/:id', (req, res) => {
     }
 });
 });
+Router.get('/fuel-view/:id', (req, res) => {
+    const Id = req.params.id;
+    console.log("reqcame")
+
+    db.query('SELECT PHOTO FROM FUEL_CONSUMPTION WHERE F_ID = ?', [Id], (err, rows) => {
+        if (err) {
+            console.error('Error retrieving fuel bill:', err);
+            return res.status(500).send('Error retrieving fuel bill');
+        }
+
+        if (rows.length > 0 && rows[0].PHOTO) { // Ensure PHOTO exists
+            const fileData = rows[0].PHOTO;
+
+            res.writeHead(200, {
+                'Content-Type': 'image/jpeg' // Adjust if needed (e.g., 'image/png' for PNG files)
+            });
+
+            res.end(fileData);
+        } else {
+            console.log("Fuel bill not found for ID:", Id);
+            res.status(404).send('Fuel bill not found');
+        }
+    });
+});
+
+Router.get('/driver-view/:id/adharcard', (req, res) => {
+    const driverId = req.params.id;
+    console.log("helo")
+
+    db.query('SELECT ADHARCARD FROM DRIVER WHERE DRIVER_ID = ?', [driverId], (err, rows) => {
+        if (err) {
+            console.error('Error retrieving Aadhaar card:', err);
+            return res.status(500).send('Error retrieving Aadhaar card');
+        }
+
+        if (rows.length > 0) {
+            const fileData = rows[0].ADHARCARD;
+            console.log(fileData)
+
+            res.writeHead(200, {
+                'Content-Type': 'image/jpeg'  // Change to appropriate image type
+            });
+
+            res.end(fileData); // Directly display the image
+        } else {
+            res.status(404).send('Aadhaar card not found');
+        }
+    });
+});
+
+Router.get('/driver-view/:id/pancard', (req, res) => {
+    const driverId = req.params.id;
+
+    db.query('SELECT PANCARD FROM DRIVER WHERE DRIVER_ID = ?', [driverId], (err, rows) => {
+        if (err) {
+            console.error('Error retrieving PAN card:', err);
+            return res.status(500).send('Error retrieving PAN card');
+        }
+
+        if (rows.length > 0) {
+            const fileData = rows[0].PANCARD;
+
+            res.writeHead(200, {
+                'Content-Type': 'image/jpeg'  // Change if the image format is different (e.g., 'image/png')
+            });
+
+            res.end(fileData); // Directly display the image
+        } else {
+            res.status(404).send('PAN card not found');
+        }
+    });
+});
+
 module.exports = Router;

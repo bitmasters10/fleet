@@ -20,7 +20,7 @@ export const FuelProvider = ({ children }) => {
     setLoading(true);
     setError(null);
     try {
-      const response = await axiosInstance.get("/admin/fuel-records");
+      const response = await axiosInstance.get("/admin/fuels");
       setFuelRecords(response.data);
       return response.data;
     } catch (error) {
