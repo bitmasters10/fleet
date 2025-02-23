@@ -129,27 +129,40 @@ const NormalForm = ({ setShowCreateForm }) => {
       return;
     }
   
+    // Function to format time in 12-hour AM/PM
+    const formatTime12Hour = (time) => {
+      if (!time) return "";
+      let [hour, minute] = time.split(":").map(Number);
+      let period = hour >= 12 ? "PM" : "AM";
+      hour = hour % 12 || 12; // Convert 0 to 12 for 12-hour format
+      return `${hour.toString().padStart(2, "0")}:${minute.toString().padStart(2, "0")} ${period}`;
+    };
+  
+    // Convert START_TIME and END_TIME to AM/PM format before sending
+    const formattedStartTime = formatTime12Hour(bookingData.START_TIME);
+    
+  console.log(formattedStartTime);
     // Creating a filtered submission object
     const submissionData = Object.fromEntries(
       Object.entries({
         ...bookingData,
         DROP_LOC: bookingData.PLACES,
-        END_TIME: bookingData.END_TIME,
+        END_TIME: bookingData.END_TIME,  // Send formatted end time
+        START_TIME: formattedStartTime, // Send formatted start time
         DATE: bookingData.datetime,
         PACKAGE_ID: bookingData.package_id,
-        USER_ID : bookingData.user_id,
-        NO_OF_PASSENGER : bookingData.capacity,
-      
+        USER_ID: bookingData.user_id,
+        NO_OF_PASSENGER: bookingData.capacity,
       }).filter(([key]) => ![
         "PLACES",
         "success_id",
+     
         "DURATION",
         "capacity",
         "datetime",
         "package_id",
         "product_name",
         "user_id"
-
       ].includes(key))
     );
   
@@ -164,6 +177,7 @@ const NormalForm = ({ setShowCreateForm }) => {
       alert(result.message);
     }
   };
+  
   
   
 console.log(availableBookings)

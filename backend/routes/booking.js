@@ -117,53 +117,63 @@ Router.post("/add-package", async (req, res) => {
     console.error("Error during registration:", err);
   }
 });
+const formatTime = (timeString) => {
+  if (!timeString || typeof timeString !== "string" || !timeString.includes(":")) {
+    throw new Error("Invalid Time Format");
+  }
+
+  let [time, modifier] = timeString.trim().split(" ");
+  let [hours, minutes] = time.split(":").map(Number);
+
+  if (isNaN(hours) || isNaN(minutes) || hours > 12 || minutes > 59) {
+    throw new Error("Invalid Time Format");
+  }
+
+  // Convert 12-hour format to 24-hour format
+  if (modifier) {
+    modifier = modifier.toUpperCase();
+    if (modifier === "PM" && hours !== 12) hours += 12;
+    if (modifier === "AM" && hours === 12) hours = 0;
+  } else if (hours > 12) {
+    throw new Error("Invalid AM/PM Format");
+  }
+
+  return `${hours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}:00`; // HH:MM:SS
+};
 
 Router.post("/create-book", async (req, res) => {
   let ID = await idmake("BOOKING", "BOOK_ID");
   const {
     START_TIME: startTime,
+    END_TIME: endTime,
+    DATE: date,
     PICKUP_LOC,
     CAR_ID,
     USER_ID,
     BOOK_NO,
-    DATE: date,
     NO_OF_PASSENGER,
     PACKAGE_ID,
     DROP_LOC,
     AC_NONAC,
-    END_TIME: endTime,
     VID,
     DRIVER_ID,
     mobile,
   } = req.body;
+  console.log("Received req.body:", req.body);
 
-  // Validate and format date and times
+
+
   let formattedDate, formattedStartTime, formattedEndTime;
   try {
-    // Parse and format DATE
-    const dateObj = new Date(date);
-    if (isNaN(dateObj.getTime())) {
-      throw new Error('Invalid DATE');
-    }
-    formattedDate = dateObj.toISOString().split('T')[0];
+    // Format DATE
+    formattedDate = new Date(date).toISOString().split("T")[0];
 
-    // Parse and format START_TIME
-    const startTimeObj = new Date(startTime);
-    if (isNaN(startTimeObj.getTime())) {
-      throw new Error('Invalid START_TIME');
-    }
-    const startIsoTime = startTimeObj.toISOString().split('T')[1];
-    formattedStartTime = startIsoTime.substring(0, 8); // Extracts 'HH:MM:SS'
+    // Convert startTime and endTime from 12-hour to 24-hour format
+    formattedStartTime = formatTime(startTime);
+    formattedEndTime = formatTime(endTime);
 
-    // Parse and format END_TIME
-    const endTimeObj = new Date(endTime);
-    if (isNaN(endTimeObj.getTime())) {
-      throw new Error('Invalid END_TIME');
-    }
-    const endIsoTime = endTimeObj.toISOString().split('T')[1];
-    formattedEndTime = endIsoTime.substring(0, 8); // Extracts 'HH:MM:SS'
   } catch (error) {
-    console.error(error);
+    console.error("🚨 Error:", error.message);
     return res.status(400).json({ error: error.message });
   }
 
@@ -187,7 +197,7 @@ Router.post("/create-book", async (req, res) => {
         });
       }
 
-      // Prepare new booking data with formatted date/time
+      // Insert new booking
       const newBook = {
         BOOK_ID: ID,
         TIMING: formattedStartTime,
@@ -207,13 +217,12 @@ Router.post("/create-book", async (req, res) => {
         mobile_no: mobile,
       };
 
-      // Insert new booking
       db.query("INSERT INTO BOOKING SET ?", newBook, (err, result) => {
         if (err) {
           console.log(err);
           return res.status(500).send("Server Error");
         }
-        
+
         // Update fleet status
         db.query(
           "UPDATE success2 SET fleet_status = ? WHERE id = ?",
@@ -234,6 +243,8 @@ Router.post("/create-book", async (req, res) => {
     }
   );
 });
+
+
 Router.post("/create-manual-book", async (req, res) => {
   let ID = await idmake("BOOKING", "BOOK_ID");
   const {

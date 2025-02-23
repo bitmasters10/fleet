@@ -7,6 +7,7 @@ const FuelContext = createContext();
 // eslint-disable-next-line react/prop-types
 export const FuelProvider = ({ children }) => {
   const [fuelRecords, setFuelRecords] = useState([]);
+  const [fuelCosts, setFuelCosts] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
@@ -30,6 +31,20 @@ export const FuelProvider = ({ children }) => {
       setLoading(false);
     }
   };
+  const fetchFuelCosts = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+        const response = await axiosInstance.get("/admin/fuel-cost-per-month");
+        console.log(response.data)
+        setFuelCosts(response.data);
+    } catch (err) {
+        setError(err.response?.data?.error || "Failed to fetch fuel costs");
+    } finally {
+        setLoading(false);
+    }
+};
+
 
   // Create a new fuel record
   const createFuelRecord = async (fuelData) => {
@@ -88,9 +103,11 @@ export const FuelProvider = ({ children }) => {
     <FuelContext.Provider
       value={{
         fuelRecords,
+        fuelCosts,
         loading,
         error,
         fetchFuelRecords,
+        fetchFuelCosts,
         createFuelRecord,
         acceptFuelRecord,
         rejectFuelRecord,
