@@ -33,7 +33,7 @@ const MapScreen = ({ isOpen }) => {
   const [otpInput, setOtpInput] = useState("");
   const [showModal, setShowModal] = useState(false);
   const [routeCoords, setRouteCoords] = useState([]); // State to store route coordinates
-  const { verifyOtp, loading } = useTrip();
+  const { verifyOtp, loading, completeTrip } = useTrip(); // Import completeTrip from TripContext
 
   // Fetch route using OSRM API
   const fetchRoute = async (start, end) => {
@@ -100,62 +100,92 @@ const MapScreen = ({ isOpen }) => {
   };
 
   // Handle OTP verification
- // Handle OTP verification
-const handleOTPClick = async () => {
-  const BOOK_ID = bookingData.BOOK_ID;
-  try {
-    const response = await axios.post(`${home}/driver/otp`, {
-      otp: otpInput,
-      BOOK_ID,
-    });
-
-    console.log("OTP Verification Response:", response.data);
-
-    if (response.status === 200) {
-      setOtpVerify(true);
-      Alert.alert("Success", "OTP verified successfully!");
-
-      // Ensure bookingData.DROP_LOC is defined and is a string
-      let dropLocations = bookingData.DROP_LOC || "";
-
-      // Convert the string into an array of drop locations
-      dropLocations = dropLocations.split(",").map((loc) => loc.trim());
-
-      console.log("Drop Locations:", dropLocations); // Log all locations before geocoding
-
-      // Reset dropCoords before adding new locations
-      setDropCoords([]);
-
-      // Geocode each drop location
-      dropLocations.forEach((location) => {
-        if (location) { // Only geocode if the location is not an empty string
-          geocodeLocation(location, "drop");
-        }
+  const handleOTPClick = async () => {
+    const BOOK_ID = bookingData.BOOK_ID;
+    try {
+      const response = await axios.post(`${home}/driver/otp`, {
+        otp: otpInput,
+        BOOK_ID,
       });
-    } else {
-      Alert.alert("Error", response.data.message || "Incorrect OTP. Please try again.");
-      console.log("Incorrect OTP");
+
+      console.log("OTP Verification Response:", response.data);
+
+      if (response.status === 200) {
+        setOtpVerify(true);
+        Alert.alert("Success", "OTP verified successfully!");
+
+        // Reset the routeCoords to remove the pickup route
+        setRouteCoords([]);
+
+        // Ensure bookingData.DROP_LOC is defined and is a string
+        let dropLocations = bookingData.DROP_LOC || "";
+
+        // Convert the string into an array of drop locations
+        dropLocations = dropLocations.split(",").map((loc) => loc.trim());
+
+        console.log("Drop Locations:", dropLocations); // Log all locations before geocoding
+
+        // Reset dropCoords before adding new locations
+        setDropCoords([]);
+
+        // Geocode each drop location
+        dropLocations.forEach((location) => {
+          if (location) { // Only geocode if the location is not an empty string
+            geocodeLocation(location, "drop");
+          }
+        });
+      } else {
+        Alert.alert("Error", response.data.message || "Incorrect OTP. Please try again.");
+        console.log("Incorrect OTP");
+      }
+    } catch (error) {
+      console.error("OTP Verification failed:", error);
+      Alert.alert("Error", "OTP verification failed. Please try again.");
     }
-  } catch (error) {
-    console.error("OTP Verification failed:", error);
-    Alert.alert("Error", "OTP verification failed. Please try again.");
-  }
-};
+  };
+
+  // Handle End Trip
+  const handleEndTrip = async () => {
+    const BOOK_ID = bookingData.BOOK_ID;
+    try {
+      const response = await completeTrip(BOOK_ID); // Call completeTrip from TripContext
+      if (response) {
+        Alert.alert("Success", "Trip completed successfully!");
+        // Optionally, you can navigate to another screen or reset the state here
+      }
+    } catch (error) {
+      console.error("Failed to end trip:", error);
+      Alert.alert("Error", "Failed to end trip. Please try again.");
+    }
+  };
+
   useEffect(() => {
     if (bookingData?.BOOK_ID) {
+      console.log("Joining room:", bookingData.BOOK_ID);
       socket.emit("room", bookingData.BOOK_ID);
     }
     socket.emit("room", "all"); // Join 'all' room for testing
   }, [bookingData]);
 
   useEffect(() => {
-    if (position && position.latitude && position.longitude) {
-      socket.emit("loc", {
-        room: bookingData?.BOOK_ID || "all",
-        lat: position.latitude,
-        long: position.longitude,
-      });
-    }
+    const sendLocation = () => {
+      console.log("Sending location...");
+      if (position && position.latitude && position.longitude) {
+        socket.emit("loc", {
+          room: bookingData?.BOOK_ID || "all",
+          lat: position.latitude,
+          long: position.longitude,
+        });
+      }
+    };
+
+    // Send immediately when effect runs
+    sendLocation();
+
+    // Set interval to send location every 30 seconds
+    const interval = setInterval(sendLocation, 30000);
+
+    return () => clearInterval(interval); // Cleanup on unmount
   }, [position, bookingData]);
 
   useEffect(() => {
@@ -227,13 +257,13 @@ const handleOTPClick = async () => {
         {otpVerify &&
           dropCoords.map((coord, index) => (
             <Marker
-            key={index}
-            coordinate={{ latitude: coord.lat, longitude: coord.lng }}
-            title={`Drop Location ${index + 1}`}
-            description={
-              bookingData?.DROP_LOC?.split(",")?.[index]?.trim() || "Unknown Location"
-            }
-          />
+              key={index}
+              coordinate={{ latitude: coord.lat, longitude: coord.lng }}
+              title={`Drop Location ${index + 1}`}
+              description={
+                bookingData?.DROP_LOC?.split(",")?.[index]?.trim() || "Unknown Location"
+              }
+            />
           ))}
 
         {/* Show Polylines for the routes */}
@@ -309,6 +339,16 @@ const handleOTPClick = async () => {
           <TouchableOpacity style={styles.button} onPress={handleOTPClick}>
             <Text style={styles.buttonText}>Next</Text>
           </TouchableOpacity>
+
+          {/* End Trip Button (Visible only after OTP verification) */}
+          {otpVerify && (
+            <TouchableOpacity
+              style={[styles.button, { backgroundColor: "#FF4444" }]}
+              onPress={handleEndTrip}
+            >
+              <Text style={styles.buttonText}>End Trip</Text>
+            </TouchableOpacity>
+          )}
         </View>
       )}
     </SafeAreaView>
@@ -409,6 +449,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     padding: 16,
     alignItems: "center",
+    marginBottom: 10,
   },
   buttonText: {
     color: "#fff",

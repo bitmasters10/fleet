@@ -10,39 +10,52 @@ import carIconSrc from "../assets/car.png";
 import { io } from "socket.io-client";
 import { useTrip } from "../contexts/TripContext";
 
-
 // Initialize Socket.IO
 const socket = io("ws://localhost:3001", {
-  reconnectionDelayMax: 10000,
+  reconnectionDelayMax: 1000000,
 });
 
 socket.on("connect", () => {
   console.log(`Connected: ${socket.id}`);
 });
 
-let room = "all";
-socket.emit("room", room);
+// Join global room
+// socket.emit("room", "all");
 
 export default function Map({ title, track }) {
   const { currentTrips, fetchCurrentTrips } = useTrip();
   const [carPositions, setCarPositions] = useState([]);
 
+  // Fetch trips and join rooms every 30 seconds
   useEffect(() => {
-    fetchCurrentTrips();
+    const fetchTripsAndJoinRooms = async () => {
+      console.log("Fetching trips...");
+      await fetchCurrentTrips();
+      console.log(currentTrips);
+
+      currentTrips.forEach((trip) => {
+        console.log("join function")
+        if (trip.ROOM_ID) {
+          console.log("Joining room:", trip.ROOM_ID);
+          socket.emit("room", trip.ROOM_ID);
+        }
+      });
+    };
+
+    // Initial fetch
+    fetchTripsAndJoinRooms();
+
+    // Interval for fetching and joining rooms
+    const interval = setInterval(fetchTripsAndJoinRooms, 30000);
+
+    return () => clearInterval(interval); // Cleanup interval on unmount
   }, []);
 
+  // Listen for location updates
   useEffect(() => {
-    currentTrips.forEach((trip) => {
-      if (trip.ROOM_ID) {
-        socket.emit("room", trip.ROOM_ID);
-      }
-    });
-  }, [currentTrips]);
-
-  useEffect(() => {
-    socket.on("otherloc", (data) => {
+    const handleLocationUpdate = (data) => {
       console.log("Received location:", data);
-      
+
       setCarPositions((prevPositions) => {
         const existingIndex = prevPositions.findIndex((item) => item.room === data.room);
 
@@ -54,10 +67,12 @@ export default function Map({ title, track }) {
           return [...prevPositions, { room: data.room, lat: data.lat, long: data.long }];
         }
       });
-    });
+    };
+
+    socket.on("otherloc", handleLocationUpdate);
 
     return () => {
-      socket.off("otherloc");
+      socket.off("otherloc", handleLocationUpdate);
     };
   }, []);
 
