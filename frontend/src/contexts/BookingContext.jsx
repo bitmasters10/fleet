@@ -10,6 +10,8 @@ const BookingContext = createContext();
 export const BookingProvider = ({ children }) => {
   const [bookings, setBookings] = useState([]);
   const [availableBookings, setAvailableBookings] = useState([]);
+  const [tripAdvisorBooking, setTripAdvisorBookings] = useState([]);
+
   const [bookingDetails, setBookingDetails] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -46,6 +48,18 @@ export const BookingProvider = ({ children }) => {
     } catch (error) {
       console.error("Error fetching booking:", error);
       setError("Error fetching booking.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+
+  const fetchTripBookings = async () => {
+    try {
+      const response = await axiosInstance.get("/admin/adv");
+      setTripAdvisorBookings(response.data);
+    } catch (err) {
+      setError(err.message);
     } finally {
       setLoading(false);
     }
@@ -231,11 +245,13 @@ export const BookingProvider = ({ children }) => {
         availableBookings,
         loading,
         error,
+        tripAdvisorBooking,
         fetchBookings,
         fetchBookingById,
         fetchAvailableBookings,
         createBooking,
         createManualBooking,
+        fetchTripBookings,
         fetchPackages,
         createPackage,
         updatePackage,
