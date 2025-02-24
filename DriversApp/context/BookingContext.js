@@ -10,9 +10,10 @@ export const BookProvider = ({ children }) => {
   const [history, setHistory] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [currentTrips, setCurrentTrips] = useState([]);
 
-  const HOME="http://192.168.1.123 :3000"
-   const home = HOME;
+  const HOME = "http://192.168.1.243:3000";
+  const home = HOME;
   const clg = "http://172.16.255.151:3000";
 
   // Fetch all current trips
@@ -24,7 +25,7 @@ export const BookProvider = ({ children }) => {
         withCredentials: true,
       });
       setTrips(response.data);
-      console.log(response.data)
+      console.log(response.data);
       setError(null);
     } catch (err) {
       setError(err.response?.data?.error || "Failed to fetch trips");
@@ -60,7 +61,7 @@ export const BookProvider = ({ children }) => {
         withCredentials: true,
       });
       setHistory(response.data);
-      console.log("Fetched history:", response.data);  // Ensure data is received
+      console.log("Fetched history:", response.data); // Ensure data is received
       console.log("Updated state history:", history); // Check if state updates
       setError(null);
     } catch (err) {
@@ -69,7 +70,6 @@ export const BookProvider = ({ children }) => {
       setLoading(false);
     }
   };
-  
 
   // Create a new trip
   const createTrip = async (tripData) => {
@@ -121,6 +121,7 @@ export const BookProvider = ({ children }) => {
 
   // Verify OTP
   const verifyOtp = async (otp, BOOK_ID) => {
+    console.log("from context");
     if (!user) return;
     setLoading(true);
     try {
@@ -134,9 +135,32 @@ export const BookProvider = ({ children }) => {
         )
       );
       setError(null);
+      console.log("from context");
+      console.log("from context");
+      console.log("from context");
+      console.log("from context");
+      console.log("from context");
+      console.log("from context");
+      console.log("from context");
+      console.log(response.data);
       return response.data;
     } catch (err) {
       setError(err.response?.data?.error || "Failed to verify OTP");
+    } finally {
+      setLoading(false);
+    }
+  };
+  const fetchCurrentTrips = async () => {
+    if (!user) return;
+    setLoading(true);
+    try {
+      const response = await axios.get(`${home}/driver/curr-trips`, {
+        withCredentials: true,
+      });
+      setCurrentTrips(response.data);
+      setError(null);
+    } catch (err) {
+      setError(err.response?.data?.error || "Failed to fetch current trips");
     } finally {
       setLoading(false);
     }
@@ -175,15 +199,18 @@ export const BookProvider = ({ children }) => {
     history,
     loading,
     error,
-   
+
     fetchHistory,
     createTrip,
     completeTrip,
     verifyOtp,
     updateDriverLocation,
+    fetchCurrentTrips,
   };
 
-  return <BookingContext.Provider value={value}>{children}</BookingContext.Provider>;
+  return (
+    <BookingContext.Provider value={value}>{children}</BookingContext.Provider>
+  );
 };
 
 // Custom Hook to Use Trip Context

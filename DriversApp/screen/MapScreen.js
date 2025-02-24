@@ -16,86 +16,191 @@ import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 import { io } from "socket.io-client";
 import { useRoute } from "@react-navigation/native";
 import { useTrip } from "../context/TripContext";
+import axios from "axios";
 
 const { width } = Dimensions.get("window");
 
 const socket = io("ws://192.168.1.243:3001");
+const HOME = "http://192.168.1.243:3000";
+const home = HOME;
 
 const MapScreen = ({ isOpen }) => {
   const route = useRoute();
   const { bookingData } = route.params || {};
   const { position } = useAuth();
   const [pickupCoords, setPickupCoords] = useState(null);
-  const [dropCoords, setDropCoords] = useState(null);
+  const [dropCoords, setDropCoords] = useState([]); // Array to store multiple drop coordinates
   const [otpVerify, setOtpVerify] = useState(false);
   const [otpInput, setOtpInput] = useState("");
   const [showModal, setShowModal] = useState(false);
-  const { verifyOtp } = useTrip();
+  const [routeCoords, setRouteCoords] = useState([]); // State to store route coordinates
+  const { verifyOtp, loading, completeTrip } = useTrip(); // Import completeTrip from TripContext
 
-  console.log("Update position:", position);
+  // Fetch route using OSRM API
+  const fetchRoute = async (start, end) => {
+    try {
+      const response = await fetch(
+        `https://router.project-osrm.org/route/v1/driving/${start.longitude},${start.latitude};${end.lng},${end.lat}?overview=full&geometries=geojson`
+      );
+      const data = await response.json();
+      if (data.routes && data.routes.length > 0) {
+        // Convert GeoJSON coordinates to latitude/longitude format
+        const coords = data.routes[0].geometry.coordinates.map((coord) => ({
+          latitude: coord[1],
+          longitude: coord[0],
+        }));
+        setRouteCoords((prev) => [...prev, coords]); // Append new route coordinates
+      }
+    } catch (error) {
+      console.error("Error fetching route:", error);
+      Alert.alert("Error", "Failed to fetch route. Please try again.");
+    }
+  };
 
-  
-  console.log(bookingData);
-console.log(otpInput)
-useEffect(() => {
-  if (bookingData?.BOOK_ID) {
-    socket.emit("room", bookingData.BOOK_ID);
-  }
-  socket.emit("room", "all"); // Join 'all' room for testing
-}, [bookingData]);
-
-useEffect(() => {
-  if (position && position.latitude && position.longitude) {
-    socket.emit("loc", {
-      room: bookingData?.BOOK_ID || "all",
-      lat: position.latitude,
-      long: position.longitude,
-    });
-  }
-}, [position, bookingData]);
+  // Geocode location using OpenCageData API
   const geocodeLocation = async (address, type) => {
     try {
       const response = await fetch(
         `https://api.opencagedata.com/geocode/v1/json?q=${encodeURIComponent(
-          `${address} , mumbai`
+          `${address}, Mumbai`
         )}&key=23a9db4a9b29400daf8144a710df5d75`
       );
       const data = await response.json();
+
       if (data.results && data.results.length > 0) {
         const coords = data.results[0].geometry;
+
         if (type === "pickup") {
           setPickupCoords(coords);
+          console.log(`Pickup Location: ${address} -> Lat: ${coords.lat}, Lng: ${coords.lng}`);
+          if (position && position.latitude && position.longitude) {
+            fetchRoute(
+              { latitude: position.latitude, longitude: position.longitude },
+              coords
+            );
+          }
         } else if (type === "drop") {
-          setDropCoords(coords);
+          setDropCoords((prev) => [...prev, coords]);
+          console.log(`Drop Location: ${address} -> Lat: ${coords.lat}, Lng: ${coords.lng}`);
+
+          if (position) {
+            fetchRoute(
+              { latitude: position.latitude, longitude: position.longitude },
+              coords
+            );
+          }
         }
       } else {
-        console.log("No results for geocoding");
+        Alert.alert("Error", `Unable to geocode: ${address}. Please try again.`);
+        console.log("No results for geocoding:", address);
       }
     } catch (error) {
       console.error("Geocoding error:", error);
+      Alert.alert("Error", "Geocoding failed. Please check your internet connection.");
     }
   };
-  const handleOTPClick = async () => {
-    const BOOK_ID = bookingData?.BOOK_ID;
-    const otp = otpInput;
-    console.log(BOOK_ID);
-    if (!BOOK_ID || !otp) {
-      Alert.alert("Error", "Please enter OTP and ensure a valid booking ID.");
-      return;
-    }
 
+  // Handle OTP verification
+  const handleOTPClick = async () => {
+    const BOOK_ID = bookingData.BOOK_ID;
     try {
-      const response = await verifyOtp(otp, BOOK_ID);
-      console.log("Frontend response", response);
-      if (response.status == 200) {
+      const response = await axios.post(`${home}/driver/otp`, {
+        otp: otpInput,
+        BOOK_ID,
+      });
+
+      console.log("OTP Verification Response:", response.data);
+
+      if (response.status === 200) {
         setOtpVerify(true);
-        Alert.alert("Success", "OTP verified successfully");
+        Alert.alert("Success", "OTP verified successfully!");
+
+        // Reset the routeCoords to remove the pickup route
+        setRouteCoords([]);
+
+        // Ensure bookingData.DROP_LOC is defined and is a string
+        let dropLocations = bookingData.DROP_LOC || "";
+
+        // Convert the string into an array of drop locations
+        dropLocations = dropLocations.split(",").map((loc) => loc.trim());
+
+        console.log("Drop Locations:", dropLocations); // Log all locations before geocoding
+
+        // Reset dropCoords before adding new locations
+        setDropCoords([]);
+
+        // Geocode each drop location
+        dropLocations.forEach((location) => {
+          if (location) { // Only geocode if the location is not an empty string
+            geocodeLocation(location, "drop");
+          }
+        });
+      } else {
+        Alert.alert("Error", response.data.message || "Incorrect OTP. Please try again.");
+        console.log("Incorrect OTP");
       }
     } catch (error) {
-      Alert.alert("Error", "Incorrect OTP or verification failed");
+      console.error("OTP Verification failed:", error);
+      Alert.alert("Error", "OTP verification failed. Please try again.");
     }
   };
 
+  // Handle End Trip
+  const handleEndTrip = async () => {
+    const BOOK_ID = bookingData.BOOK_ID;
+    try {
+      const response = await completeTrip(BOOK_ID); // Call completeTrip from TripContext
+      if (response) {
+        Alert.alert("Success", "Trip completed successfully!");
+        // Optionally, you can navigate to another screen or reset the state here
+      }
+    } catch (error) {
+      console.error("Failed to end trip:", error);
+      Alert.alert("Error", "Failed to end trip. Please try again.");
+    }
+  };
+
+  useEffect(() => {
+    if (bookingData?.BOOK_ID) {
+      console.log("Joining room:", bookingData.BOOK_ID);
+      socket.emit("room", bookingData.BOOK_ID);
+    }
+    socket.emit("room", "all"); // Join 'all' room for testing
+  }, [bookingData]);
+
+  useEffect(() => {
+    const sendLocation = () => {
+      console.log("Sending location...");
+      if (position && position.latitude && position.longitude) {
+        socket.emit("loc", {
+          room: bookingData?.BOOK_ID || "all",
+          lat: position.latitude,
+          long: position.longitude,
+        });
+      }
+    };
+
+    // Send immediately when effect runs
+    sendLocation();
+
+    // Set interval to send location every 30 seconds
+    const interval = setInterval(sendLocation, 30000);
+
+    return () => clearInterval(interval); // Cleanup on unmount
+  }, [position, bookingData]);
+
+  useEffect(() => {
+    if (bookingData) {
+      // Geocode Pickup and Drop locations when bookingData is available
+      geocodeLocation(bookingData.PICKUP_LOC, "pickup");
+      if (otpVerify) {
+        const dropLocations = bookingData.DROP_LOC.split(",").map((loc) => loc.trim());
+        dropLocations.forEach((location) => {
+          geocodeLocation(location, "drop");
+        });
+      }
+    }
+  }, [bookingData, otpVerify]);
 
   if (!position || !position.latitude || !position.longitude) {
     return (
@@ -105,18 +210,18 @@ useEffect(() => {
     );
   }
 
+  if (loading) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <Text>Loading...</Text>
+      </SafeAreaView>
+    );
+  }
+
   const toggleModal = () => {
     setShowModal((prevState) => !prevState);
   };
-  useEffect(() => {
-    if (bookingData) {
-      // Geocode Pickup and Drop locations when bookingData is available
-      geocodeLocation(bookingData.PICKUP_LOC, "pickup");
-      if (otpVerify) {
-        geocodeLocation(bookingData.DROP_LOC, "drop");
-      }
-    }
-  }, [bookingData]);
+
   return (
     <SafeAreaView style={styles.container}>
       <MapView
@@ -137,7 +242,7 @@ useEffect(() => {
           description="Current Location"
         />
 
-        {/* Show Pickup Location Marker when otpVerify is false */}
+        {/* Show Pickup Location Marker */}
         {!otpVerify && pickupCoords && (
           <Marker
             coordinate={{
@@ -149,34 +254,31 @@ useEffect(() => {
           />
         )}
 
-        {/* Show Drop Location Marker when otpVerify is true */}
-        {otpVerify && dropCoords && (
-          <Marker
-            coordinate={{
-              latitude: dropCoords.lat,
-              longitude: dropCoords.lng,
-            }}
-            title="Drop Location"
-            description={bookingData.dropLocation}
-          />
-        )}
+        {/* Show Multiple Drop Location Markers */}
+        {otpVerify &&
+          dropCoords.map((coord, index) => (
+            <Marker
+              key={index}
+              coordinate={{ latitude: coord.lat, longitude: coord.lng }}
+              title={`Drop Location ${index + 1}`}
+              description={
+                bookingData?.DROP_LOC?.split(",")?.[index]?.trim() || "Unknown Location"
+              }
+            />
+          ))}
 
-        {/* Show Polyline only when otpVerify is false */}
-        {!otpVerify && pickupCoords && (
+        {/* Show Polylines for the routes */}
+        {routeCoords.map((coords, index) => (
           <Polyline
-            coordinates={[
-              { latitude: position.latitude, longitude: position.longitude },
-              { latitude: pickupCoords.lat, longitude: pickupCoords.lng },
-              ...(otpVerify === false && dropCoords
-                ? [{ latitude: dropCoords.lat, longitude: dropCoords.lng }]
-                : []),
-            ]}
+            key={index}
+            coordinates={coords}
             strokeColor="#FF0000"
             strokeWidth={3}
           />
-        )}
+        ))}
       </MapView>
 
+      {/* Bottom sheet for details */}
       {isOpen == "true" ? null : (
         <TouchableOpacity onPress={toggleModal} style={styles.toggleButton}>
           <Text style={styles.toggleButtonText}>
@@ -233,14 +335,24 @@ useEffect(() => {
               keyboardType="number-pad"
               maxLength={4}
               returnKeyType="done"
-              value={otpInput} // Set value from state
-              onChangeText={setOtpInput} // Update state on input change
+              value={otpInput}
+              onChangeText={setOtpInput}
             />
           </View>
 
           <TouchableOpacity style={styles.button} onPress={handleOTPClick}>
             <Text style={styles.buttonText}>Next</Text>
           </TouchableOpacity>
+
+          {/* End Trip Button (Visible only after OTP verification) */}
+          {otpVerify && (
+            <TouchableOpacity
+              style={[styles.button, { backgroundColor: "#FF4444" }]}
+              onPress={handleEndTrip}
+            >
+              <Text style={styles.buttonText}>End Trip</Text>
+            </TouchableOpacity>
+          )}
         </View>
       )}
     </SafeAreaView>
@@ -253,38 +365,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#fff",
-  },
-  map: {
-    ...StyleSheet.absoluteFillObject,
-  },
-  header: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    padding: 16,
-    position: "absolute",
-    top: 44,
-    left: 0,
-    right: 0,
-  },
-
-  bottomSheet: {
-    position: "absolute",
-    bottom: 0,
-    left: 0,
-    right: 0,
-    backgroundColor: "#fff",
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    padding: 20,
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: -2,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 5,
   },
   toggleButton: {
     position: "absolute",
@@ -299,117 +379,6 @@ const styles = StyleSheet.create({
   toggleButtonText: {
     color: "#fff",
     fontSize: 16,
-  },
-  backButton: {
-    width: 40,
-    height: 40,
-    backgroundColor: "white",
-    borderRadius: 20,
-    justifyContent: "center",
-    alignItems: "center",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  locationSelector: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "white",
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 20,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  locationText: {
-    fontSize: 16,
-    fontWeight: "500",
-    marginRight: 4,
-  },
-  speedIndicator: {
-    position: "absolute",
-    top: 100,
-    alignSelf: "center",
-    backgroundColor: "white",
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 16,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  speedText: {
-    fontSize: 14,
-    fontWeight: "500",
-  },
-  markerContainer: {
-    backgroundColor: "white",
-    padding: 6,
-    borderRadius: 12,
-    borderWidth: 2,
-    borderColor: "#4FA89B",
-  },
-  detailsCard: {
-    position: "absolute",
-    bottom: 24,
-    left: 16,
-    right: 16,
-    backgroundColor: "white",
-    borderRadius: 16,
-    padding: 16,
-    flexDirection: "row",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  vehicleImage: {
-    width: 80,
-    height: 80,
-    borderRadius: 8,
-    marginRight: 12,
-  },
-  detailsContent: {
-    flex: 1,
-  },
-  vehicleType: {
-    fontSize: 18,
-    fontWeight: "bold",
-    marginBottom: 4,
-  },
-  locationContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 8,
-  },
-  locationName: {
-    fontSize: 14,
-    color: "#666",
-    marginLeft: 4,
-  },
-  infoRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-  },
-  timeText: {
-    fontSize: 12,
-    color: "#666",
-  },
-  container: {
-    flex: 1,
-    backgroundColor: "#fff",
-  },
-  map: {
-    ...StyleSheet.absoluteFillObject,
   },
   bottomSheet: {
     position: "absolute",
@@ -484,86 +453,11 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     padding: 16,
     alignItems: "center",
+    marginBottom: 10,
   },
   buttonText: {
     color: "#fff",
     fontSize: 16,
     fontWeight: "600",
   },
-  markerContainer: {
-    backgroundColor: "#fff",
-    padding: 8,
-    borderRadius: 20,
-    borderWidth: 2,
-    borderColor: "#4FA89B",
-  },
-  ratingContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#F5F5F5",
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 12,
-  },
-  ratingText: {
-    fontSize: 12,
-    fontWeight: "500",
-    marginLeft: 4,
-  },
-  distanceContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  distanceText: {
-    fontSize: 12,
-    color: "#4FA89B",
-    fontWeight: "500",
-    marginLeft: 4,
-  },
 });
-
-// Custom map style for the light blue theme
-const mapStyle = [
-  {
-    elementType: "geometry",
-    stylers: [
-      {
-        color: "#f5f5f5",
-      },
-    ],
-  },
-  {
-    elementType: "labels.text.fill",
-    stylers: [
-      {
-        color: "#616161",
-      },
-    ],
-  },
-  {
-    elementType: "labels.text.stroke",
-    stylers: [
-      {
-        color: "#f5f5f5",
-      },
-    ],
-  },
-  {
-    featureType: "water",
-    elementType: "geometry",
-    stylers: [
-      {
-        color: "#e9e9e9",
-      },
-    ],
-  },
-  {
-    featureType: "water",
-    elementType: "labels.text.fill",
-    stylers: [
-      {
-        color: "#9e9e9e",
-      },
-    ],
-  },
-];

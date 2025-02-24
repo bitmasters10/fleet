@@ -146,7 +146,7 @@ Router.get("/curr-trips", async (req, res) => {
       const todayDate = new Date().toISOString().split("T")[0]; // Get today's date in YYYY-MM-DD format
 
       const query = `
-          SELECT * FROM trip 
+          SELECT * FROM TRIP
        
           WHERE STAT IN ('JUST', 'ONGOING') 
           AND date = ?;

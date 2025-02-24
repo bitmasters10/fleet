@@ -90,6 +90,15 @@ Router.patch("/trip-complete", isDriver, (req, res) => {
     }
   );
 });
+Router.post("/otp", isDriver, (req, res) => {
+  const { otp, BOOK_ID } = req.body;
+  const id = req.user?.DRIVER_ID; // Ensure DRIVER_ID exists
+
+  if (!otp || !BOOK_ID || !id) {
+    return res.status(400).json({ error: "Missing required fields" });
+  }
+
+  console.log("OTP verification attempt:", { otp, BOOK_ID, driverId: id });
 
 Router.post("/otp", (req, res) => {
   const { otp, BOOK_ID } = req.body;
@@ -97,47 +106,52 @@ Router.post("/otp", (req, res) => {
   const id = req.user.DRIVER_ID;
 console.log(id)
   const query =
-    "SELECT otp FROM TRIP WHERE  DRIVER_ID = ? AND otp = ? AND BOOK_ID = ?";
-  db.query(query, [ id, otp, BOOK_ID], (err, results) => {
+    "SELECT OTP FROM TRIP WHERE DRIVER_ID = ? AND OTP = ? AND BOOK_ID = ?";
+  
+  db.query(query, [id, otp, BOOK_ID], (err, results) => {
     if (err) {
-      console.error("Error executing query:", err);
+      console.error("Database error during OTP check:", err);
       return res.status(500).json({ error: "Database query failed" });
     }
 
-    if (results.length > 0) {
-      const updateQuery =
-        "UPDATE TRIP SET STAT = ? WHERE   DRIVER_ID = ? AND BOOK_ID = ?";
-      db.query(updateQuery, ["ONGOING", id, BOOK_ID], (err) => {
+    if (results.length === 0) {
+      console.warn("Invalid OTP attempt for BOOK_ID:", BOOK_ID, "Driver ID:", id);
+      return res.status(404).json({ message: "Incorrect OTP" });
+    }
+
+    console.log("OTP Matched! Updating trip status to ONGOING...");
+
+    const updateQuery =
+      "UPDATE TRIP SET STAT = ? WHERE DRIVER_ID = ? AND BOOK_ID = ?";
+    
+    db.query(updateQuery, ["ONGOING", id, BOOK_ID], (err, updateResults) => {
+      if (err) {
+        console.error("Database error during trip update:", err);
+        return res.status(500).json({ error: "Database update failed" });
+      }
+
+      if (updateResults.affectedRows === 0) {
+        return res.status(400).json({ error: "Trip status update failed" });
+      }
+
+      console.log("Trip status updated to ONGOING. Fetching updated trip...");
+
+      const selectUpdatedQuery =
+        "SELECT * FROM TRIP WHERE DRIVER_ID = ? AND BOOK_ID = ?";
+      
+      db.query(selectUpdatedQuery, [id, BOOK_ID], (err, updatedResults) => {
         if (err) {
-          console.error("Error executing update query:", err);
-          return res.status(500).json({ error: "Database update failed" });
+          console.error("Database error while retrieving updated record:", err);
+          return res.status(500).json({ error: "Failed to retrieve updated record" });
         }
 
-        const selectUpdatedQuery =
-          "SELECT * FROM TRIP WHERE   DRIVER_ID = ? AND BOOK_ID = ?";
-        db.query(
-          selectUpdatedQuery,
-          [ id, BOOK_ID],
-          (err, updatedResults) => {
-            if (err) {
-              console.error("Error retrieving updated record:", err);
-              return res
-                .status(500)
-                .json({ error: "Failed to retrieve updated record" });
-            }
-
-            return res
-              .status(200)
-              .json({ message: "It's same", record: updatedResults });
-          }
-        );
+        return res.status(200).json({ message: "OTP verified", record: updatedResults[0] });
       });
-    } else {
-      return res.status(400).json({message: 'incorrect otp'});
-      ;
-    }
+    });
   });
 });
+
+
 
 Router.get("/all/book", (req, res) => {
   console.log("Request body:", req.body);

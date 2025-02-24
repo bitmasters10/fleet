@@ -18,13 +18,32 @@ const HomeScreen = () => {
   const navigation = useNavigation();
   const { user } = useContext(AuthContext);
   const { trips = [], loading, error, fetchTrips } = useTrip() || {};
+  const { createTrip } = useTrip(); // Import createTrip from context
+
+
+
 
   useEffect(() => {
     fetchTrips();
   }, []);
 
-  const handleClick = (item) => {
-    navigation.navigate("Map", { bookingData: item });
+  const handleClick = async (item) => {
+    try {
+      const tripData = {
+        BOOK_NO: item.BOOK_NO, // Required
+        BOOK_ID: item.BOOK_ID, // Required
+        ROUTE: `${item.PICKUP_LOC} to ${item.DROP_LOC}`, // Generate ROUTE dynamically
+        date: new Date().toISOString().split("T")[0], // Set current date in YYYY-MM-DD format
+      };
+  
+      const newTrip = await createTrip(tripData); // Call createTrip function
+  
+      if (newTrip) {
+        navigation.navigate("Map", { bookingData: item });
+      }
+    } catch (error) {
+      console.error("Error starting trip:", error);
+    }
   };
 
   const TripCard = ({ item }) => (

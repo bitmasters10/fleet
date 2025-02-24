@@ -163,6 +163,7 @@ Router.post("/create-book", async (req, res) => {
 
 
 
+ 
   let formattedDate, formattedStartTime, formattedEndTime;
   try {
     // Format DATE
@@ -384,22 +385,55 @@ Router.get("/bookings", (req, res) => {
     console.error("Error during retrive:", err);
   }
 });
-Router.delete("/booking/:id",(req,res)=>{
-  const {id}=req.params;
-  const q="delete from BOOKING where BOOK_ID=?"
+Router.delete("/booking/:id", (req, res) => {
+  const { id } = req.params;
+
+  // First, check if there is a corresponding row in the `trip` table
+  const checkTripQuery = "SELECT * FROM trip WHERE BOOK_ID = ?";
+  const deleteTripQuery = "DELETE FROM trip WHERE BOOK_ID = ?";
+  const deleteBookingQuery = "DELETE FROM booking WHERE BOOK_ID = ?";
+
   try {
-    db.query(q,[id] ,(err, rows) => {
+    // Check if there is a row in the `trip` table
+    db.query(checkTripQuery, [id], (err, tripRows) => {
       if (err) {
         console.error("Error executing query:", err);
         return res.status(500).send("Server Error");
       }
-      return res.status(200).json(rows);
+
+      // If a row exists in the `trip` table, delete it
+      if (tripRows.length > 0) {
+        db.query(deleteTripQuery, [id], (err, result) => {
+          if (err) {
+            console.error("Error deleting from trip table:", err);
+            return res.status(500).send("Server Error");
+          }
+
+          // After deleting from the `trip` table, delete from the `booking` table
+          db.query(deleteBookingQuery, [id], (err, result) => {
+            if (err) {
+              console.error("Error deleting from booking table:", err);
+              return res.status(500).send("Server Error");
+            }
+            return res.status(200).json({ message: "Booking and associated trip deleted successfully" });
+          });
+        });
+      } else {
+        // If no row exists in the `trip` table, just delete from the `booking` table
+        db.query(deleteBookingQuery, [id], (err, result) => {
+          if (err) {
+            console.error("Error deleting from booking table:", err);
+            return res.status(500).send("Server Error");
+          }
+          return res.status(200).json({ message: "Booking deleted successfully" });
+        });
+      }
     });
   } catch (err) {
-    console.error("Error during retive:", err);
+    console.error("Error during deletion:", err);
+    return res.status(500).send("Server Error");
   }
-
-  })
+});
 Router.get("/packages", (req, res) => {
   try {
     db.query("SELECT * FROM PACKAGE ", (err, rows) => {
@@ -427,15 +461,13 @@ Router.post("/create-adv-book", async (req, res) => {
     PACKAGE_ID,
     DROP_LOC,
     AC_NONAC,
-
     END_TIME,
-
     DRIVER_ID,
     MOBILE_NO,
   } = req.body;
 
   db.query(
-    "select * from BOOKING where CAR_ID=? AND DRIVER_ID=? AND TIMING=? AND END_TIME=?",
+    "SELECT * FROM BOOKING WHERE CAR_ID=? AND DRIVER_ID=? AND TIMING=? AND END_TIME=?",
     [CAR_ID, DRIVER_ID, START_TIME, END_TIME],
     (err, rows) => {
       if (err) {
@@ -450,7 +482,7 @@ Router.post("/create-adv-book", async (req, res) => {
 
       const newBook = {
         BOOK_ID: ID,
-        TIMING:START_TIME,
+        TIMING: START_TIME,
         PICKUP_LOC,
         CAR_ID,
         USER_ID,
@@ -464,23 +496,43 @@ Router.post("/create-adv-book", async (req, res) => {
         END_TIME,
         mobile_no: MOBILE_NO,
         DRIVER_ID,
-        br:BR
+        br: BR,
       };
+
       console.log(MOBILE_NO);
       console.log(newBook);
       console.log(ID);
-      db.query(" INSERT INTO BOOKING SET ?", newBook, (err, rows) => {
+
+      // Insert into BOOKING table
+      db.query("INSERT INTO BOOKING SET ?", newBook, (err, rows) => {
         if (err) {
           console.log(err);
           return res.status(500).send("Server Error");
         }
-        return res
-          .status(200)
-          .json({ message: "new book added", results: rows });
+
+        // Update bookings table after successful insertion
+        const updateQuery = "UPDATE bookings SET book_status=? WHERE booking_reference=?";
+        db.query(updateQuery, ["done", BR], (err, result) => {
+          if (err) {
+            console.log(err);
+            return res.status(500).send("Server Error");
+          }
+
+          // Check if the update was successful
+          if (result.affectedRows > 0) {
+            return res.status(200).json({
+              message: "New book added and bookings table updated successfully",
+              results: rows,
+            });
+          } else {
+            return res.status(404).json({
+              error: "No matching booking_reference found in bookings table",
+            });
+          }
+        });
       });
     }
   );
 });
-
 
 module.exports = Router;

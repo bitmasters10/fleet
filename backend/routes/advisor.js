@@ -5,7 +5,7 @@ Router.get("/adv", async (req, res) => {
   try {
       // Step 1: Fetch data from the `bookings` table
       const bookingsQuery = `
-          SELECT booking_reference, title 
+          SELECT * 
           FROM bookings 
           WHERE status <> 'Cancelled' AND book_status <> 'done';
       `;
@@ -48,6 +48,9 @@ Router.get("/adv", async (req, res) => {
                   return {
                       booking_reference: booking.booking_reference,
                       title: booking.title,
+                      location:booking.location,
+                      hotel_pickup:booking.hotel_pickup,
+                      start_datetime:booking.start_datetime,
                       PID: package ? package.PID : null,
                       PROD_ID: package ? package.PROD_ID : null,
                       PLACES: package ? package.PLACES : null,
