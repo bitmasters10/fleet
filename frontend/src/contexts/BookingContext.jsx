@@ -57,7 +57,7 @@ export const BookingProvider = ({ children }) => {
   const fetchTripBookings = async () => {
     try {
       const response = await axiosInstance.get("/admin/adv");
-      setTripAdvisorBookings(response.data);
+      setTripAdvisorBookings(response.data.res);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -120,6 +120,19 @@ export const BookingProvider = ({ children }) => {
         message:
           error.response?.data?.message || "Error creating manual booking.",
       };
+    }
+  };
+
+
+  const createAdvancedBooking = async (bookingData) => {
+    try {
+      const response = await axios.post("/api/create-adv-book", bookingData);
+      setBookings((prevBookings) => [...prevBookings, response.data.booking]);
+      return { success: true };
+
+    } catch (error) {
+      console.error("Error creating booking:", error);
+      throw error.response?.data || "Error occurred while booking";
     }
   };
 
@@ -251,6 +264,7 @@ export const BookingProvider = ({ children }) => {
         fetchAvailableBookings,
         createBooking,
         createManualBooking,
+        createAdvancedBooking,
         fetchTripBookings,
         fetchPackages,
         createPackage,
