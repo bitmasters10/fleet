@@ -67,7 +67,7 @@ export const ServiceProvider = ({ children }) => {
   const deleteCarHealthRecord = async (id) => {
     setError(null);
     try {
-      await axiosInstance.delete(`//${id}`);
+      await axiosInstance.delete(`/${id}`);
       setCarHealthRecords((prevRecords) =>
         prevRecords.filter((record) => record.HEALTH_ID !== id)
       );

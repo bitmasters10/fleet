@@ -69,7 +69,10 @@ export default function Driver({ title, track }) {
 
   const handleDeleteDriver = async (id) => {
     try {
+      const res = confirm("Are you sure you want to delete this driver?");
+      if(res){
       await deleteDriver(id);
+      }
       console.log("Delete successful, showing toast"); // Debug log
       showToast("Driver deleted successfully");
     } catch (error) {
