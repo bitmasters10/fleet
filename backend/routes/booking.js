@@ -448,91 +448,111 @@ Router.get("/packages", (req, res) => {
   }
 });
 Router.post("/create-adv-book", async (req, res) => {
-  let ID = await idmake("BOOKING", "BOOK_ID");
-  const {
-    BR,
-    START_TIME,
-    PICKUP_LOC,
-    CAR_ID,
-    USER_ID,
-    BOOK_NO,
-    DATE,
-    NO_OF_PASSENGER,
-    PACKAGE_ID,
-    DROP_LOC,
-    AC_NONAC,
-    END_TIME,
-    DRIVER_ID,
-    MOBILE_NO,
-  } = req.body;
+  try {
+    let ID = await idmake("BOOKING", "BOOK_ID");
+    const {
+      BR,
+      START_TIME,
+      PICKUP_LOC,
+      CAR_ID,
+      USER_ID,
+      BOOK_NO,
+      DATE,
+      NO_OF_PASSENGER,
+      PACKAGE_ID,
+      DROP_LOC,
+      AC_NONAC,
+      END_TIME,
+      DRIVER_ID,
+      MOBILE_NO,
+    } = req.body;
 
-  db.query(
-    "SELECT * FROM BOOKING WHERE CAR_ID=? AND DRIVER_ID=? AND TIMING=? AND END_TIME=?",
-    [CAR_ID, DRIVER_ID, START_TIME, END_TIME],
-    (err, rows) => {
-      if (err) {
-        console.log(err);
-        return res.status(500).send("Server Error");
-      }
-      if (rows.length > 0) {
-        return res.status(409).json({
-          error: "Booking already exists for the specified time and car/driver",
-        });
-      }
+    // Validate required fields
+    if (!START_TIME || !END_TIME || !DATE || !CAR_ID || !DRIVER_ID) {
+      return res.status(400).json({ error: "Missing required fields" });
+    }
 
-      const newBook = {
-        BOOK_ID: ID,
-        TIMING: START_TIME,
-        PICKUP_LOC,
-        CAR_ID,
-        USER_ID,
-        BOOK_NO,
-        DATE,
-        NO_OF_PASSENGER,
-        PACKAGE_ID,
-        DROP_LOC,
-        AC_NONAC,
-        stat: "READY",
-        END_TIME,
-        mobile_no: MOBILE_NO,
-        DRIVER_ID,
-        br: BR,
-      };
+    // Check if a booking already exists for this car and driver at the same time
+    const checkQuery = `
+      SELECT * FROM BOOKING 
+      WHERE CAR_ID=? AND DRIVER_ID=? AND DATE=? 
+      AND (
+        (? >= TIMING AND ? < END_TIME) OR 
+        (? > TIMING AND ? <= END_TIME) OR 
+        (? <= TIMING AND ? >= END_TIME)
+      )
+    `;
 
-      console.log(MOBILE_NO);
-      console.log(newBook);
-      console.log(ID);
-
-      // Insert into BOOKING table
-      db.query("INSERT INTO BOOKING SET ?", newBook, (err, rows) => {
+    db.query(
+      checkQuery,
+      [CAR_ID, DRIVER_ID, DATE, START_TIME, START_TIME, END_TIME, END_TIME, START_TIME, END_TIME],
+      (err, rows) => {
         if (err) {
-          console.log(err);
+          console.error("Error checking existing booking:", err);
           return res.status(500).send("Server Error");
         }
 
-        // Update bookings table after successful insertion
-        const updateQuery = "UPDATE bookings SET book_status=? WHERE booking_reference=?";
-        db.query(updateQuery, ["done", BR], (err, result) => {
+        if (rows.length > 0) {
+          return res.status(409).json({
+            error: "Booking already exists for the specified time and car/driver",
+          });
+        }
+
+        // New booking object
+        const newBook = {
+          BOOK_ID: ID,
+          TIMING: START_TIME,
+          PICKUP_LOC,
+          CAR_ID,
+          USER_ID,
+          BOOK_NO,
+          DATE,
+          NO_OF_PASSENGER,
+          PACKAGE_ID,
+          DROP_LOC,
+          AC_NONAC,
+          stat: "READY",
+          END_TIME,
+          mobile_no: MOBILE_NO, // Keep as INT(10)
+          DRIVER_ID,
+          br: BR,
+        };
+
+        console.log("New Booking:", newBook);
+
+        // Insert into BOOKING table
+        db.query("INSERT INTO BOOKING SET ?", newBook, (err, result) => {
           if (err) {
-            console.log(err);
+            console.error("Error inserting booking:", err);
             return res.status(500).send("Server Error");
           }
 
-          // Check if the update was successful
-          if (result.affectedRows > 0) {
-            return res.status(200).json({
-              message: "New book added and bookings table updated successfully",
-              results: rows,
-            });
-          } else {
-            return res.status(404).json({
-              error: "No matching booking_reference found in bookings table",
-            });
-          }
+          // Update bookings table after successful insertion
+          const updateQuery = "UPDATE bookings SET book_status=? WHERE booking_reference=?";
+          db.query(updateQuery, ["done", BR], (err, updateResult) => {
+            if (err) {
+              console.error("Error updating bookings table:", err);
+              return res.status(500).send("Server Error");
+            }
+
+            if (updateResult.affectedRows > 0) {
+              return res.status(200).json({
+                message: "New booking added and bookings table updated successfully",
+                booking_id: ID,
+              });
+            } else {
+              return res.status(404).json({
+                error: "No matching booking_reference found in bookings table",
+              });
+            }
+          });
         });
-      });
-    }
-  );
+      }
+    );
+  } catch (error) {
+    console.error("Unexpected error:", error);
+    return res.status(500).send("Internal Server Error");
+}
 });
 
 module.exports = Router;
