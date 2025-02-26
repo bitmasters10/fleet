@@ -448,6 +448,7 @@ Router.get("/packages", (req, res) => {
   }
 });
 Router.post("/create-adv-book", async (req, res) => {
+  console.log("REQ CAME FOR ADV")
   try {
     let ID = await idmake("BOOKING", "BOOK_ID");
     const {
