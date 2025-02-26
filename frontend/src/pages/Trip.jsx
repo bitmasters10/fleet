@@ -60,7 +60,19 @@ function TableManage({ data = [] }) {
                 <td className="px-6 py-4">{trip.ROUTE}</td>
                 <td className="px-6 py-4">{trip.START_TIME}</td>
                 <td className="px-6 py-4">{trip.OTP}</td>
-                <td className="px-6 py-4">{trip.STAT}</td>
+                <td
+  className={`px-6 py-4 ${
+    trip.STAT === "COMPLETED"
+      ? "text-green-600 font-semibold"
+      : trip.STAT === "JUST"
+      ? "text-yellow-500 font-semibold"
+      : "text-gray-800"
+  }`}
+>
+  {trip.STAT}
+</td>
+
+
                 <td className="px-6 py-4">{trip.ROOM_ID}</td>
                 <td className="px-6 py-4">{trip.DATE}</td>
                 <td className="px-6 py-4">{trip.DRIVER_ID}</td>

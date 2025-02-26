@@ -1,4 +1,3 @@
-// User:
 /* eslint-disable react/prop-types */
 import { useState, useEffect } from "react";
 import Heading from "../components/Heading";
@@ -172,10 +171,10 @@ function TableManage({ users = []}) {
             ))
           ) : (
             <tr>
-              <td colSpan="7" className="text-center py-4">
-                No users found.
-              </td>
-            </tr>
+            <td colSpan="10" className="text-center py-4">
+              No users found.
+            </td>
+          </tr>
           )}
         </tbody>
       </table>
@@ -191,7 +190,7 @@ function CreateForm({ addUser, setShowCreateForm }) {
     sex: "",
     email: "",
     password: "",
-  
+    age: "",
 
 
   });
@@ -207,7 +206,7 @@ function CreateForm({ addUser, setShowCreateForm }) {
         sex: "",
         email: "",
         password: "",
-
+    age: "",
 
     });
     setShowCreateForm(false);
@@ -297,7 +296,20 @@ function CreateForm({ addUser, setShowCreateForm }) {
             />
           </div>
 
-         
+          <div className="mb-4">
+            <label className="block mb-1 text-gray-700 dark:text-gray-300">
+            Age
+            </label>
+            <input
+              type="number"
+              value={formData.age}
+              onChange={(e) =>
+                setFormData({ ...formData, age: e.target.value })
+              }
+              className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200"
+              required
+            />
+          </div>
           <div className="mb-4">
             <label className="block mb-1 text-gray-700 dark:text-gray-300">
               Gender

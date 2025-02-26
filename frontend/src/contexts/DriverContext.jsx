@@ -8,7 +8,7 @@ export const DriverProvider = ({ children }) => {
   const [drivers, setDrivers] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-
+  const [driverCount, setDriverCount] = useState(0);
   const axiosInstance = axios.create({
     baseURL: "http://localhost:3000", // Replace with your backend base URL
     withCredentials: true, // Important: This ensures that cookies (session) are included in requests
@@ -19,6 +19,7 @@ export const DriverProvider = ({ children }) => {
     try {
       const response = await axiosInstance.get("/admin/drivers");
       setDrivers(response.data);
+      setDriverCount(response.data.length);
     } catch (error) {
       console.error("Error fetching drivers:", error);
       setError("Error fetching drivers."); // Set error state
@@ -119,6 +120,7 @@ export const DriverProvider = ({ children }) => {
   // Context value
   const value = {
     drivers,
+    driverCount,
     loading,
     error,
     addDriver,

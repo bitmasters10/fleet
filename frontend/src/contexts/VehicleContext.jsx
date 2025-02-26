@@ -19,6 +19,8 @@ export const VehicleProvider = ({ children }) => {
   const [vehicleDetails, setVehicleDetails] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [vehicleCount, setVehicleCount] = useState(0);
+  const [carTripStats, setCarTripStats] = useState([]); // Store car trip stats
 
   const axiosInstance = axios.create({
     baseURL: "http://localhost:3000", // Replace with your backend base URL
@@ -30,6 +32,7 @@ export const VehicleProvider = ({ children }) => {
     try {
       const response = await axiosInstance.get("/admin/cars");
       setVehicles(response.data);
+      setVehicleCount(response.data.length)
     } catch (error) {
       console.error("Error fetching vehicles:", error);
       setError("Error fetching vehicles."); // Set error state
@@ -68,6 +71,21 @@ export const VehicleProvider = ({ children }) => {
       setLoading(false);
     }
   };
+
+
+  const fetchCarTripStats = async () => {
+    setLoading(true);
+    try {
+      const response = await axiosInstance.get("/admin/car-trip-stats"); // Fetch data from the backend
+      setCarTripStats(response.data); // Store in state
+    } catch (error) {
+      console.error("Error fetching car trip stats:", error);
+      setError("Error fetching car trip stats.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
 
   // Add a new car
   const addVehicle = async (carData) => {
@@ -116,8 +134,11 @@ export const VehicleProvider = ({ children }) => {
       value={{
         vehicles,
         vehicleDetails,
+        vehicleCount,
         loading,
         error,
+        carTripStats,
+        fetchCarTripStats, 
         availableVehicles,
         fetchVehicles,
         fetchVehicleById,

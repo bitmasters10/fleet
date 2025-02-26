@@ -6,6 +6,8 @@ import { useBooking } from "../contexts/BookingContext";
 import { useDrivers } from "../contexts/DriverContext";
 import { useVehicle } from "../contexts/VehicleContext";
 import NormalForm from "../components/NormalForm";
+import TripAdvisorForm from "../components/TripAdvisorForm";
+
 
 // eslint-disable-next-line react/prop-types
 export default function Booking({ title, track }) {
@@ -126,40 +128,53 @@ export default function Booking({ title, track }) {
 
               {/* Tab Navigation */}
               <div className="flex mb-4">
-                <button
-                  className={`px-4 py-2 ${
-                    activeTab === "normal"
-                      ? "bg-blue-500 text-white"
-                      : "bg-gray-200"
-                  }`}
-                  onClick={() => setActiveTab("normal")}
-                >
-                  Normal Booking
-                </button>
-                <button
-                  className={`px-4 py-2 ${
-                    activeTab === "manual"
-                      ? "bg-blue-500 text-white"
-                      : "bg-gray-200"
-                  }`}
-                  onClick={() => setActiveTab("manual")}
-                >
-                  Manual Booking
-                </button>
-              </div>
+  <button
+    className={`px-4 py-2 ${
+      activeTab === "normal" ? "bg-blue-500 text-white" : "bg-gray-200"
+    }`}
+    onClick={() => setActiveTab("normal")}
+  >
+    Normal Booking
+  </button>
+  <button
+    className={`px-4 py-2 ${
+      activeTab === "manual" ? "bg-red-500 text-white" : "bg-gray-200"
+    }`}
+    onClick={() => setActiveTab("manual")}
+  >
+    Manual Booking
+  </button>
+  <button
+    className={`px-4 py-2 ${
+      activeTab === "tripAdvisor" ? "bg-green-500 text-white" : "bg-gray-200"
+    }`}
+    onClick={() => setActiveTab("tripAdvisor")}
+  >
+    Trip Advisor Booking
+  </button>
+</div>
+
 
               {/* Render the appropriate form based on the active tab */}
               {activeTab === "normal" ? (
-                <NormalForm />
-              ) : (
-                <CreateForm
-                  createBooking={handleCreateBooking}
-                  createManualBooking={handleCreateManualBooking}
-                  setShowCreateForm={setShowCreateForm}
-                  bookingError={bookingError}
-                  fetchPackages={fetchPackages}
-                />
-              )}
+  <NormalForm />
+) : activeTab === "manual" ? (
+  <CreateForm
+    createBooking={handleCreateBooking}
+    createManualBooking={handleCreateManualBooking}
+    setShowCreateForm={setShowCreateForm}
+    bookingError={bookingError}
+    fetchPackages={fetchPackages}
+  />
+) : (
+  <TripAdvisorForm
+    // createTripAdvisorBooking={handleCreateTripAdvisorBooking}
+    setShowCreateForm={setShowCreateForm}
+    bookingError={bookingError}
+    fetchPackages={fetchPackages}
+  />
+)}
+
             </div>
           </div>
         )}
@@ -175,6 +190,7 @@ export default function Booking({ title, track }) {
           bookings={bookings}
           loading={loading}
           deleteBooking={deleteBooking}
+          setEditingBooking={setEditingBooking}
         />
       </div>
     </div>
@@ -501,11 +517,10 @@ function CreateForm({
 
 
 
-
 // Edit Form Component in Modal
 function EditForm({ booking, updateBooking, setEditingBooking }) {
   const [formData, setFormData] = useState({
-    
+    BOOK_ID:booking.BOOK_ID,
     END_TIME: booking.END_TIME,
     PICKUP_LOC: booking.PICKUP_LOC,
     TIMING: booking.TIMING,
@@ -514,6 +529,8 @@ function EditForm({ booking, updateBooking, setEditingBooking }) {
   const handleSubmit = (e) => {
     e.preventDefault();
     updateBooking({
+    BOOK_ID: booking.BOOK_ID,
+
       END_TIME: formData.END_TIME,
       PICKUP_LOC: formData.PICKUP_LOC,
       TIMING: formData.TIMING,
@@ -602,7 +619,7 @@ function EditForm({ booking, updateBooking, setEditingBooking }) {
 
 // TableManage component
 // eslint-disable-next-line react/prop-types
-function TableManage({ bookings, loading, deleteBooking }) {
+function TableManage({ bookings, loading, deleteBooking , setEditingBooking }) {
   if (loading) {
     return <div>Loading...</div>;
   }
@@ -657,7 +674,7 @@ function TableManage({ bookings, loading, deleteBooking }) {
               <td className="px-6 py-3">{booking.PICKUP_LOC}</td>
               <td className="px-6 py-3">{booking.TIMING}</td>
               <td className="px-6 py-4 flex">
-                <button className="font-medium text-blue-600 dark:text-blue-500 hover:underline px-1">
+                <button className="font-medium text-blue-600 dark:text-blue-500 hover:underline px-1"  onClick={() => setEditingBooking(booking)}>
                   Edit
                 </button>
                

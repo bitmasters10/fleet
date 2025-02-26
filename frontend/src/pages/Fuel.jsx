@@ -17,7 +17,7 @@ export default function Fuel({ title, track }) {
       <div className="xl:max-w-[90%] max-xl:mx-auto max-w-screen-full bg-white my-20 dark:bg-gray-800">
         <div className="flex items-center justify-between px-6 pt-6">
           <h2 className="mx-4 text-3xl font-semibold">{title}</h2>
-          <AddButton />
+         
         </div>
         <Input title={title} />
         <TableManage fuelRecords={fuelRecords} acceptFuelRecord={acceptFuelRecord} rejectFuelRecord={rejectFuelRecord} />
@@ -26,22 +26,6 @@ export default function Fuel({ title, track }) {
   );
 }
 
-function AddButton() {
-  return (
-    <a className="group cursor-pointer outline-none hover:rotate-90 duration-300 mx-3" title="Add New">
-      <svg
-        className="stroke-black dark:stroke-white fill-none group-active:stroke-black group-active:fill-black group-active:duration-0 duration-300"
-        viewBox="0 0 24 24"
-        height="50px"
-        width="50px"
-        xmlns="http://www.w3.org/2000/svg"
-      >
-        <path strokeWidth="1.5" d="M8 12H16"></path>
-        <path strokeWidth="1.5" d="M12 16V8"></path>
-      </svg>
-    </a>
-  );
-}
 
 // eslint-disable-next-line react/prop-types
 function TableManage({ fuelRecords, acceptFuelRecord, rejectFuelRecord }) {
@@ -67,12 +51,14 @@ function TableManage({ fuelRecords, acceptFuelRecord, rejectFuelRecord }) {
               <td className="px-6 py-4">${record.COST}</td>
               <td className="px-6 py-4">{record.stat}</td>
               <td className="px-6 py-4 text-right">
-                <button onClick={() => acceptFuelRecord(record.F_ID)} className="text-green-600 hover:underline px-2">
-                  Accept
-                </button>
-                <button onClick={() => rejectFuelRecord(record.F_ID)} className="text-red-600 hover:underline px-2">
-                  Reject
-                </button>
+                <div className="flex space-x-2">
+                  <button onClick={() => acceptFuelRecord(record.F_ID)} className="text-green-600 hover:underline px-2">
+                    Accept
+                  </button>
+                  <button onClick={() => rejectFuelRecord(record.F_ID)} className="text-red-600 hover:underline px-2">
+                    Reject
+                  </button>
+                </div>
               </td>
             </tr>
           ))}

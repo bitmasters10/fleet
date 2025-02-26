@@ -6,7 +6,7 @@ const AdminContext = createContext();
 // eslint-disable-next-line react/prop-types
 export const AdminProvider = ({ children }) => {
   const [admins, setAdmins] = useState([]); // Ensure initial value is an array
-
+  const [adminCount, setAdminCount] = useState(0);
   // Axios instance for session management
   const axiosInstance = axios.create({
     baseURL: "http://localhost:3000", // Replace with your backend base URL
@@ -17,6 +17,7 @@ export const AdminProvider = ({ children }) => {
     try {
       const response = await axiosInstance.get("/Sadmin/admins"); // Replace with your actual API endpoint
       setAdmins(response.data);
+      setAdminCount(response.data.length);
     } catch (error) {
       console.error("Error fetching admins:", error);
       setAdmins([]); // Fallback to an empty array in case of an error
@@ -67,7 +68,7 @@ export const AdminProvider = ({ children }) => {
 
   return (
     <AdminContext.Provider
-      value={{ admins, fetchAdmins, addAdmin, updateAdmin, deleteAdmin }}
+      value={{ admins,adminCount, fetchAdmins, addAdmin, updateAdmin, deleteAdmin }}
     >
       {children}
     </AdminContext.Provider>

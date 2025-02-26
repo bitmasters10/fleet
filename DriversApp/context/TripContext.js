@@ -11,7 +11,7 @@ export const TripProvider = ({ children }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  const HOME="http://192.168.1.243:3000"
+  const HOME="http://192.168.1.123 :3000"
    const home = HOME;
   const clg = "http://172.16.255.151:3000";
 
@@ -141,6 +141,7 @@ export const TripProvider = ({ children }) => {
       setLoading(false);
     }
   };
+  
 
   // Update driver's location
   const updateDriverLocation = async (lat, long) => {
@@ -162,6 +163,22 @@ export const TripProvider = ({ children }) => {
       setLoading(false);
     }
   };
+
+
+  const fetchFuelData = async () => {
+    setLoading(true);
+    try {
+      const res = await axios.get(`${home}/driver/drive/fuel`, {
+        withCredentials: true,
+      });
+      setFuelData(res.data);
+    } catch (err) {
+      console.error("Failed to fetch fuel data:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
 
   useEffect(() => {
     if (user) {

@@ -10,7 +10,7 @@ export const TripProvider = ({ children }) => {
   const [currentTrips, setCurrentTrips] = useState([]); // New state for current trips
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-
+  const [tripCount, setTripCount] = useState(0);
   const axiosInstance = axios.create({
     baseURL: "http://localhost:3000",
     withCredentials: true,
@@ -23,6 +23,7 @@ export const TripProvider = ({ children }) => {
     try {
       const response = await axiosInstance.get("/admin/trips");
       setTrips(response.data);
+      setTripCount(response.data.length);
     } catch (error) {
       setError(error.message || "Failed to fetch trips");
       setTrips([]);
@@ -65,6 +66,7 @@ export const TripProvider = ({ children }) => {
     <TripContext.Provider 
       value={{ 
         trips, 
+        tripCount,
         currentRooms, // Add to context value
         currentTrips, // Add to context value
         loading, 

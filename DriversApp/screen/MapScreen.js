@@ -4,6 +4,7 @@ import {
   View,
   Text,
   TouchableOpacity,
+  Linking,
   TextInput,
   SafeAreaView,
   Dimensions,
@@ -314,13 +315,16 @@ const MapScreen = ({ isOpen }) => {
 
           {/* Display mobile phone number */}
           <View style={styles.locationContainer}>
-            <View style={styles.locationItem}>
+            <TouchableOpacity
+              style={styles.locationItem}
+              onPress={() => Linking.openURL(`tel:${bookingData.mobile_no}`)}
+            >
               <Icon name="phone" size={24} color="#4CAF50" />
               <View style={styles.locationInput}>
                 <Text style={styles.locationLabel}>Mobile Phone</Text>
                 <Text style={styles.locationText}>{bookingData.mobile_no}</Text>
               </View>
-            </View>
+            </TouchableOpacity>
           </View>
 
           <View style={styles.otpContainer}>
