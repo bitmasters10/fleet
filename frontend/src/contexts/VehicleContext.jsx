@@ -53,6 +53,24 @@ export const VehicleProvider = ({ children }) => {
       setLoading(false);
     }
   };
+  const sendToRepair = async (carId) => {
+    try {
+      const response = await axiosInstance.patch(`/admin/repair/${carId}`);
+
+      if (response.status === 200) {
+        setVehicles((prevCars) =>
+          prevCars.map((car) =>
+            car.CAR_ID === carId ? { ...car, STATUS: "REPAIR" } : car
+          )
+        );
+        return response.data.message;
+      }
+    } catch (error) {
+      console.error("Error updating car status:", error);
+      return null;
+    }
+  };
+
 
   const fetchAvailableVehicles = async (date, start_time, end_time) => {
     setLoading(true);
@@ -143,6 +161,7 @@ export const VehicleProvider = ({ children }) => {
         fetchVehicles,
         fetchVehicleById,
         fetchAvailableVehicles,
+        sendToRepair,
         addVehicle,
         updateVehicle,
         deleteVehicle,
