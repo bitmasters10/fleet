@@ -20,8 +20,8 @@ import axios from "axios";
 
 const { width } = Dimensions.get("window");
 
-const socket = io("ws://192.168.1.243:3001");
-const HOME = "http://192.168.1.243:3000";
+const socket = io("ws:// 192.168.10.122:3001");
+const HOME = "http:// 192.168.10.122:3000";
 const home = HOME;
 
 const MapScreen = ({ isOpen }) => {
