@@ -29,7 +29,8 @@ const TripAdvisorForm = ({ setShowCreateForm }) => {
     NO_OF_PASSENGER: "",
     START_TIME: "",
     BOOK_NO: "",
-    END_TIME: ""
+    END_TIME: "",
+    booking_reference: "", // Add booking_reference to the state
   });
 
   useEffect(() => {
@@ -44,13 +45,17 @@ const TripAdvisorForm = ({ setShowCreateForm }) => {
       setBookingData({
         ...bookingData,
         success_id: selectedBooking.booking_reference,
+        booking_reference: selectedBooking.booking_reference, // Set booking_reference
         PLACES: selectedBooking.PLACES,
         datetime: new Date(selectedBooking.start_datetime).toISOString().split('T')[0], // Format date
         START_TIME: new Date(selectedBooking.start_datetime).toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit' }), // Format time
         PICKUP_LOC: selectedBooking.hotel_pickup,
         package_id: selectedBooking.PID,
         product_name: selectedBooking.title,
-        DURATION: selectedBooking.DURATION
+        DURATION: selectedBooking.DURATION,
+        capacity: selectedBooking.capacity,
+        mobile_no: selectedBooking.mobile_no,
+        user_id: selectedBooking.user_id,
       });
     }
   };
@@ -104,17 +109,18 @@ const TripAdvisorForm = ({ setShowCreateForm }) => {
       alert("Please provide the date, start time, and end time.");
     }
   };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-  
+
     if (!bookingData.success_id) {
       alert("Please select a booking ID.");
       return;
     }
-  
+
     // Format the data to match the required JSON structure
     const submissionData = {
-      BR: bookingData.success_id, // Use the selected booking reference
+      BR: bookingData.booking_reference, // Use the selected booking reference
       START_TIME: bookingData.START_TIME,
       PICKUP_LOC: bookingData.PICKUP_LOC,
       CAR_ID: bookingData.CAR_ID,
@@ -129,9 +135,9 @@ const TripAdvisorForm = ({ setShowCreateForm }) => {
       DRIVER_ID: bookingData.DRIVER_ID,
       MOBILE_NO: bookingData.mobile_no,
     };
-  
+
     console.log("Submitting booking data:", submissionData);
-  
+
     // Send the data to the API
     const result = await createAdvancedBooking(submissionData);
     if (result.success) {
@@ -147,7 +153,7 @@ const TripAdvisorForm = ({ setShowCreateForm }) => {
       <div className="mb-4">
         <label className="block text-gray-700 dark:text-gray-200">Select Booking</label>
         <select
-          name="success_id"
+          name="BR"
           className="mt-2 w-full p-2 border border-gray-300 rounded-md"
           value={bookingData.success_id}
           onChange={handleSuccessIdChange}
@@ -163,13 +169,25 @@ const TripAdvisorForm = ({ setShowCreateForm }) => {
       </div>
 
       <div className="mb-4">
+        <label className="block text-gray-700 dark:text-gray-200">BR</label>
+        <input
+          type="text"
+          name="BR"
+          className="mt-2 w-full p-2 border border-gray-300 rounded-md"
+          value={bookingData.booking_reference}
+          onChange={handleChange}
+          readOnly
+        />
+      </div>
+
+      <div className="mb-4">
         <label className="block text-gray-700 dark:text-gray-200">User ID</label>
-        <input type="text" name="user_id" className="mt-2 w-full p-2 border border-gray-300 rounded-md" value={bookingData.user_id} onChange={handleChange} readOnly />
+        <input type="text" name="user_id" className="mt-2 w-full p-2 border border-gray-300 rounded-md" value={bookingData.user_id} onChange={handleChange} />
       </div>
 
       <div className="mb-4">
         <label className="block text-gray-700 dark:text-gray-200">Mobile Number</label>
-        <input type="text" name="mobile_no" className="mt-2 w-full p-2 border border-gray-300 rounded-md" value={bookingData.mobile_no} onChange={handleChange} readOnly />
+        <input type="text" name="mobile_no" className="mt-2 w-full p-2 border border-gray-300 rounded-md" value={bookingData.mobile_no} onChange={handleChange} />
       </div>
 
       <div className="mb-4">
@@ -190,8 +208,8 @@ const TripAdvisorForm = ({ setShowCreateForm }) => {
       </div>
 
       <div className="mb-4">
-        <label className="block text-gray-700 dark:text-gray-200">NO_OF_PASSENGER</label>
-        <input type="text" name="capacity" className="mt-2 w-full p-2 border border-gray-300 rounded-md" onChange={handleChange} value={bookingData.capacity} readOnly />
+        <label className="block text-gray-700 dark:text-gray-200">Number of Passengers</label>
+        <input type="text" name="capacity" className="mt-2 w-full p-2 border border-gray-300 rounded-md" onChange={handleChange} value={bookingData.capacity} />
       </div>
 
       <div className="mb-4">
@@ -240,7 +258,7 @@ const TripAdvisorForm = ({ setShowCreateForm }) => {
       </div>
 
       <div className="mb-4">
-        <label className="block text-gray-700 dark:text-gray-200">START TIME</label>
+        <label className="block text-gray-700 dark:text-gray-200">Start Time</label>
         <input
           type="time"
           name="START_TIME"
@@ -252,7 +270,7 @@ const TripAdvisorForm = ({ setShowCreateForm }) => {
       </div>
 
       <div className="mb-4">
-        <label className="block text-gray-700 dark:text-gray-200">DATE</label>
+        <label className="block text-gray-700 dark:text-gray-200">Date</label>
         <input
           type="text"
           name="datetime"
@@ -266,7 +284,7 @@ const TripAdvisorForm = ({ setShowCreateForm }) => {
       </div>
 
       <div className="mb-4">
-        <label className="block text-gray-700 dark:text-gray-200">END TIME</label>
+        <label className="block text-gray-700 dark:text-gray-200">End Time</label>
         <input
           type="text"
           name="END_TIME"
@@ -297,12 +315,11 @@ const TripAdvisorForm = ({ setShowCreateForm }) => {
           required
         >
           <option value="">Select Car</option>
-          {Array.isArray(availableCars) &&
-            availableCars.map((car) => (
-              <option key={car.CAR_ID} value={car.CAR_ID}>
-                {car.MODEL_NAME || "Unknown Model"} (Capacity: {car.SEATING_CAPACITY || "N/A"})
-              </option>
-            ))}
+          {availableCars.map((car) => (
+            <option key={car.CAR_ID} value={car.CAR_ID}>
+              {car.MODEL_NAME} (Capacity: {car.SEATING_CAPACITY})
+            </option>
+          ))}
         </select>
       </div>
 
@@ -316,35 +333,17 @@ const TripAdvisorForm = ({ setShowCreateForm }) => {
           required
         >
           <option value="">Select Driver</option>
-          {Array.isArray(availableDrivers) &&
-            availableDrivers.map((driver) => (
-              <option key={driver.DRIVER_ID} value={driver.DRIVER_ID}>
-                {driver.NAME || "Unknown Driver"}
-              </option>
-            ))}
+          {availableDrivers.map((driver) => (
+            <option key={driver.DRIVER_ID} value={driver.DRIVER_ID}>
+              {driver.NAME}
+            </option>
+          ))}
         </select>
       </div>
 
       <div className="mb-4">
-        <label className="block text-gray-700 dark:text-gray-200">VID</label>
-        <input
-          type="text"
-          name="VID"
-          className="mt-2 w-full p-2 border border-gray-300 rounded-md"
-          onChange={handleChange}
-          value={bookingData.VID}
-          required
-        />
-      </div>
-
-      <div className="mb-4">
-        <label className="block text-gray-700 dark:text-gray-200">BOOK_NO</label>
+        <label className="block text-gray-700 dark:text-gray-200">Booking Number</label>
         <input type="text" name="BOOK_NO" className="mt-2 w-full p-2 border border-gray-300 rounded-md" value={bookingData.BOOK_NO} onChange={handleChange} />
-      </div>
-
-      <div className="mb-4">
-        <label className="block text-gray-700 dark:text-gray-200">STAT</label>
-        <input type="text" name="stat" className="mt-2 w-full p-2 border border-gray-300 rounded-md" value={bookingData.stat} onChange={handleChange} />
       </div>
 
       <div className="mt-4">

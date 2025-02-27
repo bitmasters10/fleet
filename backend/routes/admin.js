@@ -202,5 +202,61 @@ Router.get("/monthly-report/:year/:month", async (req, res) => {
       return res.status(500).json({ error: "Internal Server Error" });
     }
   });
+  Router.post("/generate-pdf", (req, res) => {
+    const { reportData } = req.body;
   
+    const PDFDocument = require("pdfkit");
+    const doc = new PDFDocument();
+  
+    res.setHeader("Content-Type", "application/pdf");
+    res.setHeader(
+      "Content-Disposition",
+      `attachment; filename=monthly-report-${reportData.month}.pdf`
+    );
+  
+    doc.pipe(res);
+  
+    // Add title
+    doc.fontSize(25).text(`Monthly Report: ${reportData.month}`, 100, 80);
+  
+    // Add key metrics
+    doc.fontSize(14).text(`Total Fuel Cost: ₹${reportData.total_fuel_cost}`, 100, 150);
+    doc.text(`Total Bookings: ${reportData.total_bookings}`, 100, 170);
+    doc.text(`Total Trips: ${reportData.total_trips}`, 100, 190);
+  
+    // Add fuel cost per vehicle
+    doc.moveDown();
+    doc.fontSize(16).text("Fuel Cost Per Vehicle:", 100, 220);
+    reportData.fuel_per_vehicle.forEach((vehicle, index) => {
+      doc.text(
+        `${vehicle.CAR_NO} (${vehicle.MODEL_NAME}): ₹${vehicle.fuel_cost}`,
+        120,
+        240 + index * 20
+      );
+    });
+  
+    // Add trips per vehicle
+    doc.moveDown();
+    doc.fontSize(16).text("Trips Per Vehicle:", 100, 340);
+    reportData.trips_per_vehicle.forEach((vehicle, index) => {
+      doc.text(
+        `${vehicle.CAR_NO} (${vehicle.MODEL_NAME}): ${vehicle.trips_completed} trips`,
+        120,
+        360 + index * 20
+      );
+    });
+  
+    // Add trips per driver
+    doc.moveDown();
+    doc.fontSize(16).text("Trips Per Driver:", 100, 460);
+    reportData.trips_per_driver.forEach((driver, index) => {
+      doc.text(
+        `${driver.NAME}: ${driver.trips_completed} trips (Fuel Cost: ₹${driver.total_fuel_cost})`,
+        120,
+        480 + index * 20
+      );
+    });
+  
+    doc.end();
+  });
 module.exports = Router;

@@ -126,7 +126,7 @@ export const BookingProvider = ({ children }) => {
 
   const createAdvancedBooking = async (bookingData) => {
     try {
-      const response = await axios.post("/api/create-adv-book", bookingData);
+      const response = await axiosInstance.post("/admin/create-adv-book/", bookingData);
       setBookings((prevBookings) => [...prevBookings, response.data.booking]);
       return { success: true };
 

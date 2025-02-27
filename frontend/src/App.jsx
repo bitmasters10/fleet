@@ -26,6 +26,7 @@ import { BookingProvider } from "./contexts/BookingContext";
 import { TripProvider } from "./contexts/TripContext";
 import { FuelProvider } from "./contexts/FuelContext";
 import { UserProvider } from "./contexts/UserContext";
+import { ReportProvider } from "./contexts/ReportContext";
 
 import Fuel from "./pages/Fuel";
 import Service from "./pages/Service";
@@ -67,6 +68,7 @@ function App() {
             <DriverProvider>
               <UserProvider>
                 <ServiceProvider>
+                  <ReportProvider>
         {/* Navbar is always visible */}
         <NavbarWrapper />
 
@@ -171,6 +173,7 @@ function App() {
             </Routes>
           </div>
         </AppLayout>
+        </ReportProvider>
         </ServiceProvider>
         </UserProvider>
         </DriverProvider>
