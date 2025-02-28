@@ -1,15 +1,14 @@
 import L from "leaflet";
 import { useEffect, useState } from "react";
-import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
+import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import Heading from "../components/Heading";
 import Input from "../components/Input";
-import markerIcon from "/marker.svg";
 import markerShadow from "leaflet/dist/images/marker-shadow.png";
 import carIconSrc from "../assets/car.png";
 import { io } from "socket.io-client";
 
-// Initialize Socket.IO
+// Initialize Socket.IO connection
 const socket = io("ws://localhost:3001", {
   reconnectionDelayMax: 10000
 });
@@ -18,17 +17,23 @@ socket.on("connect", () => {
   console.log(`Connected: ${socket.id}`);
 });
 
+// Testing room (replace with dynamic room logic later)
 let room = "all";
-socket.emit("rom", room);
+socket.emit("joinRoom", room);
 
-// eslint-disable-next-line react/prop-types
 export default function Map({ title, track }) {
-  const [carPosition, setCarPosition] = useState([28.6139, 77.209]); // Default position (Delhi)
+  const [userLocations, setUserLocations] = useState({});
 
   useEffect(() => {
     socket.on("otherloc", (data) => {
-      console.log("Received location:", data);
-      setCarPosition([data.lat, data.long]);
+      console.log("Received location update:", data);
+
+      if (data.room) {
+        setUserLocations((prevLocations) => ({
+          ...prevLocations,
+          [data.room]: { lat: data.lat, long: data.long },
+        }));
+      }
     });
 
     return () => {
@@ -36,21 +41,14 @@ export default function Map({ title, track }) {
     };
   }, []);
 
-  // Custom marker icons
-  const customMarker = new L.Icon({
-    iconUrl: markerIcon,
-    shadowUrl: markerShadow,
-    iconSize: [42, 42],
-    iconAnchor: [21, 42],
-    popupAnchor: [0, -42],
-    shadowSize: [41, 41],
-  });
-
+  // Custom car icon
   const carIcon = new L.Icon({
     iconUrl: carIconSrc,
-    iconSize: [50, 50],
-    iconAnchor: [25, 50],
-    popupAnchor: [0, -50],
+    iconSize: [30, 30],
+    iconAnchor: [15, 30],
+    popupAnchor: [0, -30],
+    shadowUrl: markerShadow,
+    shadowSize: [41, 41],
   });
 
   return (
@@ -59,7 +57,7 @@ export default function Map({ title, track }) {
       <div className="flex xl:justify-between max-lg:flex-col-reverse justify-center items-center my-11 xl:max-w-[90%] max-xl:mx-auto max-w-screen-full">
         <div className="w-full border-black" style={{ height: "60vh" }}>
           <MapContainer
-            center={carPosition}
+            center={[28.6139, 77.209]} // Default view (Delhi)
             zoom={13}
             scrollWheelZoom={false}
             className="w-full lg:w-[50vw] h-full z-0 border-black"
@@ -68,9 +66,16 @@ export default function Map({ title, track }) {
               attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
               url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
             />
-            <Marker position={carPosition} icon={carIcon}>
-              <Popup>Car is here.</Popup>
-            </Marker>
+
+            {/* Render multiple user locations */}
+            {Object.keys(userLocations).map((roomKey) => {
+              const { lat, long } = userLocations[roomKey];
+              return (
+                <Marker key={roomKey} position={[lat, long]} icon={carIcon}>
+                  <Popup>User {roomKey} is here.</Popup>
+                </Marker>
+              );
+            })}
           </MapContainer>
         </div>
 
@@ -78,7 +83,9 @@ export default function Map({ title, track }) {
           <h2 className="mx-4 text-3xl font-semibold px-3 pt-6">Trips</h2>
           <Input title="Trip" />
           <div className="flex items-center justify-center">
-            NO ONGOING TRIPS👋🏻
+            {Object.keys(userLocations).length > 0
+              ? "Tracking multiple users..."
+              : "NO ONGOING TRIPS👋🏻"}
           </div>
         </div>
       </div>

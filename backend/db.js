@@ -2,9 +2,8 @@ const mysql = require('mysql2');
 
 
 
-
 const db = mysql.createPool({
-    host: 'fleet.lindatours.in',     // Replace with your host
+    host: 'fleet.lindatours.in',     
      user: 'u820563802_Linda_fleet',          // Replace with your username
     password: 'Fleet@1234',  // Replace with your password
     database: 'u820563802_Linda_fleet',
@@ -13,6 +12,8 @@ const db = mysql.createPool({
     queueLimit: 0,
     connectTimeout: 10000,
   });
+
+
   
 // const db = mysql.createPool({
 //   host: 'localhost',     // Replace with your host
