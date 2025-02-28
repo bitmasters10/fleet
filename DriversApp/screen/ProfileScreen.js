@@ -1,4 +1,4 @@
-import React, { useContext } from "react";
+import React, { useContext, useState } from "react";
 import {
   StyleSheet,
   View,
@@ -11,37 +11,29 @@ import {
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 import { AuthContext } from "../context/AuthContext";
 import { useNavigation } from "@react-navigation/native";
+const HOME="http://172.20.10.2:3000"
+const home = HOME;
+
 
 const ProfileScreen = () => {
   const { user, logout } = useContext(AuthContext);
   const navigation = useNavigation();
+  const HOME="http:// 192.168.10.122 :3000"
+   const home = HOME;
+
+
+  // State to control visibility of images
+  const [showAadhar, setShowAadhar] = useState(false);
+  const [showPan, setShowPan] = useState(false);
 
   const handleLogout = async () => {
     try {
       await logout();
       navigation.navigate("Login");
-      
     } catch (error) {
       console.error("Logout error:", error);
     }
   };
-
-  const renderMenuItem = (icon, title) => (
-    <TouchableOpacity style={styles.menuItem}>
-      <View style={styles.menuLeft}>
-        <Icon name={icon} size={24} color="#4FA89B" />
-        <Text style={styles.menuText}>{title}</Text>
-      </View>
-      <Icon name="chevron-right" size={24} color="#666" />
-    </TouchableOpacity>
-  );
-
-  const renderDocumentItem = (title, value) => (
-    <View style={styles.documentItem}>
-      <Text style={styles.documentLabel}>{title}</Text>
-      <Text style={styles.documentValue}>{value}</Text>
-    </View>
-  );
 
   return (
     <SafeAreaView style={styles.container}>
@@ -69,30 +61,59 @@ const ProfileScreen = () => {
 
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Identity Documents</Text>
+
+          {/* Aadhaar Card Section */}
           <View style={styles.documentCard}>
             <Icon name="card-account-details" size={24} color="#4FA89B" />
             <View style={styles.documentInfo}>
               <Text style={styles.documentTitle}>Aadhar Card</Text>
               <Text style={styles.documentNumber}>XXXX-XXXX-1234</Text>
             </View>
-            <TouchableOpacity style={styles.viewButton}>
-              <Text style={styles.viewButtonText}>View</Text>
+            <TouchableOpacity
+              style={styles.viewButton}
+              onPress={() => setShowAadhar(!showAadhar)}
+            >
+              <Text style={styles.viewButtonText}>
+                {showAadhar ? "Hide" : "View"}
+              </Text>
             </TouchableOpacity>
           </View>
 
+          {showAadhar && (
+            <Image
+              source={{
+                uri: `${home}/admin/img/driver-view/${user?.DRIVER_ID}/adharcard`,
+              }}
+              style={styles.documentImage}
+            />
+          )}
+
+          {/* PAN Card Section */}
           <View style={styles.documentCard}>
             <Icon name="card-text" size={24} color="#4FA89B" />
             <View style={styles.documentInfo}>
               <Text style={styles.documentTitle}>PAN Card</Text>
               <Text style={styles.documentNumber}>ABCDE1234F</Text>
             </View>
-            <TouchableOpacity style={styles.viewButton}>
-              <Text style={styles.viewButtonText}>View</Text>
+            <TouchableOpacity
+              style={styles.viewButton}
+              onPress={() => setShowPan(!showPan)}
+            >
+              <Text style={styles.viewButtonText}>
+                {showPan ? "Hide" : "View"}
+              </Text>
             </TouchableOpacity>
           </View>
-        </View>
 
-      
+          {showPan && (
+            <Image
+              source={{
+                uri: `${home}/admin/img/driver-view/${user?.DRIVER_ID}/pancard`,
+              }}
+              style={styles.documentImage}
+            />
+          )}
+        </View>
 
         <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
           <Text style={styles.logoutButtonText}>Logout</Text>
@@ -106,27 +127,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#fff",
-  },
-  header: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    paddingHorizontal: 20,
-    paddingTop: 20,
-    paddingBottom: 40,
-    backgroundColor: "#4FA89B",
-  },
-  headerButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  headerTitle: {
-    fontSize: 20,
-    fontWeight: "bold",
-    color: "#fff",
   },
   content: {
     flex: 1,
@@ -171,15 +171,6 @@ const styles = StyleSheet.create({
     color: "#333",
     marginBottom: 8,
   },
-  documentLabel: {
-    fontSize: 14,
-    color: "#666",
-    marginBottom: 4,
-  },
-  documentValue: {
-    fontSize: 16,
-    color: "#333",
-  },
   documentCard: {
     flexDirection: "row",
     alignItems: "center",
@@ -213,45 +204,12 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: "500",
   },
-  menuSection: {
-    padding: 20,
-  },
-  menuItem: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    padding: 16,
-    backgroundColor: "#F5F5F5",
-    borderRadius: 12,
-    marginBottom: 12,
-  },
-  menuLeft: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  menuText: {
-    fontSize: 16,
-    color: "#333",
-    marginLeft: 12,
-  },
-  bottomNav: {
-    flexDirection: "row",
-    justifyContent: "space-around",
-    padding: 12,
-    borderTopWidth: 1,
-    borderTopColor: "#E0E0E0",
-    backgroundColor: "#fff",
-  },
-  navItem: {
-    alignItems: "center",
-  },
-  navText: {
-    fontSize: 12,
-    color: "#666",
-    marginTop: 4,
-  },
-  activeNavText: {
-    color: "#4FA89B",
+  documentImage: {
+    width: "100%",
+    height: 200,
+    resizeMode: "contain",
+    marginTop: 10,
+    borderRadius: 8,
   },
   logoutButton: {
     backgroundColor: "red",

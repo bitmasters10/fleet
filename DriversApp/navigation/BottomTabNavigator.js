@@ -1,7 +1,7 @@
 import React from "react";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import HomeScreen from "../screen/HomeScreen";
-import FleetScreen from "../screen/FuelScreen";
+import FleetScreen from "../screen/FleetScreen";
 import MapScreen from "../screen/MapScreen";
 import ProfileScreen from "../screen/ProfileScreen";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
@@ -13,7 +13,7 @@ const BottomTabNavigator = () => {
     <Tab.Navigator>
       <Tab.Screen
         name="Home"
-        component={() => require("../screen/HomeScreen").default}
+        component={HomeScreen}
         options={{
           tabBarIcon: ({ color }) => (
             <Icon name="home" color={color} size={24} />
@@ -22,7 +22,7 @@ const BottomTabNavigator = () => {
       />
       <Tab.Screen
         name="Fleet"
-        component={() => require("../screen/FleetScreen").default}
+        component={FleetScreen}
         options={{
           tabBarIcon: ({ color }) => (
             <Icon name="car" color={color} size={24} />
@@ -40,7 +40,7 @@ const BottomTabNavigator = () => {
       />
       <Tab.Screen
         name="Profile"
-        component={() => require("../screen/ProfileScreen").default}
+        component={ProfileScreen}
         options={{
           tabBarIcon: ({ color }) => (
             <Icon name="account" color={color} size={24} />

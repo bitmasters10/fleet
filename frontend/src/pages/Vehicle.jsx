@@ -109,7 +109,18 @@ function TableManage({ vehicles, setEditingVehicle, deleteVehicle }) {
                 <td className="px-6 py-4">{vehicle.COLOR}</td>
                 <td className="px-6 py-4">{vehicle.COMPANY_NAME}</td>
                 <td className="px-6 py-4">{vehicle.SEATING_CAPACITY}</td>
-                <td className="px-6 py-4">{vehicle.STATUS}</td>
+                <td
+  className={`px-6 py-4 ${
+    vehicle.STATUS === "ACTIVE"
+      ? "text-green-600 font-semibold"
+      : vehicle.STATUS === "INACTIVE"
+      ? "text-red-600 font-semibold"
+      : "text-gray-800"
+  }`}
+>
+  {vehicle.STATUS}
+</td>
+
                 <td className="px-6 py-4 flex">
                   <button
                     className="font-medium text-blue-600 dark:text-blue-500 hover:underline px-1"
@@ -128,7 +139,9 @@ function TableManage({ vehicles, setEditingVehicle, deleteVehicle }) {
             ))
           ) : (
             <tr>
-              <td colSpan="9" className="text-center py-4">No vehicles found.</td>
+              <td colSpan="10" className="text-center py-4">
+                No vehicles found.
+              </td>
             </tr>
           )}
         </tbody>

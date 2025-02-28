@@ -3,6 +3,7 @@ const Router = express.Router();
 const db = require("../db");
 const { v4: uuidv4 } = require("uuid");
 const multer = require('multer');
+
 async function idmake(table, column) {
   let id = uuidv4();
 
@@ -36,6 +37,7 @@ const upload = multer({ storage });
 
 Router.post("/create-fuel", upload.single("photo"), async (req, res) => {
   try {
+    console.log("helo photo")
     // Generate a unique F_ID
     const F_ID = await idmake("FUEL_CONSUMPTION", "F_ID");
 
@@ -44,6 +46,7 @@ Router.post("/create-fuel", upload.single("photo"), async (req, res) => {
 
     // Check if the photo file is uploaded
     if (!req.file) {
+      console.log("nhi aya")
       return res.status(400).json({ error: "Photo is required" });
     }
 
@@ -108,5 +111,28 @@ Router.get("/fuels",(req,res)=>{
     console.error("Error during retrive:", err);
   }
 })
+Router.get("/fuel-cost-per-month", async (req, res) => {
+  try {
+      const query = `
+          SELECT 
+              DATE_FORMAT(STR_TO_DATE(DATE, '%Y-%m-%d'), '%Y-%m') AS month,
+              SUM(COST) AS total_cost
+          FROM fuel_consumption
+          WHERE stat = 'accepted' -- Only include accepted fuel costs
+          GROUP BY month
+          ORDER BY month ASC;
+      `;
 
+      db.query(query, (err, results) => {
+          if (err) {
+              console.error("Error fetching fuel costs:", err);
+              return res.status(500).json({ error: "Internal Server Error" });
+          }
+          res.json(results);
+      });
+  } catch (error) {
+      console.error("Unexpected error:", error);
+      res.status(500).json({ error: "Internal Server Error" });
+  }
+});
 module.exports = Router;

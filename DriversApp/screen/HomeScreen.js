@@ -1,79 +1,84 @@
-import React, { useContext, useEffect, useState } from "react";
+import React, { useState, useContext, useEffect } from "react";
 import {
   StyleSheet,
   View,
   Text,
   Image,
-  ScrollView,
   TouchableOpacity,
   SafeAreaView,
-  Dimensions,
   FlatList,
 } from "react-native";
-import Icon from "react-native-vector-icons/MaterialCommunityIcons";
-import MapView, { Marker } from "react-native-maps";
-
+import Icon from "react-native-vector-icons/Feather";
 import { useNavigation } from "@react-navigation/native";
 import { AuthContext } from "../context/AuthContext";
 import MapScreen from "./MapScreen";
 import { useTrip } from "../context/TripContext";
 
-// Mock data for the spending graph
-const spendingData = {
-  labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug"],
-  datasets: [
-    {
-      data: [800, 950, 875, 925, 1250, 1100, 1000, 900],
-    },
-  ],
-};
-
-// Mock location data
-const initialRegion = {
-  latitude: 37.78825,
-  longitude: -122.4324,
-  latitudeDelta: 0.0922,
-  longitudeDelta: 0.0421,
-};
-
 const HomeScreen = () => {
   const navigation = useNavigation();
-  const screenWidth = Dimensions.get("window").width;
   const { user } = useContext(AuthContext);
-  const { trips = [], fetchTrips, createTrip, loading } = useTrip() || {}; // ✅ Safe fallback
-  const [bookingData, setBookingData] = useState([]);
-  // ✅ Get trip functions
-  console.log("User:", user);
-  // Fetch trips when the screen loads
+  const { trips = [], loading, error, fetchTrips } = useTrip() || {};
+  const { createTrip } = useTrip(); // Import createTrip from context
+
+
+
 
   useEffect(() => {
     fetchTrips();
   }, []);
 
-  // Function to start a trip
-  const handleStartTrip = async (trip) => {
+  const handleClick = async (item) => {
     try {
-      const newTrip = {
-        BOOK_NO: trip.BOOK_NO,
-        BOOK_ID: trip.BOOK_ID,
-        ROUTE: trip.ROUTE,
-        date: trip.date,
+      const tripData = {
+        BOOK_NO: item.BOOK_NO, // Required
+        BOOK_ID: item.BOOK_ID, // Required
+        ROUTE: `${item.PICKUP_LOC} to ${item.DROP_LOC}`, // Generate ROUTE dynamically
+        date: new Date().toISOString().split("T")[0], // Set current date in YYYY-MM-DD format
       };
-      await createTrip(newTrip);
-      alert("Trip started successfully!");
+  
+      const newTrip = await createTrip(tripData); // Call createTrip function
+  
+      if (newTrip) {
+        navigation.navigate("Map", { bookingData: item });
+      }
     } catch (error) {
-      alert("Failed to start trip");
+      console.error("Error starting trip:", error);
     }
   };
 
-  const handleClick = (item) => {
-    setBookingData(item)
-    navigation.navigate("Map", { bookingData: item }); // Send booking data to the Map screen
-  };
+  const TripCard = ({ item }) => (
+    <View style={styles.requestCard}>
+      <View style={styles.requestHeader}>
+        <View style={styles.requestType}>
+          <Icon name="car" size={20} color="#4FA89B" />
+          <Text style={styles.requestTypeText}>
+            {item.PICKUP_LOC} to {item.DROP_LOC}
+          </Text>
+        </View>
+        <Text style={styles.recipientText}>Recipient: User {item.USER_ID}</Text>
+      </View>
+
+      <View style={styles.locationInfo}>
+        <Icon name="map-marker" size={20} color="#4FA89B" />
+        <Text style={styles.locationText}>{item.PICKUP_LOC}</Text>
+      </View>
+
+      <View style={styles.actionButtons}>
+        <TouchableOpacity style={styles.rejectButton}>
+          <Text style={styles.rejectButtonText}>Reject</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.acceptButton}
+          onPress={() => handleClick(item)}
+        >
+          <Text style={styles.acceptButtonText}>Start Trip</Text>
+        </TouchableOpacity>
+      </View>
+    </View>
+  );
 
   return (
     <SafeAreaView style={styles.container}>
-      {/* Header */}
       <View style={styles.header}>
         <View style={styles.userInfo}>
           <Image
@@ -84,32 +89,31 @@ const HomeScreen = () => {
           />
           <View>
             <Text style={styles.welcomeText}>Welcome!</Text>
-            <Text style={styles.userName}>{user?.NAME || "Guest"}</Text>
+            <Text style={styles.userName}>{user?.NAME}</Text>
           </View>
         </View>
-        <TouchableOpacity style={styles.notificationButton}>
+        <TouchableOpacity
+         onPress={() => navigation.navigate("Booking")}
+           style={styles.notificationButton}>
           <Icon name="bell" size={24} color="#4FA89B" />
         </TouchableOpacity>
       </View>
-  
-      {/* ✅ Replace ScrollView with FlatList */}
+
       <FlatList
         ListHeaderComponent={
           <>
-            {/* Live GPS Section */}
             <View style={styles.section}>
               <View style={styles.sectionHeader}>
                 <Text style={styles.sectionTitle}>Live GPS</Text>
-                <TouchableOpacity onPress={() => navigation.navigate("Map", bookingData)}>
+                <TouchableOpacity onPress={() => navigation.navigate("Map")}>
                   <Text style={styles.seeAllText}>See all</Text>
                 </TouchableOpacity>
               </View>
               <View style={styles.mapContainer}>
-                <MapScreen isOpen="true" bookingData={bookingData} />
+                <MapScreen isOpen="true" />
               </View>
             </View>
-  
-            {/* Available Requests Section */}
+
             <View style={styles.section}>
               <View style={styles.sectionHeader}>
                 <Text style={styles.sectionTitle}>Available Requests</Text>
@@ -121,49 +125,21 @@ const HomeScreen = () => {
           </>
         }
         data={trips}
-        keyExtractor={(item) => item.BOOK_ID?.toString() || Math.random().toString()}
+        keyExtractor={(item) => item.BOOK_ID}
         ListEmptyComponent={
-          <Text style={styles.emptyText}>No trips available</Text>
+          loading ? (
+            <Text style={styles.emptyText}>Loading...</Text>
+          ) : error ? (
+            <Text style={styles.errorText}>{error}</Text>
+          ) : (
+            <Text style={styles.emptyText}>No trips available</Text>
+          )
         }
-        renderItem={({ item }) => (
-          <View style={styles.section}>
-            <View style={styles.requestCard}>
-              <View style={styles.requestHeader}>
-                <View style={styles.requestType}>
-                  <Icon name="car" size={20} color="#4FA89B" />
-                  <Text style={styles.requestTypeText}>
-                    {item.PICKUP_LOC} to {item.DROP_LOC}
-                  </Text>
-                </View>
-                <Text style={styles.recipientText}>
-                  Recipient: User {item.USER_ID || "Unknown"}
-                </Text>
-              </View>
-  
-              <View style={styles.locationInfo}>
-                <Icon name="map-marker" size={20} color="#4FA89B" />
-                <Text style={styles.locationText}>
-                  {item.PICKUP_LOC || "Location not available"}
-                </Text>
-              </View>
-  
-              <View style={styles.actionButtons}>
-                <TouchableOpacity
-                  style={styles.acceptButton}
-                  onPress={() => handleClick(item)}
-                >
-                  <Text style={styles.acceptButtonText}>Start Trip</Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-          </View>
-        )}
+        renderItem={({ item }) => <TripCard item={item} />}
       />
     </SafeAreaView>
   );
-  
 };
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -312,57 +288,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: "500",
   },
-  deadlineItem: {
-    flexDirection: "row",
-    alignItems: "center",
-    padding: 15,
-    backgroundColor: "#F5F5F5",
-    borderRadius: 12,
-    marginBottom: 10,
-  },
-  activeDeadline: {
-    backgroundColor: "#4FA89B",
-  },
-  deadlineIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: "#fff",
-    justifyContent: "center",
-    alignItems: "center",
-    marginRight: 12,
-  },
-  deadlineInfo: {
-    flex: 1,
-  },
-  deadlineTitle: {
-    fontSize: 16,
-    fontWeight: "500",
-    color: "#333",
-  },
-  deadlineDate: {
-    fontSize: 14,
-    color: "#666",
-    marginTop: 4,
-  },
-  activeDeadlineTitle: {
-    fontSize: 16,
-    fontWeight: "500",
-    color: "#fff",
-  },
-  activeDeadlineDate: {
-    fontSize: 14,
-    color: "#E0E0E0",
-    marginTop: 4,
-  },
-  arrowRight: {
-    fontSize: 20,
-    color: "#666",
-  },
-  activeArrowRight: {
-    fontSize: 20,
-    color: "#fff",
-  },
+  
 });
 
 export default HomeScreen;

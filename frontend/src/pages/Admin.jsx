@@ -66,8 +66,11 @@ export default function Admin({ title, track }) {
 
   const handleDeleteAdmin = async (id) => {
     try {
+      const res = confirm("Are you sure you want to delete this service?");
+      if(res){
       await deleteAdmin(id);
       showToast("Admin deleted successfully");
+      }
     } catch (error) {
       showToast(error.message || "Failed to delete admin", "error");
     }

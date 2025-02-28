@@ -1,7 +1,8 @@
 let btn = document.querySelector(".myloc");
 let p = document.querySelector("p");
 let map = L.map("mainmap").setView([28.6139, 77.2088], 15);
-const socket = io();
+const socket = io("ws://172.16.233.77:3001");
+
 socket.on("connect",()=>{
     console.log(socket.id);
 })
@@ -47,7 +48,7 @@ btn.addEventListener("click", () => {
   }
 });
 let room ="all";
-socket.emit("rom",room )
+socket.emit("room",room )
 socket.on("otherloc", (data) => {
     console.log(data);
     markcar(data.lat,data.long)

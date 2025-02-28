@@ -7,41 +7,74 @@ import Input from "../components/Input";
 import markerShadow from "leaflet/dist/images/marker-shadow.png";
 import carIconSrc from "../assets/car.png";
 import { io } from "socket.io-client";
+import { useTrip } from "../contexts/TripContext";
 
 // Initialize Socket.IO connection
 const socket = io("ws://localhost:3001", {
-  reconnectionDelayMax: 10000
+  reconnectionDelayMax: 1000000,
 });
 
 socket.on("connect", () => {
   console.log(`Connected: ${socket.id}`);
 });
 
-// Testing room (replace with dynamic room logic later)
-let room = "all";
-socket.emit("joinRoom", room);
+// Join global room
+// socket.emit("room", "all");
 
 export default function Map({ title, track }) {
-  const [userLocations, setUserLocations] = useState({});
+  const { currentTrips, fetchCurrentTrips } = useTrip();
+  const [carPositions, setCarPositions] = useState([]);
 
+  // Fetch trips and join rooms every 30 seconds
   useEffect(() => {
-    socket.on("otherloc", (data) => {
-      console.log("Received location update:", data);
+    const fetchTripsAndJoinRooms = async () => {
+      console.log("Fetching trips...");
+      await fetchCurrentTrips();
+      console.log(currentTrips);
 
-      if (data.room) {
-        setUserLocations((prevLocations) => ({
-          ...prevLocations,
-          [data.room]: { lat: data.lat, long: data.long },
-        }));
-      }
-    });
+      currentTrips.forEach((trip) => {
+        console.log("join function")
+        if (trip.ROOM_ID) {
+          console.log("Joining room:", trip.ROOM_ID);
+          socket.emit("room", trip.ROOM_ID);
+        }
+      });
+    };
+
+    // Initial fetch
+    fetchTripsAndJoinRooms();
+
+    // Interval for fetching and joining rooms
+    const interval = setInterval(fetchTripsAndJoinRooms, 30000);
+
+    return () => clearInterval(interval); // Cleanup interval on unmount
+  }, []);
+
+  // Listen for location updates
+  useEffect(() => {
+    const handleLocationUpdate = (data) => {
+      console.log("Received location:", data);
+
+      setCarPositions((prevPositions) => {
+        const existingIndex = prevPositions.findIndex((item) => item.room === data.room);
+
+        if (existingIndex !== -1) {
+          const updatedPositions = [...prevPositions];
+          updatedPositions[existingIndex] = { ...updatedPositions[existingIndex], lat: data.lat, long: data.long };
+          return updatedPositions;
+        } else {
+          return [...prevPositions, { room: data.room, lat: data.lat, long: data.long }];
+        }
+      });
+    };
+
+    socket.on("otherloc", handleLocationUpdate);
 
     return () => {
-      socket.off("otherloc");
+      socket.off("otherloc", handleLocationUpdate);
     };
   }, []);
 
-  // Custom car icon
   const carIcon = new L.Icon({
     iconUrl: carIconSrc,
     iconSize: [30, 30],
@@ -57,7 +90,7 @@ export default function Map({ title, track }) {
       <div className="flex xl:justify-between max-lg:flex-col-reverse justify-center items-center my-11 xl:max-w-[90%] max-xl:mx-auto max-w-screen-full">
         <div className="w-full border-black" style={{ height: "60vh" }}>
           <MapContainer
-            center={[28.6139, 77.209]} // Default view (Delhi)
+            center={[19.0474975, 72.859226]}
             zoom={13}
             scrollWheelZoom={false}
             className="w-full lg:w-[50vw] h-full z-0 border-black"
@@ -66,16 +99,11 @@ export default function Map({ title, track }) {
               attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
               url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
             />
-
-            {/* Render multiple user locations */}
-            {Object.keys(userLocations).map((roomKey) => {
-              const { lat, long } = userLocations[roomKey];
-              return (
-                <Marker key={roomKey} position={[lat, long]} icon={carIcon}>
-                  <Popup>User {roomKey} is here.</Popup>
-                </Marker>
-              );
-            })}
+            {carPositions.map((car, index) => (
+              <Marker key={index} position={[car.lat, car.long]} icon={carIcon}>
+                <Popup>Car in room: {car.room}</Popup>
+              </Marker>
+            ))}
           </MapContainer>
         </div>
 
@@ -83,9 +111,15 @@ export default function Map({ title, track }) {
           <h2 className="mx-4 text-3xl font-semibold px-3 pt-6">Trips</h2>
           <Input title="Trip" />
           <div className="flex items-center justify-center">
-            {Object.keys(userLocations).length > 0
-              ? "Tracking multiple users..."
-              : "NO ONGOING TRIPS👋🏻"}
+            {currentTrips.length > 0 ? (
+              <ul>
+                {currentTrips.map((trip, index) => (
+                  <li key={index}>{trip.TRIP_ID} - {trip.STAT}</li>
+                ))}
+              </ul>
+            ) : (
+              "NO ONGOING TRIPS👋🏻"
+            )}
           </div>
         </div>
       </div>

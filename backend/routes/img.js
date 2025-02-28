@@ -75,24 +75,29 @@ Router.get('/fuel/:id', (req, res) => {
 });
 Router.get('/fuel-view/:id', (req, res) => {
     const Id = req.params.id;
+    console.log("reqcame")
 
     db.query('SELECT PHOTO FROM FUEL_CONSUMPTION WHERE F_ID = ?', [Id], (err, rows) => {
         if (err) {
-            console.error('Error retrieving BILL ', err);
-            return res.status(500).send('Error retrieving Aadhaar card');
+            console.error('Error retrieving fuel bill:', err);
+            return res.status(500).send('Error retrieving fuel bill');
         }
 
-        if (rows.length > 0) {
+        if (rows.length > 0 && rows[0].PHOTO) { // Ensure PHOTO exists
             const fileData = rows[0].PHOTO;
 
-           
+            res.writeHead(200, {
+                'Content-Type': 'image/jpeg' // Adjust if needed (e.g., 'image/png' for PNG files)
+            });
 
             res.end(fileData);
         } else {
-            res.status(404).send('bill card not found');
-    }
+            console.log("Fuel bill not found for ID:", Id);
+            res.status(404).send('Fuel bill not found');
+        }
+    });
 });
-});
+
 Router.get('/driver-view/:id/adharcard', (req, res) => {
     const driverId = req.params.id;
     console.log("helo")

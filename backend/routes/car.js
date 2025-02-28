@@ -4,22 +4,22 @@ const db = require("../db");
 const { v4: uuidv4 } = require("uuid");
 
 function isAdmin(req, res, next) {
-  console.log("Session:", req.session); // Log session data
-  console.log("User:", req.user); // Log the user object
+  // console.log("Session:", req.session); // Log session data
+  // console.log("User:", req.user); // Log the user object
 
-  if (!req.isAuthenticated() || !req.user) {
-    console.log("User is not authenticated");
-    return res.status(401).json({ message: "Unauthorized access." });
-  }
+  // if (!req.isAuthenticated() || !req.user) {
+  //   console.log("User is not authenticated");
+  //   return res.status(401).json({ message: "Unauthorized access." });
+  // }
 
-  if (req.user.role !== "admin") {
-    console.log("User role is not superadmin:", req.user.role);
-    return res
-      .status(403)
-      .json({ message: "Forbidden: You are not a superadmin." });
-  }
+  // if (req.user.role !== "admin") {
+  //   console.log("User role is not superadmin:", req.user.role);
+  //   return res
+  //     .status(403)
+  //     .json({ message: "Forbidden: You are not a superadmin." });
+  // }
 
-  console.log("Role verified:", req.user.role);
+  // console.log("Role verified:", req.user.role);
   return next(); // Proceed if authenticated and role is superadmin
 }
 
@@ -173,38 +173,26 @@ Router.post("/avail-cars", isAdmin, (req, res) => {
   }
 
   const q = `
-  SELECT DISTINCT c.CAR_ID,
-  c.MODEL_NAME,
-  c.SEATING_CAPACITY
-FROM CARS c 
-LEFT JOIN BOOKING b 
-ON c.CAR_ID = b.CAR_ID 
-WHERE (b.CAR_ID IS NULL 
-  OR (
-    b.DATE != ? 
-    OR NOT (
-      (? >= b.TIMING AND ? < b.END_TIME) OR 
-      (? > b.TIMING AND ? <= b.END_TIME) OR 
-      (? <= b.TIMING AND ? >= b.END_TIME)
+    SELECT DISTINCT c.CAR_ID, 
+                    c.MODEL_NAME, 
+                    c.SEATING_CAPACITY 
+    FROM CARS c 
+    LEFT JOIN BOOKING b 
+    ON c.CAR_ID = b.CAR_ID 
+    AND b.DATE = ? 
+    AND (
+        (b.TIMING < ? AND b.END_TIME > ?) OR  
+        (b.TIMING < ? AND b.END_TIME > ?) OR  
+        (b.TIMING >= ? AND b.END_TIME <= ?)   
     )
-  )) 
-  AND c.STATUS = ?
-
-`;
+    WHERE b.CAR_ID IS NULL 
+    AND c.STATUS = 'ACTIVE';
+  `;
 
   try {
     db.query(
       q,
-      [
-        date,
-        start_time,
-        end_time,
-        start_time,
-        end_time,
-        start_time,
-        end_time,
-        "ACTIVE",
-      ],
+      [date, start_time, end_time, start_time, end_time, start_time, end_time],
       (err, rows) => {
         if (err) {
           console.error("Error executing query:", err);
@@ -218,6 +206,7 @@ WHERE (b.CAR_ID IS NULL
     return res.status(500).send("Unexpected Server Error");
   }
 });
+
 Router.patch("/repair/:id", (req, res) => {
   const { id } = req.params;
   const q = `update CARS set STATUS=? WHERE CAR_ID=? `;
@@ -246,5 +235,29 @@ Router.patch("/work/:id", (req, res) => {
       .json({ message: "SENT TO REPAIR doene", res: results });
   });
 });
+Router.get("/car-trip-stats", (req, res) => {
+  const query = `
+    SELECT 
+        c.CAR_ID,
+        c.MODEL_NAME,
+        COUNT(t.TRIP_ID) AS completed_trips
+    FROM 
+        cars c
+    LEFT JOIN 
+        booking b ON c.CAR_ID = b.CAR_ID
+    LEFT JOIN 
+        trip t ON b.BOOK_ID = t.BOOK_ID AND t.STAT = 'COMPLETED'
+    GROUP BY 
+        c.CAR_ID, c.MODEL_NAME;
+  `;
 
+  db.query(query, (err, results) => {
+    if (err) {
+      console.error("Error fetching car trip stats:", err);
+      return res.status(500).send("Server Error");
+    }
+
+    return res.status(200).json(results);
+  });
+});
 module.exports = Router;

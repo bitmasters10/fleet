@@ -6,6 +6,8 @@ import { useBooking } from "../contexts/BookingContext";
 import { useDrivers } from "../contexts/DriverContext";
 import { useVehicle } from "../contexts/VehicleContext";
 import NormalForm from "../components/NormalForm";
+import TripAdvisorForm from "../components/TripAdvisorForm";
+
 
 // eslint-disable-next-line react/prop-types
 export default function Booking({ title, track }) {
@@ -17,12 +19,15 @@ export default function Booking({ title, track }) {
     deleteBooking,
     createManualBooking,
     fetchPackages,
+    updateBooking
   } = useBooking();
 
   const { fetchAvailableDrivers, drivers } = useDrivers();
   const { fetchAvailableVehicles, availableVehicles } = useVehicle();
 
   const [showCreateForm, setShowCreateForm] = useState(false);
+  const [editingBooking, setEditingBooking] = useState(null); // Tracks the driver being edited
+
   const [bookingError, setBookingError] = useState(null);
   const [activeTab, setActiveTab] = useState("normal");
 
@@ -75,7 +80,15 @@ export default function Booking({ title, track }) {
       alert(result.message);
     }
   };
-
+  const handleUpdateBooking = async (data) => {
+    try {
+      await updateBooking(data);
+      showToast("Driver updated successfully");
+      setEditingBooking(null); // Close the form after successful update
+    } catch (error) {
+      showToast(error.message || "Failed to update driver", "error");
+    }
+  };
   const handleCreateManualBooking = async (bookingData) => {
     const result = await createManualBooking(bookingData);
     console.log("Result from manual booking:", result);
@@ -115,49 +128,69 @@ export default function Booking({ title, track }) {
 
               {/* Tab Navigation */}
               <div className="flex mb-4">
-                <button
-                  className={`px-4 py-2 ${
-                    activeTab === "normal"
-                      ? "bg-blue-500 text-white"
-                      : "bg-gray-200"
-                  }`}
-                  onClick={() => setActiveTab("normal")}
-                >
-                  Normal Booking
-                </button>
-                <button
-                  className={`px-4 py-2 ${
-                    activeTab === "manual"
-                      ? "bg-blue-500 text-white"
-                      : "bg-gray-200"
-                  }`}
-                  onClick={() => setActiveTab("manual")}
-                >
-                  Manual Booking
-                </button>
-              </div>
+  <button
+    className={`px-4 py-2 ${
+      activeTab === "normal" ? "bg-blue-500 text-white" : "bg-gray-200"
+    }`}
+    onClick={() => setActiveTab("normal")}
+  >
+    Normal Booking
+  </button>
+  <button
+    className={`px-4 py-2 ${
+      activeTab === "manual" ? "bg-red-500 text-white" : "bg-gray-200"
+    }`}
+    onClick={() => setActiveTab("manual")}
+  >
+    Manual Booking
+  </button>
+  <button
+    className={`px-4 py-2 ${
+      activeTab === "tripAdvisor" ? "bg-green-500 text-white" : "bg-gray-200"
+    }`}
+    onClick={() => setActiveTab("tripAdvisor")}
+  >
+    Trip Advisor Booking
+  </button>
+</div>
+
 
               {/* Render the appropriate form based on the active tab */}
               {activeTab === "normal" ? (
-                <NormalForm />
-              ) : (
-                <CreateForm
-                  createBooking={handleCreateBooking}
-                  createManualBooking={handleCreateManualBooking}
-                  setShowCreateForm={setShowCreateForm}
-                  bookingError={bookingError}
-                  fetchPackages={fetchPackages}
-                />
-              )}
+  <NormalForm />
+) : activeTab === "manual" ? (
+  <CreateForm
+    createBooking={handleCreateBooking}
+    createManualBooking={handleCreateManualBooking}
+    setShowCreateForm={setShowCreateForm}
+    bookingError={bookingError}
+    fetchPackages={fetchPackages}
+  />
+) : (
+  <TripAdvisorForm
+    // createTripAdvisorBooking={handleCreateTripAdvisorBooking}
+    setShowCreateForm={setShowCreateForm}
+    bookingError={bookingError}
+    fetchPackages={fetchPackages}
+  />
+)}
+
             </div>
           </div>
         )}
-
+    {editingBooking && (
+          <EditForm
+            booking={editingBooking}
+            updateBooking={handleUpdateBooking}
+            setEditingBooking={setEditingBooking}
+          />
+        )}
         <Input title={title} />
         <TableManage
           bookings={bookings}
           loading={loading}
           deleteBooking={deleteBooking}
+          setEditingBooking={setEditingBooking}
         />
       </div>
     </div>
@@ -480,9 +513,113 @@ function CreateForm({
   );
 }
 
+
+
+
+
+// Edit Form Component in Modal
+function EditForm({ booking, updateBooking, setEditingBooking }) {
+  const [formData, setFormData] = useState({
+    BOOK_ID:booking.BOOK_ID,
+    END_TIME: booking.END_TIME,
+    PICKUP_LOC: booking.PICKUP_LOC,
+    TIMING: booking.TIMING,
+  });
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    updateBooking({
+    BOOK_ID: booking.BOOK_ID,
+
+      END_TIME: formData.END_TIME,
+      PICKUP_LOC: formData.PICKUP_LOC,
+      TIMING: formData.TIMING,
+    });
+    setEditingBooking(null);
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+      <div className="bg-gray-100 dark:bg-gray-800 p-6 rounded-md shadow-md w-full lg:w-[90%] mx-auto relative">
+        <button
+          onClick={() => setEditingBooking(null)}
+          className="absolute top-4 right-4 text-black dark:text-white"
+        >
+          &times;
+        </button>
+        <h3 className="text-lg font-semibold mb-4 text-gray-700 dark:text-gray-200">
+          Edit Booking
+        </h3>
+        <form onSubmit={handleSubmit}>
+          <div className="mb-4">
+            <label className="block mb-1 text-gray-700 dark:text-gray-300">
+              END TIME
+            </label>
+            <input
+              type="text"
+              value={formData.END_TIME}
+              onChange={(e) =>
+                setFormData({ ...formData, END_TIME: e.target.value })
+              }
+              className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200"
+              required
+              readOnly
+            />
+          </div>
+          <div className="mb-4">
+            <label className="block mb-1 text-gray-700 dark:text-gray-300">
+              PICKUP LOCATION
+            </label>
+            <input
+              type="text"
+              value={formData.PICKUP_LOC}
+              onChange={(e) =>
+                setFormData({ ...formData, PICKUP_LOC: e.target.value })
+              }
+              className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200"
+              required
+            />
+          </div>
+          <div className="mb-4">
+            <label className="block mb-1 text-gray-700 dark:text-gray-300">
+              TIMING
+            </label>
+            <input
+              type="text"
+              value={formData.TIMING}
+              onChange={(e) =>
+                setFormData({ ...formData, TIMING: e.target.value })
+              }
+              className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200"
+              required
+            />
+          </div>
+          
+          <button
+            type="submit"
+            className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 dark:bg-green-500 dark:hover:bg-green-400"
+          >
+            Update
+          </button>
+          <button
+            type="button"
+            className="bg-gray-400 text-white px-4 py-2 rounded ml-2 hover:bg-gray-500 dark:bg-gray-600 dark:hover:bg-gray-500"
+            onClick={() => setEditingBooking(null)}
+          >
+            Cancel
+          </button>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+
+
+
 // TableManage component
 // eslint-disable-next-line react/prop-types
-function TableManage({ bookings, loading, deleteBooking }) {
+function TableManage({ bookings, loading, deleteBooking , setEditingBooking }) {
   if (loading) {
     return <div>Loading...</div>;
   }
@@ -537,9 +674,11 @@ function TableManage({ bookings, loading, deleteBooking }) {
               <td className="px-6 py-3">{booking.PICKUP_LOC}</td>
               <td className="px-6 py-3">{booking.TIMING}</td>
               <td className="px-6 py-4 flex">
-                <button className="font-medium text-blue-600 dark:text-blue-500 hover:underline px-1">
+                <button className="font-medium text-blue-600 dark:text-blue-500 hover:underline px-1"  onClick={() => setEditingBooking(booking)}>
                   Edit
                 </button>
+               
+
                 <button
                   className="font-medium text-red-600 dark:text-red-500 hover:underline pl-1"
                   onClick={() => handleDelete(booking.BOOK_ID)}

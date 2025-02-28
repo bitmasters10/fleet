@@ -1,3 +1,4 @@
+
 import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 import Navbar from "./components/Navbar";
 import Sidebar from "./components/Sidebar";
@@ -6,7 +7,9 @@ import Dashboard from "./pages/Dashboard";
 import Map from "./pages/Map";
 import Admin from "./pages/Admin";
 import Driver from "./pages/Driver";
-import User from "./pages/Fuel";
+import User from "./pages/User";
+
+
 import Vehicle from "./pages/Vehicle";
 import Trip from "./pages/Trip";
 import Booking from "./pages/Booking";
@@ -22,7 +25,12 @@ import { DriverProvider } from "./contexts/DriverContext";
 import { BookingProvider } from "./contexts/BookingContext";
 import { TripProvider } from "./contexts/TripContext";
 import { FuelProvider } from "./contexts/FuelContext";
+import { UserProvider } from "./contexts/UserContext";
+import { ReportProvider } from "./contexts/ReportContext";
+
 import Fuel from "./pages/Fuel";
+import Service from "./pages/Service";
+import { ServiceProvider } from "./contexts/ServiceContext";
 
 // PrivateRoute Component to protect routes
 // eslint-disable-next-line react/prop-types
@@ -58,6 +66,9 @@ function App() {
         <FuelProvider>  
           <VehicleProvider>
             <DriverProvider>
+              <UserProvider>
+                <ServiceProvider>
+                  <ReportProvider>
         {/* Navbar is always visible */}
         <NavbarWrapper />
 
@@ -102,6 +113,23 @@ function App() {
                     </PrivateRoute>
                 }
               />
+                <Route
+                path="/user"
+                element={
+                  <PrivateRoute>
+                    <User title="User" track="Manage" />
+                  </PrivateRoute>
+                }
+              />
+                <Route
+                path="/service"
+                element={
+                  <PrivateRoute>
+                    <Service title="Service" track="Manage" />
+                  </PrivateRoute>
+                }
+              />
+
               <Route
                 path="/driver"
                 element={
@@ -145,6 +173,9 @@ function App() {
             </Routes>
           </div>
         </AppLayout>
+        </ReportProvider>
+        </ServiceProvider>
+        </UserProvider>
         </DriverProvider>
         </VehicleProvider>
         </FuelProvider>
@@ -158,3 +189,4 @@ function App() {
 }
 
 export default App;
+

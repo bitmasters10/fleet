@@ -20,7 +20,7 @@ const io = new Server(server, {
   
 io.on("connection",(socket)=>{
     console.log(socket.id);
-    socket.on("rom",(room)=>{
+    socket.on("room",(room)=>{
         socket.join(room)
         console.log(room);
     })
