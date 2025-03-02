@@ -1,5 +1,5 @@
 import L from "leaflet";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import Heading from "../components/Heading";
@@ -19,39 +19,56 @@ socket.on("connect", () => {
   console.log(`Connected: ${socket.id}`);
 });
 
-// Join global room
-// socket.emit("room", "all");
-
 export default function Map({ title, track }) {
   const { currentTrips, fetchCurrentTrips } = useTrip();
   const [carPositions, setCarPositions] = useState([]);
-
-  // Fetch trips and join rooms every 30 seconds
+  const joinedRooms = useRef(new Set());
+  
+  // Combined useEffect: fetch trips and join rooms every 30 seconds
   useEffect(() => {
+    console.log("Setting up trip fetching and room joining interval...");
+    
+    // Function to fetch trips and join rooms
     const fetchTripsAndJoinRooms = async () => {
       console.log("Fetching trips...");
       await fetchCurrentTrips();
-      console.log(currentTrips);
-
+      
+      // Clear previously joined rooms to prevent duplicate listeners
+      joinedRooms.current.forEach(roomId => {
+        console.log("Leaving room:", roomId);
+        socket.emit("leave", roomId);
+      });
+      joinedRooms.current.clear();
+      
+      // Join new rooms
+      console.log("Joining rooms for current trips...");
       currentTrips.forEach((trip) => {
-        console.log("join function")
         if (trip.ROOM_ID) {
           console.log("Joining room:", trip.ROOM_ID);
           socket.emit("room", trip.ROOM_ID);
+          joinedRooms.current.add(trip.ROOM_ID);
         }
       });
     };
-
-    // Initial fetch
+    
+    // Initial fetch and join
     fetchTripsAndJoinRooms();
-
-    // Interval for fetching and joining rooms
+    
+    // Set interval for both operations (30 seconds)
     const interval = setInterval(fetchTripsAndJoinRooms, 30000);
+    
+    return () => {
+      console.log("Cleaning up fetch and join interval");
+      clearInterval(interval);
+      
+      // Clean up by leaving all rooms
+      joinedRooms.current.forEach(roomId => {
+        socket.emit("leave", roomId);
+      });
+    };
+  }, [fetchCurrentTrips, currentTrips]);
 
-    return () => clearInterval(interval); // Cleanup interval on unmount
-  }, []);
-
-  // Listen for location updates
+  // Listen for location updates (independent of room joining frequency)
   useEffect(() => {
     const handleLocationUpdate = (data) => {
       console.log("Received location:", data);
