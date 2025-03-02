@@ -12,8 +12,6 @@ const mysql = require('mysql2');
 //     queueLimit: 0,
 //     connectTimeout: 10000,
 //   });
-
-
     
 const db = mysql.createPool({
   host: 'localhost',     // Replace with your host

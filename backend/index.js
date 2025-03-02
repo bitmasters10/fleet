@@ -1,3 +1,4 @@
+
 const express = require("express");
 const session = require("express-session");
 const MySQLStore = require("express-mysql-session")(session);
@@ -80,18 +81,6 @@ const pool = mysql2.createPool({
  connectTimeout: 10000,
 });
 
-const handleConfirmedBooking = async (eventDetails) => {
-  try {
-    const {
-      BookingReference,
-      Location,
-      TravelDate,
-      LeadTravelerName,
-      HotelPickup,
-      Status,
-      StartDateTime,
-      EndDateTime,
-    } = eventDetails;
 
 const handleConfirmedBooking = async (eventDetails) => {
   const connection = await pool.getConnection();
@@ -270,115 +259,6 @@ app.post("/api/events", async (req, res) => {
   if (!eventDetails || Object.keys(eventDetails).length === 0) {
     return res.status(400).json({ message: "Invalid request. No data received." });
   }
-};
-
-const handleCancelledBooking = async (eventDetails) => {
-  try {
-    const { BookingReference, Status } = eventDetails;
-
-    // Ensure status is "Cancelled"
-    if (Status !== "Cancelled") {
-      console.log("Status is not Cancelled, skipping.");
-      return { message: "Booking is not Cancelled." };
-    }
-
-    // Check if the booking exists in BOOKINGS
-    const [existingRows] = await db.query(
-      "SELECT status, book_status FROM BOOKINGS WHERE booking_reference = ?",
-      [BookingReference]
-    );
-
-    if (existingRows.length === 0) {
-      console.log("No existing booking found, skipping.");
-      return { message: "No booking found with this reference." };
-    }
-
-    const { status: currentStatus, book_status } = existingRows[0];
-
-    // If already cancelled, do nothing
-    if (currentStatus === "Cancelled") {
-      console.log("Booking is already Cancelled, skipping.");
-      return { message: "Booking is already Cancelled." };
-    }
-
-    // If book_status is "done", delete from BOOKING first
-    if (book_status === "done") {
-      await db.query("DELETE FROM BOOKING WHERE booking_reference = ?", [
-        BookingReference,
-      ]);
-      console.log("Deleted from BOOKING table.");
-    }
-
-    // If book_status is not "booked", just update the status to Cancelled
-    await db.query(
-      "UPDATE BOOKINGS SET status = 'Cancelled' WHERE booking_reference = ?",
-      [BookingReference]
-    );
-
-    console.log("Booking status updated to Cancelled.");
-    return { message: "Booking status updated to Cancelled." };
-  } catch (error) {
-    console.error("Error processing cancelled booking:", error);
-    return { message: "Error processing booking cancellation." };
-  }
-};
-const handleAmendedBooking = async (eventDetails) => {
-  try {
-    const { 
-      BookingReference, 
-      Title, 
-      Location, 
-      TravelDate, 
-      LeadTravelerName, 
-      HotelPickup, 
-      Status 
-    } = eventDetails;
-
-    // Ensure status is "Amended"
-    if (Status !== "Amended") {
-      console.log("Status is not Amended, skipping.");
-      return { message: "Booking is not Amended." };
-    }
-
-    // Check if the booking exists and is not Cancelled
-    const [existingRows] = await db.query(
-      "SELECT book_status FROM BOOKINGS WHERE booking_reference = ? AND status != 'Cancelled'",
-      [BookingReference]
-    );
-
-    if (existingRows.length === 0) {
-      console.log("No valid booking found for amendment.");
-      return { message: "No active booking found with this reference." };
-    }
-
-    const { book_status } = existingRows[0];
-
-    // Update the BOOKINGS table (except StartDateTime and EndDateTime)
-    await db.query(
-      `UPDATE BOOKINGS 
-       SET title = ?, location = ?, travel_date = ?, lead_traveler_name = ?, 
-           hotel_pickup = ?, status = 'Amended' 
-       WHERE booking_reference = ? AND status != 'Cancelled'`,
-      [Title, Location, TravelDate, LeadTravelerName, HotelPickup, BookingReference]
-    );
-
-    console.log("Booking details updated to Amended.");
-
-    // If book_status is "done", update the pickup location in BOOKING
-    if (book_status === "done") {
-      await db.query(
-        "UPDATE BOOKING SET PICKUP_LOC = ? WHERE br = ?",
-        [HotelPickup, BookingReference]
-      );
-      console.log("Pickup location updated in BOOKING table.");
-    }
-
-    return { message: "Booking successfully amended." };
-  } catch (error) {
-    console.error("Error processing amended booking:", error);
-    return { message: "Error processing booking amendment." };
-  }
-};
 
   try {
     let result;
