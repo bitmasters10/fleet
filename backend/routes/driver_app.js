@@ -342,8 +342,9 @@ Router.post("/myloc",(req,res)=>{
 //   }
 // });
 Router.get("/fuels",(req,res)=>{
+  const DRIVER_ID=req.user.DRIVER_ID;
   try {
-    db.query("SELECT * FROM FUEL_CONSUMPTION ", (err, rows) => {
+    db.query("SELECT * FROM FUEL_CONSUMPTION where DRIVER_ID=? ",DRIVER_ID, (err, rows) => {
       if (err) {
         console.error("Error executing query:", err);
         return res.status(500).send("Server Error");
