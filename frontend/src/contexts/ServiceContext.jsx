@@ -1,6 +1,7 @@
 import { createContext, useContext, useState } from "react";
 import axios from "axios";
 
+
 const ServiceContext = createContext();
 
 // CarHealthContext Provider Component
@@ -8,7 +9,6 @@ export const ServiceProvider = ({ children }) => {
   const [carHealthRecords, setCarHealthRecords] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-
   const axiosInstance = axios.create({
     baseURL: "http://localhost:3000/car-health", // Replace with your backend base URL
     withCredentials: true, // Ensures authentication credentials are included

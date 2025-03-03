@@ -209,13 +209,16 @@ Router.post("/avail-cars", isAdmin, (req, res) => {
 
 Router.patch("/repair/:id", (req, res) => {
   const { id } = req.params;
+  
   const q = `update CARS set STATUS=? WHERE CAR_ID=? `;
   db.query(q, ["REPAIR", id], (err, results) => {
+    console.log(id)
     if (err) {
       console.error("Error fetching :", err);
       res.status(500).send("Server Error");
       return;
     }
+    console.log(results);
     return res
       .status(200)
       .json({ message: "SENT TO REPAIR doene", res: results });

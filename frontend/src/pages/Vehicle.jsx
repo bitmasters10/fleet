@@ -10,7 +10,6 @@ export default function Vehicle({ title, track }) {
   const [editingVehicle, setEditingVehicle] = useState(null); // Tracks the vehicle being edited
   const [showCreateForm, setShowCreateForm] = useState(false); // Tracks Create Form visibility
   const [searchQuery, setSearchQuery] = useState(''); // Tracks search input
-
   const filteredVehicles = vehicles.filter((vehicle) =>
     (vehicle.MODEL_NAME && vehicle.MODEL_NAME.toLowerCase().includes(searchQuery.toLowerCase())) ||
     (vehicle.COMPANY_NAME && vehicle.COMPANY_NAME.toLowerCase().includes(searchQuery.toLowerCase())) ||
@@ -113,7 +112,7 @@ function TableManage({ vehicles, setEditingVehicle, deleteVehicle }) {
   className={`px-6 py-4 ${
     vehicle.STATUS === "ACTIVE"
       ? "text-green-600 font-semibold"
-      : vehicle.STATUS === "INACTIVE"
+      : vehicle.STATUS === "REPAIR"
       ? "text-red-600 font-semibold"
       : "text-gray-800"
   }`}
