@@ -4,7 +4,6 @@ import {
   View,
   Text,
   TouchableOpacity,
-  Linking,
   TextInput,
   SafeAreaView,
   Dimensions,
@@ -17,11 +16,12 @@ import { io } from "socket.io-client";
 import { useRoute } from "@react-navigation/native";
 import { useTrip } from "../context/TripContext";
 import axios from "axios";
+import config from "../config";
 
 const { width } = Dimensions.get("window");
 
-const socket = io("ws:// 192.168.10.122:3001");
-const HOME = "http:// 192.168.10.122:3000";
+const socket = io("ws://192.168.10.122:3001");
+const HOME=config.API_URL
 const home = HOME;
 
 const MapScreen = ({ isOpen }) => {
@@ -315,16 +315,13 @@ const MapScreen = ({ isOpen }) => {
 
           {/* Display mobile phone number */}
           <View style={styles.locationContainer}>
-            <TouchableOpacity
-              style={styles.locationItem}
-              onPress={() => Linking.openURL(`tel:${bookingData.mobile_no}`)}
-            >
+            <View style={styles.locationItem}>
               <Icon name="phone" size={24} color="#4CAF50" />
               <View style={styles.locationInput}>
                 <Text style={styles.locationLabel}>Mobile Phone</Text>
                 <Text style={styles.locationText}>{bookingData.mobile_no}</Text>
               </View>
-            </TouchableOpacity>
+            </View>
           </View>
 
           <View style={styles.otpContainer}>

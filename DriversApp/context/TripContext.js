@@ -1,7 +1,7 @@
 import React, { createContext, useState, useContext, useEffect } from "react";
 import axios from "axios";
 import { useAuth } from "./AuthContext";
-
+import config from "../config";
 const TripContext = createContext();
 
 export const TripProvider = ({ children }) => {
@@ -11,7 +11,7 @@ export const TripProvider = ({ children }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  const HOME="http:// 192.168.10.122:3000"
+  const HOME=config.API_URL
    const home = HOME;
   const clg = "http://172.16.255.151:3000";
 
@@ -141,7 +141,6 @@ export const TripProvider = ({ children }) => {
       setLoading(false);
     }
   };
-  
 
   // Update driver's location
   const updateDriverLocation = async (lat, long) => {
@@ -163,22 +162,6 @@ export const TripProvider = ({ children }) => {
       setLoading(false);
     }
   };
-
-
-  const fetchFuelData = async () => {
-    setLoading(true);
-    try {
-      const res = await axios.get(`${home}/driver/drive/fuel`, {
-        withCredentials: true,
-      });
-      setFuelData(res.data);
-    } catch (err) {
-      console.error("Failed to fetch fuel data:", err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
 
   useEffect(() => {
     if (user) {

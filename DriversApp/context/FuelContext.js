@@ -1,13 +1,13 @@
 import React, { createContext, useState, useContext } from 'react';
 import axios from 'axios';
-
+import config from "../config";
 const FuelContext = createContext();
 
 export const FuelProvider = ({ children }) => {
   const [fuelData, setFuelData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const HOME = "http:// 192.168.10.122:3000";
+  const HOME=config.API_URL
   const home = HOME;
 
   // Fetch vehicles when the screen is loaded

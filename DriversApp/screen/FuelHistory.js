@@ -11,12 +11,12 @@ import {
   Modal,
 } from "react-native";
 import { useFuel } from "../context/FuelContext"; // Ensure the correct import path
-
+import config from "../config";
 export default function FuelHistory() {
   const { fuelData, getFuelRecords, loading, error } = useFuel();
   const [selectedImage, setSelectedImage] = useState(null);
   const [modalVisible, setModalVisible] = useState(false);
-  const HOME = "http:// 192.168.10.122:3000";
+  const HOME=config.API_URL
   const home = HOME;
 
   useEffect(() => {

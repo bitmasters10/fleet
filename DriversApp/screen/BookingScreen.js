@@ -9,7 +9,7 @@ import {
 } from "react-native";
 import { useTrip } from "../context/TripContext";
 import axios from "axios";
-
+import config from "../config";
 const FullScreenTrips = () => {
   const {
     trips = [],
@@ -29,7 +29,7 @@ const FullScreenTrips = () => {
   useEffect(() => {
     console.log("History state changed:", history);
   }, [history]);
-  const HOME="http:// 192.168.10.122:3000"
+  const HOME=config.API_URL
   const home = HOME;
   const handleTabChange = async (tab) => {
     setSelectedTab(tab);

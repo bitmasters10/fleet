@@ -12,6 +12,7 @@ import {
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 import MapView, { Marker, Polyline } from "react-native-maps";
 
+
 const { width } = Dimensions.get("window");
 
 // Mock route coordinates
@@ -30,7 +31,8 @@ const VehicleScreen = ({ route }) => {
         <View style={styles.headerContainer}>
           <Image source={{ uri: vehicle.image }} style={styles.headerImage} />
           <View style={styles.headerOverlay}>
-            <Text style={styles.vehicleId}>{vehicle.id}</Text>
+
+            <Text style={styles.vehicleId}>{vehicle.CAR_NO}</Text>
           </View>
         </View>
 
@@ -40,33 +42,33 @@ const VehicleScreen = ({ route }) => {
             onPress={() => setActiveTab("driver")}
           >
             <Text style={styles.tabLabel}>Driver Name</Text>
-            <Text style={styles.tabValue}>{vehicle.driverName}</Text>
+            <Text style={styles.tabValue}>{vehicle.COMPANY_NAME}</Text>
           </TouchableOpacity>
           <TouchableOpacity
             style={[styles.tab, activeTab === "status" && styles.activeTab]}
             onPress={() => setActiveTab("status")}
           >
             <Text style={styles.tabLabel}>Vehicle Status</Text>
-            <Text style={styles.tabValue}>{vehicle.status}</Text>
+            <Text style={styles.tabValue}>{vehicle.STATUS}</Text>
           </TouchableOpacity>
           <TouchableOpacity
             style={[styles.tab, activeTab === "check" && styles.activeTab]}
             onPress={() => setActiveTab("check")}
           >
-            <Text style={styles.tabLabel}>Vehicle Check</Text>
-            <Text style={styles.tabValue}>{vehicle.checkDate}</Text>
+            <Text style={styles.tabLabel}>MODEL </Text>
+            <Text style={styles.tabValue}>{vehicle.MODEL_NAME}</Text>
           </TouchableOpacity>
         </View>
 
         <View style={styles.statsContainer}>
           <View style={styles.statItem}>
             <Icon name="speedometer" size={24} color="#4FA89B" />
-            <Text style={styles.statValue}>{vehicle.km}</Text>
+            <Text style={styles.statValue}>{vehicle.COLOR}</Text>
             <Text style={styles.statLabel}>KM</Text>
           </View>
           <View style={styles.statItem}>
             <Icon name="gas-station" size={24} color="#4FA89B" />
-            <Text style={styles.statValue}>{vehicle.fuel}</Text>
+            <Text style={styles.statValue}>{vehicle.SEATING_CAPACITY}</Text>
             <Text style={styles.statLabel}>Fuel</Text>
           </View>
           <View style={styles.statItem}>
@@ -90,36 +92,10 @@ const VehicleScreen = ({ route }) => {
             </View>
           </View>
 
-          <View style={styles.mapContainer}>
-            <MapView
-              style={styles.map}
-              initialRegion={{
-                latitude: vehicle.latitude,
-                longitude: vehicle.longitude,
-                latitudeDelta: 0.0922,
-                longitudeDelta: 0.0421,
-              }}
-            >
-              <Polyline
-                coordinates={routeCoordinates}
-                strokeColor="#4FA89B"
-                strokeWidth={3}
-              />
-              <Marker
-                coordinate={{
-                  latitude: vehicle.latitude,
-                  longitude: vehicle.longitude,
-                }}
-                title="Current Location"
-              >
-                <View style={styles.markerContainer}>
-                  <Icon name="truck" size={20} color="#4FA89B" />
-                </View>
-              </Marker>
-            </MapView>
-          </View>
+        
         </View>
       </ScrollView>
+
     </SafeAreaView>
   );
 };
