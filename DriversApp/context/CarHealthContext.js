@@ -6,7 +6,7 @@ const CarHealthContext = createContext();
 export const CarHealthProvider = ({ children }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const HOME = "http://192.168.1.243:3000"; // Replace with your backend URL
+  const HOME = "http:// 192.168.10.122:3000"; // Replace with your backend URL
 
   const addCarHealth = async (carHealthData) => {
     console.log("Sending request to:", `${HOME}/car-health`);

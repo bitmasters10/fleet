@@ -12,7 +12,6 @@ import {
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 import MapView, { Marker, Polyline } from "react-native-maps";
 
-
 const { width } = Dimensions.get("window");
 
 // Mock route coordinates
@@ -31,7 +30,6 @@ const VehicleScreen = ({ route }) => {
         <View style={styles.headerContainer}>
           <Image source={{ uri: vehicle.image }} style={styles.headerImage} />
           <View style={styles.headerOverlay}>
-
             <Text style={styles.vehicleId}>{vehicle.id}</Text>
           </View>
         </View>
@@ -122,7 +120,6 @@ const VehicleScreen = ({ route }) => {
           </View>
         </View>
       </ScrollView>
-
     </SafeAreaView>
   );
 };

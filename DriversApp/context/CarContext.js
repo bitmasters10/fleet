@@ -6,7 +6,7 @@ const CarContext = createContext();
 export const CarProvider = ({ children }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const HOME = "http://192.168.1.243:3000";
+  const HOME = "http:// 192.168.10.122:3000";
   
   const getVehicles = async () => {
     try {

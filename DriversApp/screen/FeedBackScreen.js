@@ -12,7 +12,7 @@ const FeedBackScreen = () => {
   const [issues, setIssues] = useState([]);
   const [notes, setNotes] = useState("");
   const [vehicles, setVehicles] = useState([]);
-  const HOME = "http://192.168.1.243:3000"; // Replace with your backend URL
+  const HOME = "http:// 192.168.10.122:3000"; // Replace with your backend URL
   const categories = [
     { id: "engine", name: "Engine & Performance" },
     { id: "electrical", name: "Electrical Systems" },

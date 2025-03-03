@@ -22,14 +22,23 @@ async function idmake(table, column) {
     });
   });
 }
-const isDriver = (req, res, next) => {
-  if (!req.user || !req.user.DRIVER_ID) {
-    return res.status(401).json({ error: "Unauthorized: Driver not authenticated" });
-  }
-  console.log("Driver Authenticated:", req.user.DRIVER_ID);
-  next();
-};
+function isDriver(req, res, next) {
+  console.log("Session:", req.session); // Log session data
+  console.log("User:", req.user); // Log the user object
 
+  if (!req.isAuthenticated() || !req.user) {
+    console.log("User is not authenticated");
+    return res.status(401).json({ message: "Unauthorized access." });
+  }
+
+  if (req.user. role !== 'driver') {
+    console.log("User role is not driver:", req.user.role);
+    return res
+      .status(403)
+      .json({ message: "Forbidden: You are not a helo"+req.user.role });
+  }
+  return next();
+}
 Router.get("/book/:date",isDriver, (req, res) => {
   const id = req.user.DRIVER_ID;
   const { date } = req.params;
@@ -100,11 +109,6 @@ Router.post("/otp", isDriver, (req, res) => {
 
   console.log("OTP verification attempt:", { otp, BOOK_ID, driverId: id });
 
-Router.post("/otp", (req, res) => {
-  const { otp, BOOK_ID } = req.body;
-  console.log("Backend:", req.body);
-  const id = req.user.DRIVER_ID;
-console.log(id)
   const query =
     "SELECT OTP FROM TRIP WHERE DRIVER_ID = ? AND OTP = ? AND BOOK_ID = ?";
   
@@ -159,7 +163,6 @@ console.log("Request user:", req.user);
 console.log("req came ")
 
   const id = req.user.DRIVER_ID;
-  console.log(id)
   const q = "select * from BOOKING where DRIVER_ID=? AND stat=? ";
   db.query(q, [id, "READY"], (err, results) => {
     if (err) {
@@ -271,10 +274,7 @@ console.log(results)
     res.json(results);
   });
 });
-
-
-
-Router.get("/drive/fuel",isDriver,(req,res)=>{
+Router.get("drive/fuel",isDriver,(req,res)=>{
   const id = req.user.DRIVER_ID;
   if (!id) {
     res.status(505).json({ error: "driver not ready " });
@@ -377,7 +377,6 @@ Router.get("/curr-trips", async (req, res) => {
       console.error("Unexpected error:", error);
       res.status(500).json({ error: "Internal Server Error" });
   }
-});
 });
 
 module.exports = Router;
