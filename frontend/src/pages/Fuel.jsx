@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect , useState} from "react";
 import { useFuel } from "../contexts/FuelContext";
 import Heading from "../components/Heading";
 import Input from "../components/Input";
@@ -29,6 +29,19 @@ export default function Fuel({ title, track }) {
 
 // eslint-disable-next-line react/prop-types
 function TableManage({ fuelRecords, acceptFuelRecord, rejectFuelRecord }) {
+
+  const [isModalOpen, setIsModalOpen] = useState(false);
+    const [selectedDoc, setSelectedDoc] = useState(null);
+  
+    const openModal = (docName) => {
+      setSelectedDoc(docName);
+      setIsModalOpen(true);
+    };
+  
+    const closeModal = () => {
+      setIsModalOpen(false);
+      setSelectedDoc(null);
+    };
   return (
     <div className="max-lg:relative block overflow-x-auto shadow-md sm:rounded-lg">
       <table className="w-full lg:max-w-[95%] mx-auto text-sm text-left rtl:text-right mb-9 text-gray-500 dark:text-gray-400">
@@ -52,6 +65,12 @@ function TableManage({ fuelRecords, acceptFuelRecord, rejectFuelRecord }) {
               <td className="px-6 py-4">{record.stat}</td>
               <td className="px-6 py-4 text-right">
                 <div className="flex space-x-2">
+                <button
+                    className="font-medium text-blue-600 dark:text-blue-500 hover:underline"
+                    onClick={() => openModal(`http://localhost:3000/admin/img/fuel-view/${record.F_ID}`)}
+                  >
+                    View
+                  </button>
                   <button onClick={() => acceptFuelRecord(record.F_ID)} className="text-green-600 hover:underline px-2">
                     Accept
                   </button>
@@ -64,6 +83,29 @@ function TableManage({ fuelRecords, acceptFuelRecord, rejectFuelRecord }) {
           ))}
         </tbody>
       </table>
+
+      {isModalOpen && (
+  <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+    <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg w-96 relative">
+      {/* Close (X) Button */}
+      <button
+        className="absolute top-5.5 right-5  text-gray-600 dark:text-gray-300 text-2xl"
+        onClick={closeModal}
+      >
+        &times;
+      </button>
+
+      <h2 className="text-lg font-semibold mb-4 text-gray-900 dark:text-gray-100 text-center">
+        Bill
+      </h2>
+      <img
+        src={selectedDoc}
+        alt="Identity Document"
+        className="w-full h-auto rounded"
+      />
+    </div>
+  </div>
+)}
     </div>
   );
 }
