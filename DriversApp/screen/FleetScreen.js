@@ -11,12 +11,13 @@ import {
 } from "react-native";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 import { useNavigation } from "@react-navigation/native";
-import { useFuel } from "../context/FuelContext"; // Import useFuel
+import { useFuel } from "../context/FuelContext"; 
+import { useCar } from "../context/CarContext"; // Import useFuel
 
 export default function FleetScreen() {
   const navigation = useNavigation();
-  const { fuelData, getVehicles, loading, error } = useFuel();
-
+  const { fuelData,  getVehicles,loading, error } = useFuel();
+  // const {  getVehicles,loading, error }=useCar()
   useEffect(() => {
     getVehicles(); // Fetch vehicles when the screen loads
   }, []);
@@ -31,8 +32,8 @@ export default function FleetScreen() {
           <Icon name="truck" size={24} color="#4FA89B" />
         </View>
         <View style={styles.itemInfo}>
-          <Text style={styles.itemTitle}>{item.CAR_ID}</Text>
-          <Text style={styles.itemSubtitle}>{item.type || "Unknown Type"}</Text>
+          <Text style={styles.itemTitle}>{item.CAR_NO}</Text>
+          <Text style={styles.itemSubtitle}>{item.CAR_TYPE || "Unknown Type"}</Text>
         </View>
       </View>
       <Icon name="chevron-right" size={24} color="#666" />

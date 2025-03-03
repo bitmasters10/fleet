@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, Button, Image, StyleSheet, Alert, FlatList } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
+import * as ImageManipulator from 'expo-image-manipulator'; // Import ImageManipulator for compression
 import DropDownPicker from 'react-native-dropdown-picker';
-
+import config from "../config";
 
 export default function FuelScreen() {
   const [cameraPermission, setCameraPermission] = useState(null);
@@ -12,8 +13,8 @@ export default function FuelScreen() {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [permissionDenied, setPermissionDenied] = useState(false);  // Track permission denial
   const [fuelData, setFuelData] = useState([]);  // Store vehicle data locally
-  const HOME="http:// 192.168.10.122 :3000"
-   const home = HOME;
+  const HOME = config.API_URL;
+  const home = HOME;
 
   // Fetch vehicles when the component loads
   useEffect(() => {
@@ -41,25 +42,25 @@ export default function FuelScreen() {
       Alert.alert('Permission Denied', 'Camera permission is required to take a photo.');
       return;
     }
-  
+
     try {
       const result = await ImagePicker.launchCameraAsync({
         allowsEditing: true,
         quality: 0.8,
       });
-  
+
       console.log('Result:', result);
-  
+
       if (!result.canceled && result.assets?.length > 0) {
-        setPhoto(result.assets[0].uri);
-        console.log('Captured Photo URI:', result.assets[0].uri);
+        const compressedImage = await compressImage(result.assets[0].uri);
+        setPhoto(compressedImage.uri);
+        console.log('Compressed Photo URI:', compressedImage.uri);
       }
     } catch (error) {
       Alert.alert('Error', 'Something went wrong while accessing the camera.');
       console.error('Camera Error:', error);
     }
   };
-  
 
   const handlePickFromGallery = async () => {
     try {
@@ -67,19 +68,33 @@ export default function FuelScreen() {
         allowsEditing: true,
         quality: 0.8,
       });
-  
+
       console.log('Result:', result);
-  
+
       if (!result.canceled && result.assets?.length > 0) {
-        setPhoto(result.assets[0].uri);
-        console.log('Selected Photo URI:', result.assets[0].uri);
+        const compressedImage = await compressImage(result.assets[0].uri);
+        setPhoto(compressedImage.uri);
+        console.log('Compressed Photo URI:', compressedImage.uri);
       }
     } catch (error) {
       Alert.alert('Error', 'Something went wrong while accessing the gallery.');
       console.error('Gallery Error:', error);
     }
   };
-  
+
+  const compressImage = async (uri) => {
+    try {
+      const compressedImage = await ImageManipulator.manipulateAsync(
+        uri,
+        [{ resize: { width: 800 } }], // Resize to a maximum width of 800px (adjust as needed)
+        { compress: 0.5, format: ImageManipulator.SaveFormat.JPEG } // Compress to 70% quality
+      );
+      return compressedImage;
+    } catch (error) {
+      console.error('Error compressing image:', error);
+      throw error;
+    }
+  };
 
   const requestCameraPermission = async () => {
     const { status } = await ImagePicker.requestCameraPermissionsAsync();
@@ -92,21 +107,21 @@ export default function FuelScreen() {
       Alert.alert("Error", "Please complete all fields and capture a photo.");
       return;
     }
-  
+
     // Convert the image to base64 (required for BLOB storage)
     const response = await fetch(photo);
     const blob = await response.blob();
     const formattedDate = new Date().toISOString().split("T")[0];
     const formData = new FormData();
     formData.append("CAR_ID", selectedVehicle);
-    formData.append("DATE",formattedDate);
+    formData.append("DATE", formattedDate);
     formData.append("COST", fuelAmount);
     formData.append("photo", {
       uri: photo,
       type: "image/jpeg", // Adjust type if needed (e.g., "image/png")
       name: "fuel_photo.jpg",
     });
-  
+
     try {
       const res = await fetch(`${home}/admin/create-fuel`, {
         method: "POST",
@@ -115,12 +130,12 @@ export default function FuelScreen() {
           "Accept": "application/json",
         },
       });
-  
+
       const textResponse = await res.text(); // Debugging response
       console.log("Raw Response:", textResponse);
-  
+
       const responseData = JSON.parse(textResponse);
-  
+
       if (res.ok) {
         Alert.alert("Success", "Fuel record created successfully");
         setSelectedVehicle("");
@@ -134,7 +149,6 @@ export default function FuelScreen() {
       console.error("Submit Error:", error);
     }
   };
-  
 
   return (
     <View style={styles.container}>
@@ -142,7 +156,7 @@ export default function FuelScreen() {
       <DropDownPicker
         open={dropdownOpen}
         value={selectedVehicle}
-        items={fuelData.map(vehicle => ({ label: `Car ${vehicle.CAR_ID}`, value: vehicle.CAR_ID }))} 
+        items={fuelData.map(vehicle => ({ label: `Car ${vehicle.CAR_ID}`, value: vehicle.CAR_ID }))}
         setOpen={setDropdownOpen}
         setValue={setSelectedVehicle}
         placeholder="Select a vehicle"

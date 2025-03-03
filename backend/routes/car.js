@@ -131,9 +131,9 @@ Router.patch("/car/:id", isAdmin, (req, res) => {
     query,
     [
       CAR_NO,
-      COLOR,
       CAR_TYPE,
       MODEL_NAME,
+      COLOR,
       COMPANY_NAME,
       SEATING_CAPACITY,
       STATUS,
