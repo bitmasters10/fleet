@@ -22,7 +22,11 @@ app.use(
     origin: [
       "http://localhost:5173", 
       home, 
-      "http://localhost:5500",  // Ensure this is included for your frontend
+      "http://localhost:5500",
+       "http://localhost/usersite/views/dashboard.php",
+       "http://localhost/usersite" 
+      
+      //   // Ensure this is included for your frontend
     ],
     credentials: true, 
   })

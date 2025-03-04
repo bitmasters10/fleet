@@ -39,13 +39,13 @@ function isDriver(req, res, next) {
   }
   return next();
 }
-Router.get("/book/:id?:date", (req, res) => {
+Router.get("/book/:id/:date", (req, res) => {
   
   const { id ,date} = req.params;
 
   console.log(id)
 
-  const q = "SELECT OTP FROM TRIP WHERE DATE = ? AND BOOKING_ID = ? ";
+  const q = "SELECT OTP FROM TRIP WHERE DATE = ? AND BOOK_ID = ? ";
 
   db.query(q, [date, id,], (err, results) => {
     if (err) {
