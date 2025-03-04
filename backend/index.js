@@ -67,6 +67,7 @@ app.use("/admin/maintenance", require("./routes/maintaince"));
 app.use("/admin/insurance", require("./routes/insurance"));
 app.use("/car-health", require("./routes/car_health"));
 app.use("/admin", require("./routes/advisor"));
+app.use("/user", require("./routes/userWeb"));
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '100mb', extended: true }));
 
