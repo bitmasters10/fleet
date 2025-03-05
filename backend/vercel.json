@@ -4,20 +4,21 @@
       {
         "src": "index.js",
         "use": "@vercel/node"
+      },
+      {
+        "src": "routes/*.js",
+        "use": "@vercel/node"
+      },
+      {
+        "src": "auth/*.js",
+        "use": "@vercel/node"
       }
     ],
     "routes": [
       {
-        "src": "/api/.*",
+        "src": "/api/(.*)",
         "dest": "index.js"
       }
-    ],
-    "env": {
-      "PORT": "3000",
-      "DB_HOST": "localhost",
-      "DB_USER": "root",
-      "DB_PASSWORD": "",
-      "DB_DATABASE": "u820563802_Linda_fleet"
-    }
+    ]
   }
   
