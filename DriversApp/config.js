@@ -1,5 +1,5 @@
 const config = {
-    API_URL: 'http://172.16.230.145:3000'  // Make sure this matches your backend URL
+    API_URL: 'https://fleet-git-master-bitmasters-projects.vercel.app'  // Make sure this matches your backend URL
   };
   
   export default config;
