@@ -287,7 +287,9 @@ app.post("/api/events", async (req, res) => {
   }
 });
 
-
+app.get("/",(req,res)=>{
+res.send("helo")
+})
 
 app.listen(port, () => {
   console.log(`Server running on port ${port}`);
