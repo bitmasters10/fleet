@@ -6,17 +6,17 @@
         "use": "@vercel/node"
       },
       {
-        "src": "routes/*.js",
+        "src": "./routes/*.js",
         "use": "@vercel/node"
       },
       {
-        "src": "auth/*.js",
+        "src": "./auth/*.js",
         "use": "@vercel/node"
       }
     ],
     "routes": [
       {
-        "src": "/api/(.*)",
+        "src": "/(.*)",
         "dest": "index.js"
       }
     ]
