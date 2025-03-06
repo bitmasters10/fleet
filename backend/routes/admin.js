@@ -337,7 +337,7 @@ doc
   .font("Helvetica")
   .fillColor("#666") // Lighter color for the value
   .text(value3, 80 + labelWidth3, y); // Write the value next to the label
-   
+   k
     // **Fuel Cost Per Vehicle - Bar Chart**
     const fuelLabels = reportData.fuel_per_vehicle.map((v) => `${v.CAR_NO} (${v.MODEL_NAME})`);
     const fuelData = reportData.fuel_per_vehicle.map((v) => v.fuel_cost);
