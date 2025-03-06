@@ -53,7 +53,7 @@ Router.post("/create-car", isAdmin, async (req, res) => {
     COMPANY_NAME,
     SEATING_CAPACITY,
   } = req.body;
-  const Id = await idmake("fleetSuperAdmin", "aid");
+  const Id = await idmake("cars", "aid");
   let newCar = {
     CAR_ID: Id,
     CAR_NO: CAR_NO,
@@ -64,7 +64,7 @@ Router.post("/create-car", isAdmin, async (req, res) => {
     SEATING_CAPACITY: SEATING_CAPACITY,
   };
   try {
-    db.query("INSERT INTO CARS SET ?", newCar, (err, rows) => {
+    db.query("INSERT INTO cars SET ?", newCar, (err, rows) => {
       if (err) {
         console.error("Error executing query:", err);
         return res.status(500).send("Server Error");
@@ -78,7 +78,7 @@ Router.post("/create-car", isAdmin, async (req, res) => {
 
 Router.get("/cars", isAdmin, async (req, res) => {
   try {
-    db.query("SELECT * FROM CARS ", (err, rows) => {
+    db.query("SELECT * FROM cars ", (err, rows) => {
       if (err) {
         console.error("Error executing query:", err);
         return res.status(500).send("Server Error");
@@ -91,7 +91,7 @@ Router.get("/cars", isAdmin, async (req, res) => {
 });
 Router.get("/car/:id", isAdmin, async (req, res) => {
   const { id } = req.params;
-  const query = "SELECT * FROM CARS WHERE CAR_ID = ?;";
+  const query = "SELECT * FROM cars WHERE CAR_ID = ?;";
   db.query(query, [id], (err, results) => {
     if (err) {
       console.error("Error fetching user:", err);
@@ -103,7 +103,7 @@ Router.get("/car/:id", isAdmin, async (req, res) => {
 });
 Router.delete("/car/:id", isAdmin, async (req, res) => {
   const { id } = req.params;
-  const query = "delete FROM CARS WHERE car_ID = ?;";
+  const query = "delete FROM cars WHERE car_ID = ?;";
   db.query(query, [id], (err, results) => {
     if (err) {
       console.error("Error fetching user:", err);
@@ -152,7 +152,7 @@ Router.patch("/car/:id", isAdmin, (req, res) => {
 Router.patch("/car-status/:id", isAdmin, (req, res) => {
   const { id } = req.params;
   const { STATUS } = req.body;
-  const query = "UPDATE CARS SET 	STATUS=?	WHERE CAR_ID = ?";
+  const query = "UPDATE cars SET 	STATUS=?	WHERE CAR_ID = ?";
   db.query(query, [STATUS, id], (err, results) => {
     if (err) {
       console.error("Error updating user:", err);
@@ -176,7 +176,7 @@ Router.post("/avail-cars", isAdmin, (req, res) => {
     SELECT DISTINCT c.CAR_ID, 
                     c.MODEL_NAME, 
                     c.SEATING_CAPACITY 
-    FROM CARS c 
+    FROM cars c 
     LEFT JOIN BOOKING b 
     ON c.CAR_ID = b.CAR_ID 
     AND b.DATE = ? 
@@ -210,7 +210,7 @@ Router.post("/avail-cars", isAdmin, (req, res) => {
 Router.patch("/repair/:id", (req, res) => {
   const { id } = req.params;
   
-  const q = `update CARS set STATUS=? WHERE CAR_ID=? `;
+  const q = `update cars set STATUS=? WHERE CAR_ID=? `;
   db.query(q, ["REPAIR", id], (err, results) => {
     console.log(id)
     if (err) {
@@ -226,7 +226,7 @@ Router.patch("/repair/:id", (req, res) => {
 });
 Router.patch("/work/:id", (req, res) => {
   const { id } = req.params;
-  const q = `update CARS set STATUS=? WHERE CAR_ID=? `;
+  const q = `update cars set STATUS=? WHERE CAR_ID=? `;
   db.query(q, ["ACTIVE", id], (err, results) => {
     if (err) {
       console.error("Error fetching :", err);

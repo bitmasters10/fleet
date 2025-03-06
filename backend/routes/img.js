@@ -7,7 +7,7 @@ const multer = require('multer');
 Router.get('/driver/:id/adharcard', (req, res) => {
     const driverId = req.params.id;
 
-    db.query('SELECT ADHARCARD FROM DRIVER WHERE DRIVER_ID = ?', [driverId], (err, rows) => {
+    db.query('SELECT ADHARCARD FROM driver WHERE DRIVER_ID = ?', [driverId], (err, rows) => {
         if (err) {
             console.error('Error retrieving Aadhaar card:', err);
             return res.status(500).send('Error retrieving Aadhaar card');
@@ -30,7 +30,7 @@ Router.get('/driver/:id/adharcard', (req, res) => {
 Router.get('/driver/:id/pancard', (req, res) => {
     const driverId = req.params.id;
 
-    db.query('SELECT PANCARD FROM DRIVER WHERE DRIVER_ID = ?', [driverId], (err, rows) => {
+    db.query('SELECT PANCARD FROM driver WHERE DRIVER_ID = ?', [driverId], (err, rows) => {
         if (err) {
             console.error('Error retrieving Aadhaar card:', err);
             return res.status(500).send('Error retrieving Aadhaar card');
@@ -53,7 +53,7 @@ Router.get('/driver/:id/pancard', (req, res) => {
 Router.get('/fuel/:id', (req, res) => {
     const Id = req.params.id;
 
-    db.query('SELECT PHOTO FROM FUEL_CONSUMPTION WHERE F_ID = ?', [Id], (err, rows) => {
+    db.query('SELECT PHOTO FROM fuel_consumption WHERE F_ID = ?', [Id], (err, rows) => {
         if (err) {
             console.error('Error retrieving BILL ', err);
             return res.status(500).send('Error retrieving Aadhaar card');
@@ -77,7 +77,7 @@ Router.get('/fuel-view/:id', (req, res) => {
     const Id = req.params.id;
     console.log("reqcame")
 
-    db.query('SELECT PHOTO FROM FUEL_CONSUMPTION WHERE F_ID = ?', [Id], (err, rows) => {
+    db.query('SELECT PHOTO FROM fuel_consumption WHERE F_ID = ?', [Id], (err, rows) => {
         if (err) {
             console.error('Error retrieving fuel bill:', err);
             return res.status(500).send('Error retrieving fuel bill');
@@ -102,7 +102,7 @@ Router.get('/driver-view/:id/adharcard', (req, res) => {
     const driverId = req.params.id;
     console.log("helo")
 
-    db.query('SELECT ADHARCARD FROM DRIVER WHERE DRIVER_ID = ?', [driverId], (err, rows) => {
+    db.query('SELECT ADHARCARD FROM driver WHERE DRIVER_ID = ?', [driverId], (err, rows) => {
         if (err) {
             console.error('Error retrieving Aadhaar card:', err);
             return res.status(500).send('Error retrieving Aadhaar card');
@@ -126,7 +126,7 @@ Router.get('/driver-view/:id/adharcard', (req, res) => {
 Router.get('/driver-view/:id/pancard', (req, res) => {
     const driverId = req.params.id;
 
-    db.query('SELECT PANCARD FROM DRIVER WHERE DRIVER_ID = ?', [driverId], (err, rows) => {
+    db.query('SELECT PANCARD FROM driver WHERE DRIVER_ID = ?', [driverId], (err, rows) => {
         if (err) {
             console.error('Error retrieving PAN card:', err);
             return res.status(500).send('Error retrieving PAN card');

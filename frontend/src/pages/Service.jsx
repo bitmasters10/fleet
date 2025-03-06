@@ -52,7 +52,7 @@ console.log(carHealthRecords)
   return (
     <div>
       <Heading title={title} track={track} />
-      <div className="xl:max-w-[90%] max-xl:mx-auto w-full bg-white my-20 dark:bg-gray-800">
+      <div className="xl:max-w-[93%] max-xl:mx-auto w-full bg-white my-20 dark:bg-gray-800">
         <h2 className="mx-4 text-3xl font-semibold px-6 pt-6">{title}</h2>
         <Input title={title} />
         {loading ? (

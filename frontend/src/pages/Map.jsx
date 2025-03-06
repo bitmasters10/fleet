@@ -4,13 +4,12 @@ import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import Heading from "../components/Heading";
 import Input from "../components/Input";
-import markerIcon from "/marker.svg";
 import markerShadow from "leaflet/dist/images/marker-shadow.png";
 import carIconSrc from "../assets/car.png";
 import { io } from "socket.io-client";
 import { useTrip } from "../contexts/TripContext";
 
-// Initialize Socket.IO
+// Initialize Socket.IO connection
 const socket = io("ws://localhost:3001", {
   reconnectionDelayMax: 1000000,
 });
@@ -95,9 +94,11 @@ export default function Map({ title, track }) {
 
   const carIcon = new L.Icon({
     iconUrl: carIconSrc,
-    iconSize: [50, 50],
-    iconAnchor: [25, 50],
-    popupAnchor: [0, -50],
+    iconSize: [30, 30],
+    iconAnchor: [15, 30],
+    popupAnchor: [0, -30],
+    shadowUrl: markerShadow,
+    shadowSize: [41, 41],
   });
 
   return (

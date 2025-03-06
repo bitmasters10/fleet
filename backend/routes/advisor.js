@@ -32,7 +32,7 @@ Router.get("/adv", async (req, res) => {
           // Step 3: Fetch data from the `PACKAGE` table based on the trimmed titles
           const packageQuery = `
               SELECT PID, PROD_ID, NAME, PLACES, DURATION 
-              FROM PACKAGE 
+              FROM package 
               WHERE NAME IN (?);
           `;
 

@@ -35,12 +35,12 @@ Router.post("/", isAuthenticated, async (req, res) => {
       return res.status(400).json({ message: "All fields are required." });
     }
 
-    const HEALTH_ID = await idmake("CAR_HEALTH", "HEALTH_ID");
+    const HEALTH_ID = await idmake("car_health", "HEALTH_ID");
     const DRIVER_ID = req.user.DRIVER_ID; 
     console.log(DRIVER_ID);
     const stat=STATUS;
 
-    const query = `INSERT INTO CAR_HEALTH (HEALTH_ID, CAR_ID, RATING, DRIVER_ID, MESSAGE, STAT, LAST_MAINTENANCE, TIME_STAMP, DESCRIPTION) 
+    const query = `INSERT INTO car_health (HEALTH_ID, CAR_ID, RATING, DRIVER_ID, MESSAGE, STAT, LAST_MAINTENANCE, TIME_STAMP, DESCRIPTION) 
                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`;
 
     db.query(query, [HEALTH_ID, CAR_ID, RATING, DRIVER_ID, MESSAGE, STATUS, LAST_MAINTENANCE, TIME_STAMP, DESCRIPTION], (err, result) => {
@@ -67,7 +67,7 @@ Router.get("/", isAuthenticated, (req, res) => {
 
 Router.get("/:id", isAuthenticated, (req, res) => {
   const { id } = req.params;
-  const query = "SELECT * FROM CAR_HEALTH WHERE HEALTH_ID = ?";
+  const query = "SELECT * FROM car_health WHERE HEALTH_ID = ?";
 
   db.query(query, [id], (err, results) => {
     if (err) return res.status(500).json({ message: "Database error", error: err });
@@ -85,7 +85,7 @@ Router.put("/:id", isAuthenticated, (req, res) => {
     return res.status(400).json({ message: "Only RATING, MESSAGE, and STATUS can be updated." });
   }
 
-  const query = "UPDATE CAR_HEALTH SET RATING = ?, MESSAGE = ?, STATUS = ? WHERE HEALTH_ID = ?";
+  const query = "UPDATE car_health SET RATING = ?, MESSAGE = ?, STATUS = ? WHERE HEALTH_ID = ?";
 
   db.query(query, [RATING, MESSAGE, STATUS, id], (err, result) => {
     if (err) return res.status(500).json({ message: "Database error", error: err });
@@ -97,7 +97,7 @@ Router.put("/:id", isAuthenticated, (req, res) => {
 
 Router.delete("/:id", isAuthenticated, (req, res) => {
   const { id } = req.params;
-  const query = "DELETE FROM CAR_HEALTH WHERE HEALTH_ID = ?";
+  const query = "DELETE FROM car_health WHERE HEALTH_ID = ?";
 
   db.query(query, [id], (err, result) => {
     if (err) return res.status(500).json({ message: "Database error", error: err });

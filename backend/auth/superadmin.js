@@ -152,9 +152,7 @@ passport.use('super-admin-local-login', new LocalStrategy({
         const user = rows[0];
 console.log(user.pass+"&"+password)
 const isMatch = await bcrypt.compare(password, user.pass);
-console.log('Hashed password from DB:', user.pass);
-console.log('Password entered:', password);
-console.log('Password match result:', isMatch);
+
         if (!isMatch) {
             return done(null, false, { message: 'Incorrect password.' });
         }

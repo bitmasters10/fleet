@@ -23,7 +23,6 @@ async function idmake(table, column) {
   });
 }
 function isDriver(req, res, next) {
-  
 
   if (!req.isAuthenticated() || !req.user) {
     console.log("User is not authenticated");
@@ -75,7 +74,6 @@ Router.patch("/trip-complete", isDriver, (req, res) => {
   const formattedDate = `${year}-${month}-${day}`;
 
  
-
   // Update the TRIP table
   const q = "UPDATE trip SET STAT=?, END_TIME=?, date=? WHERE DRIVER_ID=? AND BOOK_ID=?";
   db.query(
@@ -205,7 +203,7 @@ Router.post("/create-trip", isDriver,async (req, res) => {
 
     // Update the BOOKING table
     const updateBookingQuery = "UPDATE booking SET stat = ? WHERE BOOK_ID = ?";
-    db.query(updateBookingQuery, ["trip", BOOK_ID], (err) => {
+    db.query(updateBookingQuery, ["TRIP", BOOK_ID], (err) => {
       if (err) {
         console.error("Error updating BOOKING:", err);
         return res.status(500).json({ error: "Database update failed" });
@@ -263,7 +261,6 @@ Router.get("/history",isDriver, (req, res) => {
       console.error("Error executing query:", err);
       return res.status(500).json({ error: "Database query failed" });
     }
- 
     res.json(results);
   });
 });
@@ -337,7 +334,7 @@ Router.post("/myloc",(req,res)=>{
 Router.get("/fuels",(req,res)=>{
   const DRIVER_ID=req.user.DRIVER_ID;
   try {
-    db.query("SELECT * FROM  fuel_consumption where DRIVER_ID=? ",DRIVER_ID, (err, rows) => {
+    db.query("SELECT * FROM fuel_consumption where DRIVER_ID=? ",DRIVER_ID, (err, rows) => {
       if (err) {
         console.error("Error executing query:", err);
         return res.status(500).send("Server Error");
