@@ -25,8 +25,7 @@ async function idmake(table, column) {
 }
 
 function isAdmin(req, res, next) {
-  console.log("Session:", req.session); // Log session data
-  console.log("User:", req.user); // Log the user object
+
 
   if (!req.isAuthenticated() || !req.user) {
     console.log("User is not authenticated");
@@ -45,7 +44,7 @@ function isAdmin(req, res, next) {
 
 Router.post("/create-trip", async (req, res) => {
   try {
-    let ID = await idmake("TRIP", "TRIP_ID");
+    let ID = await idmake("trip", "TRIP_ID");
     const { BOOK_NO, BOOK_ID, ROUTE, date } = req.body;
     const id = req.user.DRIVER_ID;
     const otp = Math.floor(1000 + Math.random() * 9000); // Generate a random OTP
@@ -66,7 +65,7 @@ Router.post("/create-trip", async (req, res) => {
     };
 
     // Update the BOOKING table
-    const updateBookingQuery = "UPDATE BOOKING SET stat = ? WHERE BOOK_ID = ?";
+    const updateBookingQuery = "UPDATE booking SET stat = ? WHERE BOOK_ID = ?";
     db.query(updateBookingQuery, ["TRIP", BOOK_ID], (err) => {
       if (err) {
         console.error("Error updating BOOKING:", err);
@@ -74,7 +73,7 @@ Router.post("/create-trip", async (req, res) => {
       }
 
       // Insert into TRIP table
-      const insertTripQuery = "INSERT INTO TRIP SET ?";
+      const insertTripQuery = "INSERT INTO trip SET ?";
       db.query(insertTripQuery, trip, (err) => {
         if (err) {
           console.error("Error inserting into TRIP:", err);
@@ -82,7 +81,7 @@ Router.post("/create-trip", async (req, res) => {
         }
 
         // Retrieve the newly created trip record
-        const selectTripQuery = "SELECT * FROM TRIP WHERE TRIP_ID = ?";
+        const selectTripQuery = "SELECT * FROM trip WHERE TRIP_ID = ?";
         db.query(selectTripQuery, [ID], (err, results) => {
           if (err) {
             console.error("Error retrieving trip record:", err);
@@ -102,7 +101,7 @@ Router.post("/create-trip", async (req, res) => {
  
 Router.get("/trips", isAdmin, (req, res) => {
   try {
-    db.query("SELECT * FROM TRIP ", (err, rows) => {
+    db.query("SELECT * FROM trip ", (err, rows) => {
       if (err) {
         console.error("Error executing query:", err);
         return res.status(500).send("Server Error");
@@ -126,7 +125,7 @@ Router.get("/location",(req,res)=>{
   }
   
   const currentDate = formatDate()
-const q="select ROOM_ID FROM TRIP where date=?"
+const q="select ROOM_ID FROM trip where date=?"
 try {
   db.query(q,[currentDate], (err, rows) => {
     if (err) {
@@ -146,7 +145,7 @@ Router.get("/curr-trips", async (req, res) => {
       const todayDate = new Date().toISOString().split("T")[0]; // Get today's date in YYYY-MM-DD format
 
       const query = `
-          SELECT * FROM TRIP
+          SELECT * FROM trip
        
           WHERE STAT IN ('JUST', 'ONGOING') 
           AND date = ?;

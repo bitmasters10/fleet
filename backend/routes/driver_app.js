@@ -23,8 +23,7 @@ async function idmake(table, column) {
   });
 }
 function isDriver(req, res, next) {
-  console.log("Session:", req.session); // Log session data
-  console.log("User:", req.user); // Log the user object
+
 
   if (!req.isAuthenticated() || !req.user) {
     console.log("User is not authenticated");
@@ -45,7 +44,7 @@ Router.get("/book/:date",isDriver, (req, res) => {
   console.log("Driver ID:", id);
   console.log(id)
 
-  const q = "SELECT * FROM BOOKING WHERE DATE = ? AND DRIVER_ID = ? and stat=?";
+  const q = "SELECT * FROM booking WHERE DATE = ? AND DRIVER_ID = ? and stat=?";
 
   db.query(q, [date, id, "READY"], (err, results) => {
     if (err) {
@@ -76,11 +75,9 @@ Router.patch("/trip-complete", isDriver, (req, res) => {
   const day = String(now.getDate()).padStart(2, "0");
   const formattedDate = `${year}-${month}-${day}`;
 
-  console.log("Formatted Time (24-hour):", formattedTime);
-  console.log("Formatted Date (yyyy-mm-dd):", formattedDate);
-
+ 
   // Update the TRIP table
-  const q = "UPDATE TRIP SET STAT=?, END_TIME=?, date=? WHERE DRIVER_ID=? AND BOOK_ID=?";
+  const q = "UPDATE trip SET STAT=?, END_TIME=?, date=? WHERE DRIVER_ID=? AND BOOK_ID=?";
   db.query(
     q,
     ["COMPLETED", formattedTime, formattedDate, id, BOOK_ID],
@@ -110,7 +107,7 @@ Router.post("/otp", isDriver, (req, res) => {
   console.log("OTP verification attempt:", { otp, BOOK_ID, driverId: id });
 
   const query =
-    "SELECT OTP FROM TRIP WHERE DRIVER_ID = ? AND OTP = ? AND BOOK_ID = ?";
+    "SELECT OTP FROM trip WHERE DRIVER_ID = ? AND OTP = ? AND BOOK_ID = ?";
   
   db.query(query, [id, otp, BOOK_ID], (err, results) => {
     if (err) {
@@ -126,7 +123,7 @@ Router.post("/otp", isDriver, (req, res) => {
     console.log("OTP Matched! Updating trip status to ONGOING...");
 
     const updateQuery =
-      "UPDATE TRIP SET STAT = ? WHERE DRIVER_ID = ? AND BOOK_ID = ?";
+      "UPDATE trip SET STAT = ? WHERE DRIVER_ID = ? AND BOOK_ID = ?";
     
     db.query(updateQuery, ["ONGOING", id, BOOK_ID], (err, updateResults) => {
       if (err) {
@@ -141,7 +138,7 @@ Router.post("/otp", isDriver, (req, res) => {
       console.log("Trip status updated to ONGOING. Fetching updated trip...");
 
       const selectUpdatedQuery =
-        "SELECT * FROM TRIP WHERE DRIVER_ID = ? AND BOOK_ID = ?";
+        "SELECT * FROM trip WHERE DRIVER_ID = ? AND BOOK_ID = ?";
       
       db.query(selectUpdatedQuery, [id, BOOK_ID], (err, updatedResults) => {
         if (err) {
@@ -158,12 +155,10 @@ Router.post("/otp", isDriver, (req, res) => {
 
 
 Router.get("/all/book", (req, res) => {
-  console.log("Request body:", req.body);
-console.log("Request user:", req.user);
-console.log("req came ")
+
 
   const id = req.user.DRIVER_ID;
-  const q = "select * from BOOKING where DRIVER_ID=? AND stat=? ";
+  const q = "select * from booking where DRIVER_ID=? AND stat=? ";
   db.query(q, [id, "READY"], (err, results) => {
     if (err) {
       console.error("Error executing query:", err);
@@ -175,7 +170,7 @@ console.log("req came ")
 });
 Router.get("/cars", isDriver,async (req, res) => {
   try {
-    db.query("SELECT * FROM CARS ", (err, rows) => {
+    db.query("SELECT * FROM cars ", (err, rows) => {
       if (err) {
         console.error("Error executing query:", err);
         return res.status(500).send("Server Error");
@@ -188,7 +183,7 @@ Router.get("/cars", isDriver,async (req, res) => {
 });
 Router.post("/create-trip", isDriver,async (req, res) => {
   try {
-    let ID = await idmake("TRIP", "TRIP_ID");
+    let ID = await idmake("trip", "TRIP_ID");
     const { BOOK_NO, BOOK_ID, ROUTE, date } = req.body;
     const id = req.user.DRIVER_ID;
     const otp = Math.floor(1000 + Math.random() * 9000); // Generate a random OTP
@@ -209,7 +204,7 @@ Router.post("/create-trip", isDriver,async (req, res) => {
     };
 
     // Update the BOOKING table
-    const updateBookingQuery = "UPDATE BOOKING SET stat = ? WHERE BOOK_ID = ?";
+    const updateBookingQuery = "UPDATE booking SET stat = ? WHERE BOOK_ID = ?";
     db.query(updateBookingQuery, ["TRIP", BOOK_ID], (err) => {
       if (err) {
         console.error("Error updating BOOKING:", err);
@@ -217,7 +212,7 @@ Router.post("/create-trip", isDriver,async (req, res) => {
       }
 
       // Insert into TRIP table
-      const insertTripQuery = "INSERT INTO TRIP SET ?";
+      const insertTripQuery = "INSERT INTO trip SET ?";
       db.query(insertTripQuery, trip, (err) => {
         if (err) {
           console.error("Error inserting into TRIP:", err);
@@ -225,7 +220,7 @@ Router.post("/create-trip", isDriver,async (req, res) => {
         }
 
         // Retrieve the newly created trip record
-        const selectTripQuery = "SELECT * FROM TRIP WHERE TRIP_ID = ?";
+        const selectTripQuery = "SELECT * FROM trip WHERE TRIP_ID = ?";
         db.query(selectTripQuery, [ID], (err, results) => {
           if (err) {
             console.error("Error retrieving trip record:", err);
@@ -247,7 +242,7 @@ Router.post("/create-trip", isDriver,async (req, res) => {
   }
 });
 Router.get("/test", (req, res) => {
-  db.query("select otp from TRIP", (err, results) => {
+  db.query("select otp from trip", (err, results) => {
     if (err) {
       console.error("Error executing query:", err);
       return res.status(500).json({ error: "Database query failed" });
@@ -258,19 +253,17 @@ Router.get("/test", (req, res) => {
 });
 Router.get("/history",isDriver, (req, res) => {
   const id = req.user.DRIVER_ID;
-  console.log("helo req fro history ")
-  console.log(id)
+
   if (!id) {
     res.status(505).json({ error: "driver not ready " });
   }
-  const q = "select * from TRIP where DRIVER_ID=? AND stat=? ";
+  const q = "select * from trip where DRIVER_ID=? AND stat=? ";
   db.query(q, [id, "COMPLETED"], (err, results) => {
     if (err) {
       console.error("Error executing query:", err);
       return res.status(500).json({ error: "Database query failed" });
     }
-console.log("res send")
-console.log(results)
+
     res.json(results);
   });
 });
@@ -279,7 +272,7 @@ Router.get("drive/fuel",isDriver,(req,res)=>{
   if (!id) {
     res.status(505).json({ error: "driver not ready " });
   }
-  const q = "select * from FUEL_CONSUMPTION where DRIVER_ID=?  ";
+  const q = "select * from fuel_consumption where DRIVER_ID=?  ";
   db.query(q, [id], (err, results) => {
     if (err) {
       console.error("Error executing query:", err);
@@ -292,7 +285,7 @@ Router.get("drive/fuel",isDriver,(req,res)=>{
 Router.post("/myloc",(req,res)=>{
   const {lat,long}=req.body
   const id=req.user.DRIVER_ID;
-  const q="UPDATE DRIVER SET LATITUDE=?,LONGITUDE=? where DRIVER_ID=?"
+  const q="UPDATE driver SET LATITUDE=?,LONGITUDE=? where DRIVER_ID=?"
   try {
     db.query(q,[lat,long,id], (err, rows) => {
       if (err) {
@@ -344,7 +337,7 @@ Router.post("/myloc",(req,res)=>{
 Router.get("/fuels",(req,res)=>{
   const DRIVER_ID=req.user.DRIVER_ID;
   try {
-    db.query("SELECT * FROM FUEL_CONSUMPTION where DRIVER_ID=? ",DRIVER_ID, (err, rows) => {
+    db.query("SELECT * FROM fuel_consumption where DRIVER_ID=? ",DRIVER_ID, (err, rows) => {
       if (err) {
         console.error("Error executing query:", err);
         return res.status(500).send("Server Error");

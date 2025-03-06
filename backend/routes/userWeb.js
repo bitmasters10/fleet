@@ -23,8 +23,7 @@ async function idmake(table, column) {
   });
 }
 function isDriver(req, res, next) {
-  console.log("Session:", req.session); // Log session data
-  console.log("User:", req.user); // Log the user object
+ 
 
   if (!req.isAuthenticated() || !req.user) {
     console.log("User is not authenticated");
@@ -45,7 +44,7 @@ Router.get("/book/:id/:date", (req, res) => {
 
   console.log(id)
 
-  const q = "SELECT OTP FROM TRIP WHERE DATE = ? AND BOOK_ID = ? ";
+  const q = "SELECT OTP FROM trip WHERE DATE = ? AND BOOK_ID = ? ";
 
   db.query(q, [date, id,], (err, results) => {
     if (err) {

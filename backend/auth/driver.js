@@ -45,7 +45,7 @@
 
         try {
         
-            const driverId = await idmake('DRIVER', 'DRIVER_ID');
+            const driverId = await idmake('driver', 'DRIVER_ID');
             const hashedPassword = await bcrypt.hash(password, 10);
 
 
@@ -65,7 +65,7 @@
             };
 
         
-            db.query('INSERT INTO DRIVER SET ?', newDriver, (err) => {
+            db.query('INSERT INTO driver SET ?', newDriver, (err) => {
                 if (err) return done(err);
                 return done(null, { 
                     DRIVER_ID: newDriver.DRIVER_ID, 
@@ -90,7 +90,7 @@
         passwordField: 'password'
     }, (email, password, done) => {
         
-        db.query('SELECT * FROM DRIVER WHERE EMAIL_ID = ?', [email], async (err, rows) => {
+        db.query('SELECT * FROM driver WHERE EMAIL_ID = ?', [email], async (err, rows) => {
             if (err) return done(err);
 
             if (rows.length === 0) {
@@ -115,7 +115,7 @@
 
 
     passport.deserializeUser((id, done) => {
-        db.query('SELECT * FROM DRIVER WHERE DRIVER_ID = ?', [id], (err, rows) => {
+        db.query('SELECT * FROM driver WHERE DRIVER_ID = ?', [id], (err, rows) => {
             if (err) return done(err);
             done(null, rows[0]);
         });

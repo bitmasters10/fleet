@@ -38,8 +38,8 @@ Router.post("/", isAdmin, async (req, res) => {
       return res.status(400).json({ message: "All fields are required." });
     }
 
-    const M_ID = await idmake("MAINTENANCE", "M_ID");
-    const query = "INSERT INTO MAINTENANCE (M_ID, CAR_ID, DATE, DESCRIPTION) VALUES (?, ?, ?, ?)";
+    const M_ID = await idmake("maintenance", "M_ID");
+    const query = "INSERT INTO maintenance (M_ID, CAR_ID, DATE, DESCRIPTION) VALUES (?, ?, ?, ?)";
     
     db.query(query, [M_ID, CAR_ID, DATE, DESCRIPTION], (err, result) => {
       if (err) return res.status(500).json({ message: "Database error", error: err });
@@ -53,7 +53,7 @@ Router.post("/", isAdmin, async (req, res) => {
 
 
 Router.get("/", isAdmin, (req, res) => {
-  const query = "SELECT * FROM MAINTENANCE";
+  const query = "SELECT * FROM maintenance";
   
   db.query(query, (err, results) => {
     if (err) return res.status(500).json({ message: "Database error", error: err });
@@ -64,7 +64,7 @@ Router.get("/", isAdmin, (req, res) => {
 
 Router.get("/:id", isAdmin, (req, res) => {
   const { id } = req.params;
-  const query = "SELECT * FROM MAINTENANCE WHERE M_ID = ?";
+  const query = "SELECT * FROM maintenance WHERE M_ID = ?";
   
   db.query(query, [id], (err, results) => {
     if (err) return res.status(500).json({ message: "Database error", error: err });
@@ -82,7 +82,7 @@ Router.put("/:id", isAdmin, (req, res) => {
     return res.status(400).json({ message: "All fields are required." });
   }
 
-  const query = "UPDATE MAINTENANCE SET CAR_ID = ?, DATE = ?, DESCRIPTION = ? WHERE M_ID = ?";
+  const query = "UPDATE maintenance SET CAR_ID = ?, DATE = ?, DESCRIPTION = ? WHERE M_ID = ?";
   
   db.query(query, [CAR_ID, DATE, DESCRIPTION, id], (err, result) => {
     if (err) return res.status(500).json({ message: "Database error", error: err });
@@ -93,7 +93,7 @@ Router.put("/:id", isAdmin, (req, res) => {
 
 Router.delete("/:id", isAdmin, (req, res) => {
   const { id } = req.params;
-  const query = "DELETE FROM MAINTENANCE WHERE M_ID = ?";
+  const query = "DELETE FROM maintenance WHERE M_ID = ?";
   
   db.query(query, [id], (err, result) => {
     if (err) return res.status(500).json({ message: "Database error", error: err });
