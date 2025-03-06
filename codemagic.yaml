@@ -1,17 +1,27 @@
 workflows:
-
-    android-workflow-id:
-
-        name: Android Sample Workflow
-
-        # .......    
-
-        # .......
-
-        # .......  
-
-    ios-workflow-id:
-
-        name: iOS Sample Workflow
-
-        # ......
+  ios-app:
+    name: iOS Release Build
+    instance_type: mac_mini_m2
+    environment:
+      xcode: latest
+      cocoapods: default
+    scripts:
+      - name: Install dependencies
+        script: |
+          cd ios
+          pod install
+      - name: Build iOS app
+        script: |
+          xcodebuild -workspace ios/fleetame.xcworkspace \
+          -scheme fleet \
+          -sdk iphoneos \
+          -configuration Release \
+          -archivePath ios/build/fleetame.xcarchive archive
+      - name: Export IPA
+        script: |
+          xcodebuild -exportArchive \
+          -archivePath ios/build/fleetame.xcarchive \
+          -exportOptionsPlist ios/exportOptions.plist \
+          -exportPath ios/build/
+    artifacts:
+      - ios/build/*.ipa

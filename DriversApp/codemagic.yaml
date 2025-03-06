@@ -12,15 +12,15 @@ workflows:
           pod install
       - name: Build iOS app
         script: |
-          xcodebuild -workspace ios/YourProjectName.xcworkspace \
-          -scheme YourProjectName \
+          xcodebuild -workspace ios/fleetame.xcworkspace \
+          -scheme fleet \
           -sdk iphoneos \
           -configuration Release \
-          -archivePath ios/build/YourProjectName.xcarchive archive
+          -archivePath ios/build/fleetame.xcarchive archive
       - name: Export IPA
         script: |
           xcodebuild -exportArchive \
-          -archivePath ios/build/YourProjectName.xcarchive \
+          -archivePath ios/build/fleetame.xcarchive \
           -exportOptionsPlist ios/exportOptions.plist \
           -exportPath ios/build/
     artifacts:
