@@ -23,8 +23,7 @@ async function idmake(table, column) {
   });
 }
 function isDriver(req, res, next) {
-  console.log("Session:", req.session); // Log session data
-  console.log("User:", req.user); // Log the user object
+  
 
   if (!req.isAuthenticated() || !req.user) {
     console.log("User is not authenticated");
@@ -42,8 +41,7 @@ function isDriver(req, res, next) {
 Router.get("/book/:date",isDriver, (req, res) => {
   const id = req.user.DRIVER_ID;
   const { date } = req.params;
-  console.log("Driver ID:", id);
-  console.log(id)
+ 
 
   const q = "SELECT * FROM booking WHERE DATE = ? AND DRIVER_ID = ? and stat=?";
 
@@ -76,8 +74,7 @@ Router.patch("/trip-complete", isDriver, (req, res) => {
   const day = String(now.getDate()).padStart(2, "0");
   const formattedDate = `${year}-${month}-${day}`;
 
-  console.log("Formatted Time (24-hour):", formattedTime);
-  console.log("Formatted Date (yyyy-mm-dd):", formattedDate);
+ 
 
   // Update the TRIP table
   const q = "UPDATE trip SET STAT=?, END_TIME=?, date=? WHERE DRIVER_ID=? AND BOOK_ID=?";
@@ -158,9 +155,7 @@ Router.post("/otp", isDriver, (req, res) => {
 
 
 Router.get("/all/book", (req, res) => {
-  console.log("Request body:", req.body);
-console.log("Request user:", req.user);
-console.log("req came ")
+
 
   const id = req.user.DRIVER_ID;
   const q = "select * from booking where DRIVER_ID=? AND stat=? ";
@@ -258,8 +253,7 @@ Router.get("/test", (req, res) => {
 });
 Router.get("/history",isDriver, (req, res) => {
   const id = req.user.DRIVER_ID;
-  console.log("helo req fro history ")
-  console.log(id)
+
   if (!id) {
     res.status(505).json({ error: "driver not ready " });
   }
@@ -269,8 +263,7 @@ Router.get("/history",isDriver, (req, res) => {
       console.error("Error executing query:", err);
       return res.status(500).json({ error: "Database query failed" });
     }
-console.log("res send")
-console.log(results)
+ 
     res.json(results);
   });
 });
