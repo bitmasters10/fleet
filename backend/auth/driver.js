@@ -45,7 +45,7 @@
 
         try {
         
-            const driverId = await idmake('DRIVER', 'DRIVER_ID');
+            const driverId = await idmake('driver', 'DRIVER_ID');
             const hashedPassword = await bcrypt.hash(password, 10);
 
 
@@ -115,7 +115,7 @@
 
 
     passport.deserializeUser((id, done) => {
-        db.query('SELECT * FROM DRIVER WHERE DRIVER_ID = ?', [id], (err, rows) => {
+        db.query('SELECT * FROM driver WHERE DRIVER_ID = ?', [id], (err, rows) => {
             if (err) return done(err);
             done(null, rows[0]);
         });
