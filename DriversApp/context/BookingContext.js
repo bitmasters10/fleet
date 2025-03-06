@@ -1,6 +1,7 @@
 import React, { createContext, useState, useContext, useEffect } from "react";
 import axios from "axios";
 import { useAuth } from "./AuthContext";
+import config from "../config";
 
 const BookingContext = createContext();
 
@@ -12,7 +13,7 @@ export const BookProvider = ({ children }) => {
   const [error, setError] = useState(null);
   const [currentTrips, setCurrentTrips] = useState([]);
 
-  const HOME = "http://192.168.10.122:3000";
+  const HOME=config.API_URL
   const home = HOME;
   const clg = "http://172.16.255.151:3000";
 

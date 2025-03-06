@@ -8,17 +8,16 @@ import {
   ScrollView,
   SafeAreaView,
 } from "react-native";
+
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 import { AuthContext } from "../context/AuthContext";
 import { useNavigation } from "@react-navigation/native";
-const HOME="http://172.20.10.2:3000"
-const home = HOME;
-
+import config from "../config";
 
 const ProfileScreen = () => {
   const { user, logout } = useContext(AuthContext);
   const navigation = useNavigation();
-  const HOME="http:// 192.168.10.122 :3000"
+  const HOME=config.API_URL
    const home = HOME;
 
 

@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState } from "react";
 import axios from "axios"; // Make sure to install axios
+import config from "../config";
 
 export const AuthContext = createContext();
 
@@ -7,7 +8,7 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null); // Store user data in state
   const [loading, setLoading] = useState(false); // Loading state
    const [position, setPosition] = useState(null);
-   const HOME="http://192.168.10.122:3000"
+   const HOME=config.API_URL
    const home = HOME;
 
 const clg = "http://192.168.1.243:3000"
