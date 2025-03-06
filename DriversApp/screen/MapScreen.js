@@ -20,7 +20,7 @@ import config from "../config";
 
 const { width } = Dimensions.get("window");
 
-const socket = io("ws://192.168.10.122:3001");
+const socket = io("https://websoc-4ibu.onrender.com1");
 const HOME=config.API_URL
 const home = HOME;
 
