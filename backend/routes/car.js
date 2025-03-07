@@ -177,7 +177,7 @@ Router.post("/avail-cars", isAdmin, (req, res) => {
                     c.MODEL_NAME, 
                     c.SEATING_CAPACITY 
     FROM cars c 
-    LEFT JOIN BOOKING b 
+    LEFT JOIN booking b 
     ON c.CAR_ID = b.CAR_ID 
     AND b.DATE = ? 
     AND (

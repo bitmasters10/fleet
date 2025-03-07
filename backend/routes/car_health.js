@@ -56,7 +56,7 @@ Router.post("/", isAuthenticated, async (req, res) => {
 
 
 Router.get("/", isAuthenticated, (req, res) => {
-  const query = "SELECT * FROM CAR_HEALTH";
+  const query = "SELECT * FROM car_health";
 
   db.query(query, (err, results) => {
     if (err) return res.status(500).json({ message: "Database error", error: err });

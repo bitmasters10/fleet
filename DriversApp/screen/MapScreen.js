@@ -20,7 +20,7 @@ import config from "../config";
 
 const { width } = Dimensions.get("window");
 
-const socket = io("https://websoc-4ibu.onrender.com1");
+const socket = io("https://websoc-4ibu.onrender.com");
 const HOME=config.API_URL
 const home = HOME;
 
@@ -171,6 +171,7 @@ const MapScreen = ({ isOpen }) => {
   useEffect(() => {
     const sendLocation = () => {
       console.log("Sending location...");
+      
       if (position && position.latitude && position.longitude) {
         socket.emit("loc", {
           room: bookingData?.BOOK_ID || "all",
