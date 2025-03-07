@@ -9,6 +9,9 @@
     "web": "expo start --web"
   },
   "dependencies": {
+    "@expo/config-plugins": "~9.0.0",
+    "@expo/metro-config": "~0.19.0",
+    "@expo/prebuild-config": "~8.0.0",
     "@expo/vector-icons": "^14.0.4",
     "@gorhom/bottom-sheet": "^5.1.1",
     "@mapbox/polyline": "^1.2.1",
@@ -22,9 +25,10 @@
     "axios": "^1.7.9",
     "dotenv": "^16.4.7",
     "expo": "~52.0.36",
-    "expo-cli": "^6.3.10",
+    "expo-image-manipulator": "~13.0.6",
     "expo-image-picker": "^16.0.6",
     "expo-location": "~18.0.7",
+    "expo-modules-autolinking": "~2.0.0",
     "expo-status-bar": "~2.0.1",
     "leaflet": "^1.9.4",
     "link": "^2.1.1",
@@ -45,8 +49,7 @@
     "react-native-screens": "~4.4.0",
     "react-native-svg": "15.8.0",
     "react-navigation": "^5.0.0",
-    "socket.io-client": "^4.8.1",
-    "expo-image-manipulator": "~13.0.6"
+    "socket.io-client": "^4.8.1"
   },
   "devDependencies": {
     "@babel/core": "^7.20.0"
