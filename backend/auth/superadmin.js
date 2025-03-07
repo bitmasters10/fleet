@@ -54,7 +54,7 @@ passport.use('super-admin-local-register', new LocalStrategy({
 
     try {
        
-        const Id = await idmake('fleetSuperAdmin', 'aid');
+        const Id = await idmake('fleetsuperadmin', 'aid');
         const hashedPassword = await bcrypt.hash(password, 10);
 
 
@@ -69,7 +69,7 @@ passport.use('super-admin-local-register', new LocalStrategy({
         };
 
      
-        db.query('INSERT INTO fleetSuperAdmin SET ?', newAdmin, (err) => {
+        db.query('INSERT INTO fleetsuperadmin SET ?', newAdmin, (err) => {
             if (err) return done(err);
             return done(null, { 
                 aid: Id,
@@ -89,7 +89,7 @@ passport.serializeUser((user, done) => {
 });
 
 passport.deserializeUser((id, done) => {
-    db.query('SELECT * FROM fleetSuperAdmin WHERE aid = ?', [id], (err, rows) => {
+    db.query('SELECT * FROM fleetsuperadmin WHERE aid = ?', [id], (err, rows) => {
         if (err) return done(err);
         done(null, rows[0]);
     });
@@ -141,7 +141,7 @@ passport.use('super-admin-local-login', new LocalStrategy({
     passwordField: 'password'
 }, (email, password, done) => {
     
-    db.query("SELECT * FROM fleetSuperAdmin WHERE email = ?", [email], async (err, rows) => {
+    db.query("SELECT * FROM fleetsuperadmin WHERE email = ?", [email], async (err, rows) => {
         
         if (err) return done(err);
 
@@ -152,9 +152,7 @@ passport.use('super-admin-local-login', new LocalStrategy({
         const user = rows[0];
 console.log(user.pass+"&"+password)
 const isMatch = await bcrypt.compare(password, user.pass);
-console.log('Hashed password from DB:', user.pass);
-console.log('Password entered:', password);
-console.log('Password match result:', isMatch);
+
         if (!isMatch) {
             return done(null, false, { message: 'Incorrect password.' });
         }

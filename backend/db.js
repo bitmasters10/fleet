@@ -14,10 +14,10 @@ const mysql = require('mysql2');
 //   });
     
 const db = mysql.createPool({
-  host: 'localhost',     // Replace with your host
-   user: 'root',          // Replace with your username
-  password: '',  // Replace with your password
-  database: 'u820563802_Linda_fleet',
+  host: '193.203.184.214',     // Replace with your host
+   user: 'u422792073_Fleet',          // Replace with your username
+  password: 'MaqsadAli@911',  // Replace with your password
+  database: 'u422792073_Fleet',
   waitForConnections: true,
   connectionLimit: 10,
   queueLimit: 0,

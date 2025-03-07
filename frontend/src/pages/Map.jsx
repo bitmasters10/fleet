@@ -10,7 +10,7 @@ import { io } from "socket.io-client";
 import { useTrip } from "../contexts/TripContext";
 
 // Initialize Socket.IO connection
-const socket = io("ws://localhost:3001", {
+const socket = io("https://websoc-4ibu.onrender.com", {
   reconnectionDelayMax: 1000000,
 });
 
@@ -61,9 +61,9 @@ export default function Map({ title, track }) {
       clearInterval(interval);
       
       // Clean up by leaving all rooms
-      joinedRooms.current.forEach(roomId => {
-        socket.emit("leave", roomId);
-      });
+      // joinedRooms.current.forEach(roomId => {
+      //   socket.emit("leave", roomId);
+      // });
     };
   }, [fetchCurrentTrips, currentTrips]);
 

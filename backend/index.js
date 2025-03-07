@@ -22,7 +22,11 @@ app.use(
     origin: [
       "http://localhost:5173", 
       home, 
-      "http://localhost:5500",  // Ensure this is included for your frontend
+      "http://localhost:5500",
+       "http://localhost/usersite/views/dashboard.php",
+       "http://localhost/usersite" 
+      
+      //   // Ensure this is included for your frontend
     ],
     credentials: true, 
   })
@@ -67,6 +71,7 @@ app.use("/admin/maintenance", require("./routes/maintaince"));
 app.use("/admin/insurance", require("./routes/insurance"));
 app.use("/car-health", require("./routes/car_health"));
 app.use("/admin", require("./routes/advisor"));
+app.use("/user", require("./routes/userWeb"));
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '100mb', extended: true }));
 
@@ -282,7 +287,9 @@ app.post("/api/events", async (req, res) => {
   }
 });
 
-
+app.get("/",(req,res)=>{
+res.send("helo")
+})
 
 app.listen(port, () => {
   console.log(`Server running on port ${port}`);

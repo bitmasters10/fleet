@@ -2,8 +2,7 @@ const express = require('express');
 const Router = express.Router();
 const db = require('../db');
 function isSuperAdmin(req, res, next) {
-    console.log('Session:', req.session); // Log session data
-    console.log('User:', req.user); // Log the user object
+   
 
     if (!req.isAuthenticated() || !req.user) {
         console.log('User is not authenticated');
@@ -20,7 +19,7 @@ function isSuperAdmin(req, res, next) {
 }
 Router.get("/admins",isSuperAdmin,async(req,res)=>{
     try{
-        db.query('SELECT * FROM fleetAdmin ', (err, rows) => {
+        db.query('SELECT * FROM fleetadmin ', (err, rows) => {
             if (err) {
                 console.error('Error executing query:', err);
                 return  res.status(500).send('Server Error')
@@ -37,7 +36,7 @@ Router.get("/admins",isSuperAdmin,async(req,res)=>{
 
 Router.get("/admin/:id",isSuperAdmin,async(req,res)=>{
     const { id } = req.params;
-    const query = "SELECT * FROM fleetAdmin WHERE aid = ?;";
+    const query = "SELECT * FROM fleetadmin WHERE aid = ?;";
     db.query(query, [id], (err, results) => {
         if (err) {
             console.error('Error fetching user:', err);
@@ -49,7 +48,7 @@ Router.get("/admin/:id",isSuperAdmin,async(req,res)=>{
 })
 Router.delete("/admin/:id",isSuperAdmin,async(req,res)=>{
     const { id } = req.params;
-    const query = "delete FROM fleetAdmin WHERE aid = ?;";
+    const query = "delete FROM fleetadmin WHERE aid = ?;";
     db.query(query, [id], (err, results) => {
         if (err) {
             console.error('Error fetching user:', err);
@@ -63,7 +62,7 @@ Router.delete("/admin/:id",isSuperAdmin,async(req,res)=>{
 Router.patch('/admin/:id', isSuperAdmin,(req, res) => {
     const { id } = req.params;
     const { aname, email } = req.body;
-    const query = 'UPDATE fleetAdmin SET aname = ?, email = ? WHERE aid = ?';
+    const query = 'UPDATE fleetadmin SET aname = ?, email = ? WHERE aid = ?';
     db.query(query, [aname, email, id], (err, results) => {
         if (err) {
             console.error('Error updating user:', err);
@@ -76,7 +75,7 @@ Router.patch('/admin/:id', isSuperAdmin,(req, res) => {
 Router.patch("/admin/:id",isSuperAdmin,(req,res)=>{
     const {pass}=req.body
     const{id}=req.params
-    const q="UPDATE fleetAdmin SET aname = ?, email = ? WHERE aid = ?"
+    const q="UPDATE fleetadmin SET aname = ?, email = ? WHERE aid = ?"
 })
 
 Router.get("/monthly-report/:year/:month", async (req, res) => {
@@ -93,15 +92,15 @@ Router.get("/monthly-report/:year/:month", async (req, res) => {
       // Query to get total fuel cost for the month
       const fuelCostQuery = `
         SELECT SUM(COST) AS total_fuel_cost
-        FROM FUEL_CONSUMPTION
+        FROM fuel_consumption
         WHERE DATE BETWEEN ? AND ?
       `;
   
       // Query to get fuel cost per vehicle
       const fuelPerVehicleQuery = `
         SELECT f.CAR_ID, c.CAR_NO, c.MODEL_NAME, SUM(f.COST) AS fuel_cost
-        FROM FUEL_CONSUMPTION f
-        JOIN CARS c ON f.CAR_ID = c.CAR_ID
+        FROM fuel_consumption f
+        JOIN cars c ON f.CAR_ID = c.CAR_ID
         WHERE f.DATE BETWEEN ? AND ?
         GROUP BY f.CAR_ID
       `;
@@ -109,23 +108,23 @@ Router.get("/monthly-report/:year/:month", async (req, res) => {
       // Query to count total bookings for the month
       const totalBookingsQuery = `
         SELECT COUNT(*) AS total_bookings
-        FROM BOOKING
+        FROM booking
         WHERE DATE BETWEEN ? AND ?
       `;
   
       // Query to count total trips completed in the month
       const totalTripsQuery = `
         SELECT COUNT(*) AS total_trips
-        FROM TRIP
+        FROM trip
         WHERE date BETWEEN ? AND ? AND STAT = 'COMPLETED'
       `;
   
       // Query to get trips per vehicle
       const tripsPerVehicleQuery = `
         SELECT b.CAR_ID, c.CAR_NO, c.MODEL_NAME, COUNT(t.TRIP_ID) AS trips_completed
-        FROM TRIP t
-        JOIN BOOKING b ON t.BOOK_ID = b.BOOK_ID
-        JOIN CARS c ON b.CAR_ID = c.CAR_ID
+        FROM trip t
+        JOIN booking b ON t.BOOK_ID = b.BOOK_ID
+        JOIN cars c ON b.CAR_ID = c.CAR_ID
         WHERE t.date BETWEEN ? AND ? AND t.STAT = 'COMPLETED'
         GROUP BY b.CAR_ID
       `;
@@ -133,9 +132,9 @@ Router.get("/monthly-report/:year/:month", async (req, res) => {
       // Query to get trips per driver
       const tripsPerDriverQuery = `
         SELECT d.DRIVER_ID, d.NAME, COUNT(t.TRIP_ID) AS trips_completed, SUM(f.COST) AS total_fuel_cost
-        FROM TRIP t
-        JOIN DRIVER d ON t.DRIVER_ID = d.DRIVER_ID
-        LEFT JOIN FUEL_CONSUMPTION f ON t.DRIVER_ID = f.DRIVER_ID AND f.DATE BETWEEN ? AND ?
+        FROM trip t
+        JOIN driver d ON t.DRIVER_ID = d.DRIVER_ID
+        LEFT JOIN fuel_consumption f ON t.DRIVER_ID = f.DRIVER_ID AND f.DATE BETWEEN ? AND ?
         WHERE t.date BETWEEN ? AND ? AND t.STAT = 'COMPLETED'
         GROUP BY d.DRIVER_ID
       `;

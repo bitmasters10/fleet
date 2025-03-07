@@ -61,7 +61,7 @@ Router.get("/available-books", (req, res) => {
     JOIN 
         users u ON o.user_id = u.id
     JOIN 
-        PACKAGE p ON o.product_name = p.name
+        package p ON o.product_name = p.name
     WHERE 
         s.order_status = ? AND s.fleet_status = ?
 `;
@@ -97,7 +97,7 @@ Router.get("/test", (req, res) => {
 });
 Router.post("/add-package", async (req, res) => {
   const { pid, name, places, duration } = req.body;
-  const Id = await idmake("fleetSuperAdmin", "aid");
+  const Id = await idmake("package", "aid");
   let newCar = {
     PID: Id,
     PROD_ID: pid,
@@ -106,7 +106,7 @@ Router.post("/add-package", async (req, res) => {
     DURATION: duration,
   };
   try {
-    db.query("INSERT INTO PACKAGE SET ?", newCar, (err, rows) => {
+    db.query("INSERT INTO package SET ?", newCar, (err, rows) => {
       if (err) {
         console.error("Error executing query:", err);
         return res.status(500).send("Server Error");
@@ -142,7 +142,7 @@ const formatTime = (timeString) => {
 };
 
 Router.post("/create-book", async (req, res) => {
-  let ID = await idmake("BOOKING", "BOOK_ID");
+  let ID = await idmake("booking", "BOOK_ID");
   const {
     START_TIME: startTime,
     END_TIME: endTime,
@@ -180,7 +180,7 @@ Router.post("/create-book", async (req, res) => {
 
   // Check for overlapping bookings on the same date
   db.query(
-    `SELECT * FROM BOOKING 
+    `SELECT * FROM booking 
      WHERE CAR_ID = ? 
      AND DRIVER_ID = ? 
      AND DATE = ? 
@@ -218,7 +218,7 @@ Router.post("/create-book", async (req, res) => {
         mobile_no: mobile,
       };
 
-      db.query("INSERT INTO BOOKING SET ?", newBook, (err, result) => {
+      db.query("INSERT INTO booking SET ?", newBook, (err, result) => {
         if (err) {
           console.log(err);
           return res.status(500).send("Server Error");
@@ -247,7 +247,7 @@ Router.post("/create-book", async (req, res) => {
 
 
 Router.post("/create-manual-book", async (req, res) => {
-  let ID = await idmake("BOOKING", "BOOK_ID");
+  let ID = await idmake("booking", "BOOK_ID");
   const {
     START_TIME,
     PICKUP_LOC,
@@ -268,7 +268,7 @@ Router.post("/create-manual-book", async (req, res) => {
 
   // Check for overlapping bookings
   db.query(
-    `SELECT * FROM BOOKING 
+    `SELECT * FROM booking
      WHERE CAR_ID = ? 
        AND DRIVER_ID = ? 
        AND DATE = ? 
@@ -321,7 +321,7 @@ Router.post("/create-manual-book", async (req, res) => {
       console.log("New booking data:", newBook);
 
       // Insert the new booking into the database
-      db.query("INSERT INTO BOOKING SET ?", newBook, (err, rows) => {
+      db.query("INSERT INTO booking SET ?", newBook, (err, rows) => {
         if (err) {
           console.error("Error inserting booking:", err);
           return res.status(500).send("Server Error");
@@ -335,7 +335,7 @@ Router.post("/create-manual-book", async (req, res) => {
 });
 Router.get("/bookings", isAdmin, (req, res) => {
   try {
-    db.query("SELECT * FROM BOOKING ", (err, rows) => {
+    db.query("SELECT * FROM booking ", (err, rows) => {
       if (err) {
         console.error("Error executing query:", err);
         return res.status(500).send("Server Error");
@@ -359,7 +359,7 @@ Router.patch("/booking/:id", (req, res) => {
   } = req.body;
   const id = BOOK_ID;
   console.log(req.body)
-  const query = "UPDATE BOOKING SET   TIMING=?, END_TIME=?,PICKUP_LOC=?	WHERE BOOK_ID = ?";
+  const query = "UPDATE booking SET   TIMING=?, END_TIME=?,PICKUP_LOC=?	WHERE BOOK_ID = ?";
   db.query(query, [TIMING, END_TIME,PICKUP_LOC, id], (err, rows) => {
     if (err) {
       console.error("Error updating user:", err);
@@ -374,7 +374,7 @@ Router.patch("/booking/:id", (req, res) => {
 
 Router.get("/bookings", (req, res) => {
   try {
-    db.query("SELECT * FROM BOOKING ", (err, rows) => {
+    db.query("SELECT * FROM booking ", (err, rows) => {
       if (err) {
         console.error("Error executing query:", err);
         return res.status(500).send("Server Error");
@@ -436,7 +436,7 @@ Router.delete("/booking/:id", (req, res) => {
 });
 Router.get("/packages", (req, res) => {
   try {
-    db.query("SELECT * FROM PACKAGE ", (err, rows) => {
+    db.query("SELECT * FROM package ", (err, rows) => {
       if (err) {
         console.error("Error executing query:", err);
         return res.status(500).send("Server Error");
@@ -450,7 +450,7 @@ Router.get("/packages", (req, res) => {
 Router.post("/create-adv-book", async (req, res) => {
   console.log("REQ CAME FOR ADV")
   try {
-    let ID = await idmake("BOOKING", "BOOK_ID");
+    let ID = await idmake("booking", "BOOK_ID");
     const {
       BR,
       START_TIME,
@@ -475,7 +475,7 @@ Router.post("/create-adv-book", async (req, res) => {
 
     // Check if a booking already exists for this car and driver at the same time
     const checkQuery = `
-      SELECT * FROM BOOKING 
+      SELECT * FROM booking
       WHERE CAR_ID=? AND DRIVER_ID=? AND DATE=? 
       AND (
         (? >= TIMING AND ? < END_TIME) OR 
@@ -522,7 +522,7 @@ Router.post("/create-adv-book", async (req, res) => {
         console.log("New Booking:", newBook);
 
         // Insert into BOOKING table
-        db.query("INSERT INTO BOOKING SET ?", newBook, (err, result) => {
+        db.query("INSERT INTO booking SET ?", newBook, (err, result) => {
           if (err) {
             console.error("Error inserting booking:", err);
             return res.status(500).send("Server Error");

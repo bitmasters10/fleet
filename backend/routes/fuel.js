@@ -37,9 +37,9 @@ const upload = multer({ storage });
 
 Router.post("/create-fuel", upload.single("photo"), async (req, res) => {
   try {
-    console.log("helo photo")
+    
     // Generate a unique F_ID
-    const F_ID = await idmake("FUEL_CONSUMPTION", "F_ID");
+    const F_ID = await idmake("fuel_consumption", "F_ID");
 
     const { CAR_ID,  DATE, COST } = req.body;
     const DRIVER_ID=req.user.DRIVER_ID;
@@ -55,7 +55,7 @@ Router.post("/create-fuel", upload.single("photo"), async (req, res) => {
 
     // Create the fuel consumption record
     const query =
-      "INSERT INTO FUEL_CONSUMPTION (F_ID, CAR_ID, DRIVER_ID, DATE, COST, PHOTO) VALUES (?, ?, ?, ?, ?, ?)";
+      "INSERT INTO fuel_consumption (F_ID, CAR_ID, DRIVER_ID, DATE, COST, PHOTO) VALUES (?, ?, ?, ?, ?, ?)";
     const values = [F_ID, CAR_ID, DRIVER_ID, DATE, COST, PHOTO];
 
     db.query(query, values, (err, results) => {
@@ -74,7 +74,7 @@ Router.post("/create-fuel", upload.single("photo"), async (req, res) => {
 });
 Router.patch("/accept/:id",(req,res)=>{
     const {id}=req.params
-    const q="update FUEL_CONSUMPTION set stat=? where F_ID=?"
+    const q="update fuel_consumption set stat=? where F_ID=?"
     db.query(q,["accepted",id], (err, results) => {
         if (err) {
           console.error("Error executing query:", err);
@@ -87,7 +87,7 @@ Router.patch("/accept/:id",(req,res)=>{
 })
 Router.patch("/reject/:id",(req,res)=>{
     const {id}=req.params
-    const q="update FUEL_CONSUMPTION set stat=? where F_ID=?"
+    const q="update fuel_consumption set stat=? where F_ID=?"
     db.query(q,["rejected",id], (err, results) => {
         if (err) {
           console.error("Error executing query:", err);
@@ -100,7 +100,7 @@ Router.patch("/reject/:id",(req,res)=>{
 })
 Router.get("/fuels",(req,res)=>{
   try {
-    db.query("SELECT * FROM FUEL_CONSUMPTION ", (err, rows) => {
+    db.query("SELECT * FROM fuel_consumption ", (err, rows) => {
       if (err) {
         console.error("Error executing query:", err);
         return res.status(500).send("Server Error");
