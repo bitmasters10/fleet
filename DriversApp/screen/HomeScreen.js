@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   SafeAreaView,
   FlatList,
+  RefreshControl, // Import RefreshControl
 } from "react-native";
 import Icon from "react-native-vector-icons/Feather";
 import { useNavigation } from "@react-navigation/native";
@@ -18,26 +19,33 @@ const HomeScreen = () => {
   const navigation = useNavigation();
   const { user } = useContext(AuthContext);
   const { trips = [], loading, error, fetchTrips } = useTrip() || {};
-  const { createTrip } = useTrip(); // Import createTrip from context
+  const { createTrip } = useTrip();
 
-
-
+  // State for refreshing
+  const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
     fetchTrips();
   }, []);
 
+  // Function to handle refresh
+  const onRefresh = async () => {
+    setRefreshing(true); // Set refreshing to true
+    await fetchTrips(); // Fetch trips again
+    setRefreshing(false); // Set refreshing to false
+  };
+
   const handleClick = async (item) => {
     try {
       const tripData = {
-        BOOK_NO: item.BOOK_NO, // Required
-        BOOK_ID: item.BOOK_ID, // Required
-        ROUTE: `${item.PICKUP_LOC} to ${item.DROP_LOC}`, // Generate ROUTE dynamically
-        date: new Date().toISOString().split("T")[0], // Set current date in YYYY-MM-DD format
+        BOOK_NO: item.BOOK_NO,
+        BOOK_ID: item.BOOK_ID,
+        ROUTE: `${item.PICKUP_LOC} to ${item.DROP_LOC}`,
+        date: new Date().toISOString().split("T")[0],
       };
-  
-      const newTrip = await createTrip(tripData); // Call createTrip function
-  
+
+      const newTrip = await createTrip(tripData);
+
       if (newTrip) {
         navigation.navigate("Map", { bookingData: item });
       }
@@ -93,13 +101,21 @@ const HomeScreen = () => {
           </View>
         </View>
         <TouchableOpacity
-         onPress={() => navigation.navigate("Booking")}
-           style={styles.notificationButton}>
+          onPress={() => navigation.navigate("Booking")}
+          style={styles.notificationButton}
+        >
           <Icon name="bell" size={24} color="#4FA89B" />
         </TouchableOpacity>
       </View>
 
       <FlatList
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing} // Bind refreshing state
+            onRefresh={onRefresh} // Bind onRefresh function
+            colors={["#4FA89B"]} // Customize the loading spinner color
+          />
+        }
         ListHeaderComponent={
           <>
             <View style={styles.section}>
@@ -140,6 +156,7 @@ const HomeScreen = () => {
     </SafeAreaView>
   );
 };
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -288,7 +305,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: "500",
   },
-  
 });
 
 export default HomeScreen;
