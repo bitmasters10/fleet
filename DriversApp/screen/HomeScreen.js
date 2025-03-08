@@ -7,9 +7,10 @@ import {
   TouchableOpacity,
   SafeAreaView,
   FlatList,
-  RefreshControl, // Import RefreshControl
+  RefreshControl,
 } from "react-native";
 import Icon from "react-native-vector-icons/Feather";
+import FontIcon from 'react-native-vector-icons/FontAwesome';
 import { useNavigation } from "@react-navigation/native";
 import { AuthContext } from "../context/AuthContext";
 import MapScreen from "./MapScreen";
@@ -21,18 +22,16 @@ const HomeScreen = () => {
   const { trips = [], loading, error, fetchTrips } = useTrip() || {};
   const { createTrip } = useTrip();
 
-  // State for refreshing
   const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
     fetchTrips();
   }, []);
 
-  // Function to handle refresh
   const onRefresh = async () => {
-    setRefreshing(true); // Set refreshing to true
-    await fetchTrips(); // Fetch trips again
-    setRefreshing(false); // Set refreshing to false
+    setRefreshing(true);
+    await fetchTrips();
+    setRefreshing(false);
   };
 
   const handleClick = async (item) => {
@@ -58,7 +57,7 @@ const HomeScreen = () => {
     <View style={styles.requestCard}>
       <View style={styles.requestHeader}>
         <View style={styles.requestType}>
-          <Icon name="car" size={20} color="#4FA89B" />
+          <FontIcon name="car" size={20} color="#4FA89B" />
           <Text style={styles.requestTypeText}>
             {item.PICKUP_LOC} to {item.DROP_LOC}
           </Text>
@@ -67,7 +66,7 @@ const HomeScreen = () => {
       </View>
 
       <View style={styles.locationInfo}>
-        <Icon name="map-marker" size={20} color="#4FA89B" />
+        <FontIcon name="map-marker" size={20} color="#4FA89B" />
         <Text style={styles.locationText}>{item.PICKUP_LOC}</Text>
       </View>
 
@@ -111,9 +110,9 @@ const HomeScreen = () => {
       <FlatList
         refreshControl={
           <RefreshControl
-            refreshing={refreshing} // Bind refreshing state
-            onRefresh={onRefresh} // Bind onRefresh function
-            colors={["#4FA89B"]} // Customize the loading spinner color
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            colors={["#4FA89B"]}
           />
         }
         ListHeaderComponent={
@@ -193,9 +192,6 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     backgroundColor: "#F5F5F5",
   },
-  content: {
-    flex: 1,
-  },
   section: {
     padding: 20,
   },
@@ -219,18 +215,6 @@ const styles = StyleSheet.create({
     backgroundColor: "#F5F5F5",
     borderRadius: 12,
     overflow: "hidden",
-  },
-  map: {
-    width: "100%",
-    height: "100%",
-  },
-  graphContainer: {
-    backgroundColor: "#F5F5F5",
-    borderRadius: 12,
-    padding: 15,
-  },
-  requestsContainer: {
-    marginTop: 12,
   },
   requestCard: {
     backgroundColor: "#fff",
@@ -304,6 +288,16 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontSize: 14,
     fontWeight: "500",
+  },
+  emptyText: {
+    textAlign: "center",
+    color: "#666",
+    marginTop: 20,
+  },
+  errorText: {
+    textAlign: "center",
+    color: "red",
+    marginTop: 20,
   },
 });
 
