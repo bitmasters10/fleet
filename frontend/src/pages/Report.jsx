@@ -6,6 +6,7 @@ import "react-datepicker/dist/react-datepicker.css";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, Legend, PieChart, Pie, Cell, LineChart, Line, CartesianGrid, ResponsiveContainer } from "recharts";
 import AIInsightsVisualization from "../components/AIInsightsVisualization"; // Import the new component
 
+//AIzaSyDAYA7L8JC7f4U5bOM7Ks-ejE1thVtBZhw api key
 const API_KEY = "AIzaSyDAYA7L8JC7f4U5bOM7Ks-ejE1thVtBZhw"; // Set this in your .env file
 const API_ENDPOINT = "https://generativelanguage.googleapis.com/v1/models/gemini-2.0-flash:generateContent";
 
@@ -279,7 +280,6 @@ export default function Report({ title, track }) {
                 )}
               </div>
             )}
-
             <div className="flex justify-center mt-8">
               <button 
                 onClick={generatePDF} 

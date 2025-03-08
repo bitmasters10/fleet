@@ -1,5 +1,12 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, TouchableOpacity, ScrollView, TextInput, StyleSheet } from "react-native";
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  ScrollView,
+  TextInput,
+  StyleSheet,
+} from "react-native";
 import { Card, Button } from "react-native-paper";
 import { Ionicons } from "@expo/vector-icons";
 import axios from "axios"; // Import axios
@@ -12,7 +19,7 @@ const FeedBackScreen = () => {
   const [issues, setIssues] = useState([]);
   const [notes, setNotes] = useState("");
   const [vehicles, setVehicles] = useState([]);
-  const HOME=config.API_URL // Replace with your backend URL
+  const HOME = config.API_URL; // Replace with your backend URL
   const categories = [
     { id: "engine", name: "Engine & Performance" },
     { id: "electrical", name: "Electrical Systems" },
@@ -57,14 +64,20 @@ const FeedBackScreen = () => {
       return;
     }
 
-    const message = `Category: ${categories.find(cat => cat.id === selectedCategory)?.name}\nIssues:\n` + 
-      issues.map(issue => `${issue.part} - ${issue.actionLevel}`).join("\n");
+    const message =
+      `Category: ${
+        categories.find((cat) => cat.id === selectedCategory)?.name
+      }\nIssues:\n` +
+      issues.map((issue) => `${issue.part} - ${issue.actionLevel}`).join("\n");
 
-    const rating = Math.max(...issues.map(issue => {
-      if (issue.actionLevel === "Monitor") return 1;
-      if (issue.actionLevel === "Fix Required") return 2;
-      if (issue.actionLevel === "Immediate Fix") return 3;
-    }), 1); // Default to 1 if no issues
+    const rating = Math.max(
+      ...issues.map((issue) => {
+        if (issue.actionLevel === "Monitor") return 1;
+        if (issue.actionLevel === "Fix Required") return 2;
+        if (issue.actionLevel === "Immediate Fix") return 3;
+      }),
+      1
+    ); // Default to 1 if no issues
 
     const payload = {
       CAR_ID: selectedVehicle.CAR_ID,
@@ -118,19 +131,30 @@ const FeedBackScreen = () => {
             onPress={() => setSelectedVehicle(vehicle)}
             style={[
               styles.vehicleCard,
-              selectedVehicle?.CAR_ID === vehicle.CAR_ID && styles.selectedVehicle,
+              selectedVehicle?.CAR_ID === vehicle.CAR_ID &&
+                styles.selectedVehicle,
             ]}
           >
-            <Text style={{
-              color: selectedVehicle?.CAR_ID === vehicle.CAR_ID ? "#ffffff" : "#000",
-              fontWeight: "bold",
-              fontSize: 16,
-            }}>
+            <Text
+              style={{
+                color:
+                  selectedVehicle?.CAR_ID === vehicle.CAR_ID
+                    ? "#ffffff"
+                    : "#000",
+                fontWeight: "bold",
+                fontSize: 16,
+              }}
+            >
               {vehicle.MODEL_NAME}
             </Text>
-            <Text style={{
-              color: selectedVehicle?.CAR_ID === vehicle.CAR_ID ? "#ffffff" : "#555",
-            }}>
+            <Text
+              style={{
+                color:
+                  selectedVehicle?.CAR_ID === vehicle.CAR_ID
+                    ? "#ffffff"
+                    : "#555",
+              }}
+            >
               {vehicle.number}
             </Text>
           </TouchableOpacity>
@@ -165,7 +189,10 @@ const FeedBackScreen = () => {
                     onPress={() => handleAddIssue(part, level)}
                     style={[
                       styles.actionButton,
-                      issues.find((issue) => issue.part === part && issue.actionLevel === level) && styles.selectedActionButton,
+                      issues.find(
+                        (issue) =>
+                          issue.part === part && issue.actionLevel === level
+                      ) && styles.selectedActionButton,
                     ]}
                   >
                     <Text style={styles.actionButtonText}>{level}</Text>
@@ -182,10 +209,17 @@ const FeedBackScreen = () => {
           <Text style={styles.heading}>Selected Issues</Text>
           {issues.map((issue) => (
             <View key={issue.part} style={styles.selectedIssue}>
-              <Text style={{ fontSize: 14 }}>
+              <Text
+                style={{ fontSize: 14, color: "#000000", fontWeight: "bold" }}
+              >
                 {issue.part}: {issue.actionLevel}
               </Text>
-              <Ionicons name="close-circle" size={24} color="#FF0000" onPress={() => handleRemoveIssue(issue.part)} />
+              <Ionicons
+                name="close-circle"
+                size={24}
+                color="#000000"
+                onPress={() => handleRemoveIssue(issue.part)}
+              />
             </View>
           ))}
         </View>
@@ -202,7 +236,11 @@ const FeedBackScreen = () => {
             onChangeText={setNotes}
           />
 
-          <Button mode="contained" style={styles.submitButton} onPress={handleSubmitFeedback}>
+          <Button
+            mode="contained"
+            style={styles.submitButton}
+            onPress={handleSubmitFeedback}
+          >
             Submit Feedback
           </Button>
         </View>

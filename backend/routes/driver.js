@@ -47,7 +47,7 @@ async function idmake(table, column) {
 Router.get("/drivers", isAdmin, async (req, res) => {
   try {
     db.query(
-      "SELECT DRIVER_ID,NAME, EMAIL_ID, LICENSE_NO,GENDER FROM DRIVER ",
+      "SELECT DRIVER_ID,NAME, EMAIL_ID, LICENSE_NO,GENDER FROM driver ",
       (err, rows) => {
         if (err) {
           console.error("Error executing query:", err);
@@ -62,7 +62,7 @@ Router.get("/drivers", isAdmin, async (req, res) => {
 });
 Router.get("/driver/:id", isAdmin, async (req, res) => {
   const { id } = req.params;
-  const query = "SELECT * FROM DRIVER WHERE DRIVER_ID = ?;";
+  const query = "SELECT * FROM driver WHERE DRIVER_ID = ?;";
   db.query(query, [id], (err, results) => {
     if (err) {
       console.error("Error fetching user:", err);
@@ -74,7 +74,7 @@ Router.get("/driver/:id", isAdmin, async (req, res) => {
 });
 Router.delete("/driver/:id", isAdmin, async (req, res) => {
   const { id } = req.params;
-  const query = "delete FROM DRIVER WHERE DRIVER_ID = ?;";
+  const query = "delete FROM driver WHERE DRIVER_ID = ?;";
   db.query(query, [id], (err, results) => {
     if (err) {
       console.error("Error fetching user:", err);
@@ -89,7 +89,7 @@ Router.patch("/driver/:id", isAdmin, (req, res) => {
   const { id } = req.params;
   const { NAME, EMAIL_ID, LICENSE_NO } = req.body;
   const query =
-    "UPDATE DRIVER SET NAME =?, EMAIL_ID=?, LICENSE_NO=?	WHERE DRIVER_ID = ?";
+    "UPDATE driver SET NAME =?, EMAIL_ID=?, LICENSE_NO=?	WHERE DRIVER_ID = ?";
   db.query(query, [NAME, EMAIL_ID, LICENSE_NO, id], (err, results) => {
     if (err) {
       console.error("Error updating user:", err);
@@ -111,8 +111,8 @@ Router.post("/avail-drivers", isAdmin, (req, res) => {
   const q = `
     SELECT DISTINCT d.DRIVER_ID, 
                     d.NAME 
-    FROM DRIVER d 
-    LEFT JOIN BOOKING b 
+    FROM driver d 
+    LEFT JOIN booking b 
     ON d.DRIVER_ID = b.DRIVER_ID 
     AND b.DATE = ? 
     AND (
@@ -143,7 +143,7 @@ Router.post("/avail-drivers", isAdmin, (req, res) => {
 Router.post("/myloc",(req,res)=>{
   const {lat,long}=req.body
   const id=req.user.DRIVER_ID;
-  const q="UPDATE DRIVER SET LATITUDE=?,LONGITUDE=? where DRIVER_ID=?"
+  const q="UPDATE driver SET LATITUDE=?,LONGITUDE=? where DRIVER_ID=?"
   try {
     db.query(q,[lat,long,id], (err, rows) => {
       if (err) {
