@@ -10,7 +10,7 @@ export const ServiceProvider = ({ children }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const axiosInstance = axios.create({
-    baseURL: "http://localhost:3000/car-health", // Replace with your backend base URL
+    baseURL: "https://fleet-eyad.onrender.com/car-health", // Replace with your backend base URL
     withCredentials: true, // Ensures authentication credentials are included
   });
 

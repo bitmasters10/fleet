@@ -44,7 +44,7 @@ const sessionMiddleware = session({
   resave: false,
   saveUninitialized: false,
   cookie: {
-    secure: false,
+    secure: true,
     httpOnly: true,
     maxAge: 3600000, // Session expires after 1 hour
   },

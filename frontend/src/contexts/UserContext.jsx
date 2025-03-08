@@ -11,7 +11,7 @@ export const UserProvider = ({ children }) => {
   const [error, setError] = useState(null);
   const [userCount, setUserCount] = useState(0);
   const axiosInstance = axios.create({
-    baseURL: "http://localhost:3000", // Replace with your backend base URL
+    baseURL: "https://fleet-eyad.onrender.com/", // Replace with your backend base URL
     withCredentials: true, // Important: This ensures that cookies (session) are included in requests
   });
   // Fetch all drivers

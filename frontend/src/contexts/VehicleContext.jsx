@@ -23,7 +23,7 @@ export const VehicleProvider = ({ children }) => {
   const [carTripStats, setCarTripStats] = useState([]); // Store car trip stats
 
   const axiosInstance = axios.create({
-    baseURL: "http://localhost:3000", // Replace with your backend base URL
+    baseURL: "https://fleet-eyad.onrender.com/", // Replace with your backend base URL
     withCredentials: true, // Important: This ensures that cookies (session) are included in requests
   });
   // Fetch all cars from the API

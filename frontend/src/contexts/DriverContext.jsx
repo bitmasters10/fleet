@@ -10,7 +10,7 @@ export const DriverProvider = ({ children }) => {
   const [error, setError] = useState(null);
   const [driverCount, setDriverCount] = useState(0);
   const axiosInstance = axios.create({
-    baseURL: "http://localhost:3000", // Replace with your backend base URL
+    baseURL: "https://fleet-eyad.onrender.com/", // Replace with your backend base URL
     withCredentials: true, // Important: This ensures that cookies (session) are included in requests
   });
   // Fetch all drivers
@@ -85,7 +85,7 @@ export const DriverProvider = ({ children }) => {
   // Fetch a single driver by ID
   const fetchDriverById = async (id) => {
     try {
-      const response = await fetch(`http://localhost:3000/admin/driver/${id}`, {
+      const response = await fetch(`https://fleet-eyad.onrender.com/admin/driver/${id}`, {
         credentials: "include",
       });
 
