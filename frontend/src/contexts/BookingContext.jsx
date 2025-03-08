@@ -18,7 +18,7 @@ export const BookingProvider = ({ children }) => {
   const [bookingCount, setBookingCount] = useState(0);
 
   const axiosInstance = axios.create({
-    baseURL: "https://fleet-eyad.onrender.com/", // Replace with your backend base URL
+    baseURL: "http://localhost:3000", // Replace with your backend base URL
     withCredentials: true, // Ensures that cookies (session) are included in requests
   });
 

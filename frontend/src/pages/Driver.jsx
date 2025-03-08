@@ -208,13 +208,13 @@ function TableManage({ drivers = [], setEditingDriver, deleteDriver }) {
                 <td className="px-6 py-4 flex gap-2">
                   <button
                     className="font-medium text-blue-600 dark:text-blue-500 hover:underline"
-                    onClick={() => openModal(`https://fleet-eyad.onrender.com/admin/img/driver-view/${driver.DRIVER_ID}/adharcard`)}
+                    onClick={() => openModal(`http://localhost:3000/admin/img/driver-view/${driver.DRIVER_ID}/adharcard`)}
                   >
                     View Aadhaar
                   </button>
                   <button
                     className="font-medium text-green-600 dark:text-green-500 hover:underline"
-                    onClick={() => openModal(`https://fleet-eyad.onrender.com/admin/img/driver-view/${driver.DRIVER_ID}/pancard`)}
+                    onClick={() => openModal(`http://localhost:3000/admin/img/driver-view/${driver.DRIVER_ID}/pancard`)}
                   >
                     View PAN
                   </button>

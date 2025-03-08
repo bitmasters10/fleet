@@ -12,7 +12,7 @@ export const TripProvider = ({ children }) => {
   const [error, setError] = useState(null);
   const [tripCount, setTripCount] = useState(0);
   const axiosInstance = axios.create({
-    baseURL: "https://fleet-eyad.onrender.com/",
+    baseURL: "http://localhost:3000",
     withCredentials: true,
   });
 

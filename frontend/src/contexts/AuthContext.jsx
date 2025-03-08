@@ -11,7 +11,7 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        const response = await fetch("https://fleet-eyad.onrender.com/Sadmin-auth/check-auth", {
+        const response = await fetch("http://localhost:3000/Sadmin-auth/check-auth", {
           credentials: "include", // Include cookies for session management
         });
         console.log('Auth check response:', response);
@@ -35,7 +35,7 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (email, password) => {
     try {
-      const response = await fetch("https://fleet-eyad.onrender.com/Sadmin-auth/login", {
+      const response = await fetch("http://localhost:3000/Sadmin-auth/login", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -61,7 +61,7 @@ export const AuthProvider = ({ children }) => {
 
   const loginAdmin = async (email, password) => {
     try {
-      const response = await fetch("https://fleet-eyad.onrender.com/admin-auth/login", {
+      const response = await fetch("http://localhost:3000/admin-auth/login", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -88,7 +88,7 @@ export const AuthProvider = ({ children }) => {
 
   const register = async (registrationData) => {
     try {
-      const response = await fetch("https://fleet-eyad.onrender.com/Sadmin-auth/register", {
+      const response = await fetch("http://localhost:3000/Sadmin-auth/register", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -111,7 +111,7 @@ export const AuthProvider = ({ children }) => {
   const registerAdmin = async (aname, email, password) => {
     try {
       setIsLoading(true);
-      const response = await axios.post("https://fleet-eyad.onrender.com/admin-auth/register", { aname, email, password });
+      const response = await axios.post("http://localhost:3000/admin-auth/register", { aname, email, password });
       setUser(response.data.user);
       return { success: true };
     } catch (error) {
@@ -123,7 +123,7 @@ export const AuthProvider = ({ children }) => {
 
   const logout = async () => {
     try {
-      const response = await fetch("https://fleet-eyad.onrender.com/Sadmin-auth/logout", {
+      const response = await fetch("http://localhost:3000/Sadmin-auth/logout", {
         method: "POST",
         credentials: "include", // Ensure session cookies are cleared
       });
@@ -141,7 +141,7 @@ export const AuthProvider = ({ children }) => {
   };
   const logoutAdmin = async () => {
    try {
-      const response = await fetch("https://fleet-eyad.onrender.com/admin-auth/logout", {
+      const response = await fetch("http://localhost:3000/admin-auth/logout", {
         method: "POST",
         credentials: "include", // Ensure session cookies are cleared
       });

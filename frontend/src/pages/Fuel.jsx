@@ -67,7 +67,7 @@ function TableManage({ fuelRecords, acceptFuelRecord, rejectFuelRecord }) {
                 <div className="flex space-x-2">
                 <button
                     className="font-medium text-blue-600 dark:text-blue-500 hover:underline"
-                    onClick={() => openModal(`https://fleet-eyad.onrender.com/admin/img/fuel-view/${record.F_ID}`)}
+                    onClick={() => openModal(`http://localhost:3000/admin/img/fuel-view/${record.F_ID}`)}
                   >
                     View
                   </button>

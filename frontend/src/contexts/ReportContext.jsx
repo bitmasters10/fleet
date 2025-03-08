@@ -20,7 +20,7 @@ export const ReportProvider = ({ children }) => {
   const [error, setError] = useState(null);
 
   const axiosInstance = axios.create({
-    baseURL: "https://fleet-eyad.onrender.com/", // Replace with your backend base URL
+    baseURL: "http://localhost:3000", // Replace with your backend base URL
     withCredentials: true, // Ensures that cookies (session) are included in requests
   });
 
