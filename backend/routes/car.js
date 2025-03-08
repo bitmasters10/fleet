@@ -53,7 +53,7 @@ Router.post("/create-car", isAdmin, async (req, res) => {
     COMPANY_NAME,
     SEATING_CAPACITY,
   } = req.body;
-  const Id = await idmake("cars", "aid");
+  const Id = await idmake("cars", "CAR_ID");
   let newCar = {
     CAR_ID: Id,
     CAR_NO: CAR_NO,
@@ -126,7 +126,7 @@ Router.patch("/car/:id", isAdmin, (req, res) => {
     STATUS,
   } = req.body;
   const query =
-    "UPDATE CARS SET 	CAR_NO=?,	CAR_TYPE=?	,MODEL_NAME= ?	,COLOR=?	,COMPANY_NAME=?	,SEATING_CAPACITY=?	,STATUS=?	WHERE CAR_ID = ?";
+    "UPDATE cars SET 	CAR_NO=?,	CAR_TYPE=?	,MODEL_NAME= ?	,COLOR=?	,COMPANY_NAME=?	,SEATING_CAPACITY=?	,STATUS=?	WHERE CAR_ID = ?";
   db.query(
     query,
     [

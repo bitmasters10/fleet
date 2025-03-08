@@ -272,6 +272,9 @@ function TableManage({ drivers = [], setEditingDriver, deleteDriver }) {
     </div>
   );
 }
+
+import imageCompression from "browser-image-compression";
+
 function CreateForm({ addDriver, setShowCreateForm }) {
   const [formData, setFormData] = useState({
     name: "",
@@ -281,12 +284,51 @@ function CreateForm({ addDriver, setShowCreateForm }) {
     gender: "",
     adharcard: null,
     pancard: null,
+    phone_no: null,
   });
 
-  const handleSubmit = (e) => {
+  const compressImage = async (file) => {
+    const options = {
+      maxSizeMB: 1, // Maximum size in MB
+      maxWidthOrHeight: 1024, // Maximum width or height
+      useWebWorker: true, // Use web worker for better performance
+    };
+
+    try {
+      const compressedFile = await imageCompression(file, options);
+      return compressedFile;
+    } catch (error) {
+      console.error("Error compressing image:", error);
+      return file; // Return original file if compression fails
+    }
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log(formData)
-    addDriver(formData);
+
+    // Compress images before submitting
+    const compressedAdharcard = formData.adharcard
+      ? await compressImage(formData.adharcard)
+      : null;
+    const compressedPancard = formData.pancard
+      ? await compressImage(formData.pancard)
+      : null;
+
+    // Create a new FormData object
+    const data = new FormData();
+    data.append("name", formData.name);
+    data.append("email", formData.email);
+    data.append("password", formData.password);
+    data.append("license_no", formData.license_no);
+    data.append("gender", formData.gender);
+    data.append("phone_no", formData.phone_no);
+    if (compressedAdharcard) data.append("adharcard", compressedAdharcard);
+    if (compressedPancard) data.append("pancard", compressedPancard);
+
+    // Call the addDriver function with the compressed data
+    addDriver(data);
+
+    // Reset form and close
     setFormData({
       name: "",
       email: "",
@@ -295,7 +337,7 @@ function CreateForm({ addDriver, setShowCreateForm }) {
       gender: "",
       adharcard: null,
       pancard: null,
-      phone_no:null
+      phone_no: null,
     });
     setShowCreateForm(false);
   };
@@ -385,18 +427,21 @@ function CreateForm({ addDriver, setShowCreateForm }) {
           </div>
           <div className="mb-4">
             <label className="block mb-1 text-gray-700 dark:text-gray-300">
-             
-
-             
+              Phone Number
             </label>
-            <input type="text" name="phone_no" placeholder="Phone Number"  
+            <input
+              type="text"
+              name="phone_no"
+              placeholder="Phone Number"
               value={formData.phone_no}
               onChange={(e) =>
                 setFormData({ ...formData, phone_no: e.target.value })
               }
               className="w-full p-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200"
-              required></input></div>
-          
+              required
+            />
+          </div>
+
           {/* Aadhaar Card Upload */}
           <div className="mb-4">
             <label className="block mb-1 text-gray-700 dark:text-gray-300">
@@ -436,6 +481,7 @@ function CreateForm({ addDriver, setShowCreateForm }) {
     </div>
   );
 }
+
 
 
 // Edit Form Component in Modal
