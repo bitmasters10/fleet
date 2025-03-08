@@ -119,7 +119,7 @@ export default function Report({ title, track }) {
   };
 
   return (
-    <div className="bg-gray-100 dark:bg-gray-900 min-h-screen">
+    <div className="bg-gray-100 dark:bg-gray-950 min-h-screen">
       <Heading title={title} track={track} />
       <div className="container mx-auto px-4 py-6">
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 mb-6">
