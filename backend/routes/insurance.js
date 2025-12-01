@@ -1,7 +1,8 @@
-const express = require("express");
+const express = require('express');
 const Router = express.Router();
-const db = require("../db");
-const { v4: uuidv4 } = require("uuid");
+require('../mongo');
+const Insurance = require('../models/Insurance');
+const { v4: uuidv4 } = require('uuid');
 
 
 function isAdmin(req, res, next) {
@@ -19,15 +20,9 @@ function isAdmin(req, res, next) {
 
 async function idmake(table, column) {
   let id = uuidv4();
-  const query = `SELECT * FROM ${table} WHERE ${column} = ?`;
-
-  return new Promise((resolve, reject) => {
-    db.query(query, [id], (err, rows) => {
-      if (err) return reject(err);
-      if (rows.length === 0) return resolve(id);
-      else idmake(table, column).then(resolve).catch(reject);
-    });
-  });
+  const exists = await Insurance.findOne({ IN_ID: id }).lean();
+  if (!exists) return id;
+  return idmake(table, column);
 }
 
 
@@ -38,13 +33,10 @@ Router.post("/", isAdmin, async (req, res) => {
       return res.status(400).json({ message: "All fields are required." });
     }
 
-    const IN_ID = await idmake("INSURANCE", "IN_ID");
-    const query = "INSERT INTO INSURANCE (IN_ID, CAR_ID, INSURANCE_NO, OTHER_DETAIL) VALUES (?, ?, ?, ?)";
-    
-    db.query(query, [IN_ID, CAR_ID, INSURANCE_NO, OTHER_DETAIL], (err, result) => {
-      if (err) return res.status(500).json({ message: "Database error", error: err });
-      res.status(201).json({ message: "Insurance record added", IN_ID });
-    });
+    const IN_ID = await idmake('INSURANCE', 'IN_ID');
+    const doc = new Insurance({ IN_ID, CAR_ID, INSURANCE_NO, OTHER_DETAIL });
+    await doc.save();
+    res.status(201).json({ message: 'Insurance record added', IN_ID });
 
   } catch (error) {
     res.status(500).json({ message: "Internal server error", error });
@@ -52,29 +44,29 @@ Router.post("/", isAdmin, async (req, res) => {
 });
 
 
-Router.get("/", isAdmin, (req, res) => {
-  const query = "SELECT * FROM INSURANCE";
-  
-  db.query(query, (err, results) => {
-    if (err) return res.status(500).json({ message: "Database error", error: err });
+Router.get("/", isAdmin, async (req, res) => {
+  try {
+    const results = await Insurance.find().lean();
     res.status(200).json(results);
-  });
+  } catch (err) {
+    return res.status(500).json({ message: 'Database error', error: err });
+  }
 });
 
 
-Router.get("/:id", isAdmin, (req, res) => {
+Router.get("/:id", isAdmin, async (req, res) => {
   const { id } = req.params;
-  const query = "SELECT * FROM INSURANCE WHERE IN_ID = ?";
-  
-  db.query(query, [id], (err, results) => {
-    if (err) return res.status(500).json({ message: "Database error", error: err });
-    if (results.length === 0) return res.status(404).json({ message: "Record not found" });
-    res.status(200).json(results[0]);
-  });
+  try {
+    const record = await Insurance.findOne({ IN_ID: id }).lean();
+    if (!record) return res.status(404).json({ message: 'Record not found' });
+    res.status(200).json(record);
+  } catch (err) {
+    return res.status(500).json({ message: 'Database error', error: err });
+  }
 });
 
 
-Router.put("/:id", isAdmin, (req, res) => {
+Router.put("/:id", isAdmin, async (req, res) => {
   const { id } = req.params;
   const { CAR_ID, INSURANCE_NO, OTHER_DETAIL } = req.body;
 
@@ -82,25 +74,25 @@ Router.put("/:id", isAdmin, (req, res) => {
     return res.status(400).json({ message: "All fields are required." });
   }
 
-  const query = "UPDATE INSURANCE SET CAR_ID = ?, INSURANCE_NO = ?, OTHER_DETAIL = ? WHERE IN_ID = ?";
-  
-  db.query(query, [CAR_ID, INSURANCE_NO, OTHER_DETAIL, id], (err, result) => {
-    if (err) return res.status(500).json({ message: "Database error", error: err });
-    if (result.affectedRows === 0) return res.status(404).json({ message: "Record not found" });
-    res.status(200).json({ message: "Insurance record updated" });
-  });
+  try {
+    const updated = await Insurance.findOneAndUpdate({ IN_ID: id }, { CAR_ID, INSURANCE_NO, OTHER_DETAIL }, { new: true }).lean();
+    if (!updated) return res.status(404).json({ message: 'Record not found' });
+    res.status(200).json({ message: 'Insurance record updated', record: updated });
+  } catch (err) {
+    return res.status(500).json({ message: 'Database error', error: err });
+  }
 });
 
 
-Router.delete("/:id", isAdmin, (req, res) => {
+Router.delete("/:id", isAdmin, async (req, res) => {
   const { id } = req.params;
-  const query = "DELETE FROM INSURANCE WHERE IN_ID = ?";
-  
-  db.query(query, [id], (err, result) => {
-    if (err) return res.status(500).json({ message: "Database error", error: err });
-    if (result.affectedRows === 0) return res.status(404).json({ message: "Record not found" });
-    res.status(200).json({ message: "Insurance record deleted" });
-  });
+  try {
+    const deleted = await Insurance.findOneAndDelete({ IN_ID: id }).lean();
+    if (!deleted) return res.status(404).json({ message: 'Record not found' });
+    res.status(200).json({ message: 'Insurance record deleted', record: deleted });
+  } catch (err) {
+    return res.status(500).json({ message: 'Database error', error: err });
+  }
 });
 
 module.exports = Router;

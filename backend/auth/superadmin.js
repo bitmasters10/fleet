@@ -1,7 +1,8 @@
 const passport = require('passport');
 const LocalStrategy = require('passport-local').Strategy;
 const bcrypt = require('bcryptjs');
-const db = require('../db');
+require('../mongo');
+const Admin = require('../models/Admin');
 const { v4: uuidv4 } = require('uuid');
 const express = require('express');
 const Router = express.Router();
@@ -26,73 +27,39 @@ function isSuperAdmin(req, res, next) {
 
 
 async function idmake(table, column) {
-    let id = uuidv4();
-    const query = `SELECT * FROM ${table} WHERE ${column} = ?`;
-
-    return new Promise((resolve, reject) => {
-        db.query(query, [id], (err, rows) => {
-            if (err) {
-                console.error('Error executing query:', err);
-                return reject(err); 
-            }
-
-            if (rows.length === 0) {
-                return resolve(id);
-            } else {
-              
-                idmake(table, column).then(resolve).catch(reject);
-            }
-        });
-    });
+  let id = uuidv4();
+  const exists = await Admin.findOne({ aid: id }).lean();
+  if (!exists) return id;
+  return idmake(table, column);
 }
 passport.use('super-admin-local-register', new LocalStrategy({
     usernameField: 'email',
     passwordField: 'password',
     passReqToCallback: true
 }, async (req, email, password, done) => {
-    const { aname} = req.body;
-
+    const { aname } = req.body;
     try {
-       
         const Id = await idmake('fleetsuperadmin', 'aid');
         const hashedPassword = await bcrypt.hash(password, 10);
-
-
-      
-
-        const newAdmin = {
-            aid: Id,
-            aname: aname,
-            email: email,
-            pass: hashedPassword,
-          
-        };
-
-     
-        db.query('INSERT INTO fleetsuperadmin SET ?', newAdmin, (err) => {
-            if (err) return done(err);
-            return done(null, { 
-                aid: Id,
-                aname: aname,
-                email: email,
-            });
-        });
+        const newAdmin = new Admin({ aid: Id, aname, email, pass: hashedPassword, role: 'superadmin' });
+        await newAdmin.save();
+        return done(null, newAdmin.toObject());
     } catch (err) {
         console.error('Error during registration:', err);
         return done(err);
     }
-
 }));
 passport.serializeUser((user, done) => {
-    console.log('Serializing user:', user);
     done(null, user.aid);
 });
 
-passport.deserializeUser((id, done) => {
-    db.query('SELECT * FROM fleetsuperadmin WHERE aid = ?', [id], (err, rows) => {
-        if (err) return done(err);
-        done(null, rows[0]);
-    });
+passport.deserializeUser(async (id, done) => {
+    try {
+        const user = await Admin.findOne({ aid: id }).lean();
+        done(null, user);
+    } catch (err) {
+        done(err);
+    }
 });
 Router.get("/test",isSuperAdmin,(req,res)=>{
     // if(req.isAuthenticated()&& req.user.role === 'superadmin'){
@@ -139,26 +106,17 @@ Router.post('/register', (req, res, next) => {
 passport.use('super-admin-local-login', new LocalStrategy({
     usernameField: 'email',
     passwordField: 'password'
-}, (email, password, done) => {
-    
-    db.query("SELECT * FROM fleetsuperadmin WHERE email = ?", [email], async (err, rows) => {
-        
-        if (err) return done(err);
-
-        if (rows.length === 0) {
-            return done(null, false, { message: 'No user found with this email.' });
-        }
-
-        const user = rows[0];
-console.log(user.pass+"&"+password)
-const isMatch = await bcrypt.compare(password, user.pass);
-
-        if (!isMatch) {
-            return done(null, false, { message: 'Incorrect password.' });
-        }
-         user.role="superadmin"
+}, async (email, password, done) => {
+    try {
+        const user = await Admin.findOne({ email }).lean();
+        if (!user) return done(null, false, { message: 'No user found with this email.' });
+        const isMatch = await bcrypt.compare(password, user.pass);
+        if (!isMatch) return done(null, false, { message: 'Incorrect password.' });
+        user.role = 'superadmin';
         return done(null, user);
-    });
+    } catch (err) {
+        return done(err);
+    }
 }));
 Router.post('/login', (req, res, next) => {
     passport.authenticate('super-admin-local-login', (err, user, info) => {

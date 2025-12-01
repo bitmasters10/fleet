@@ -1,206 +1,138 @@
 const express = require('express');
 const Router = express.Router();
-const db = require('../db');
+require('../mongo');
+const Admin = require('../models/Admin');
+const FuelConsumption = require('../models/FuelConsumption');
+const Trip = require('../models/Trip');
+const BookingEntry = require('../models/BookingEntry');
+const Car = require('../models/Car');
+const Driver = require('../models/Driver');
 function isSuperAdmin(req, res, next) {
-   
+  if (!req.isAuthenticated() || !req.user) {
+    console.log('User is not authenticated');
+    return res.status(401).json({ message: 'Unauthorized access.' });
+  }
 
-    if (!req.isAuthenticated() || !req.user) {
-        console.log('User is not authenticated');
-        return res.status(401).json({ message: "Unauthorized access." });
-    }
+  if (req.user.role !== 'superadmin') {
+    console.log('User role is not superadmin:', req.user.role);
+    return res.status(403).json({ message: 'Forbidden: You are not a superadmin.' });
+  }
 
-    if (req.user.role !== 'superadmin') {
-        console.log('User role is not superadmin:', req.user.role);
-        return res.status(403).json({ message: "Forbidden: You are not a superadmin." });
-    }
-
-    console.log('Role verified:', req.user.role);
-    return next(); // Proceed if authenticated and role is superadmin
+  return next();
 }
-Router.get("/admins",isSuperAdmin,async(req,res)=>{
-    try{
-        db.query('SELECT * FROM fleetadmin ', (err, rows) => {
-            if (err) {
-                console.error('Error executing query:', err);
-                return  res.status(500).send('Server Error')
-
-            }
-            return res.status(200).json(rows)
-        })
-
-    }catch(err){
-        console.error('Error during retive:', err);
-    }
-   
-})
-
-Router.get("/admin/:id",isSuperAdmin,async(req,res)=>{
-    const { id } = req.params;
-    const query = "SELECT * FROM fleetadmin WHERE aid = ?;";
-    db.query(query, [id], (err, results) => {
-        if (err) {
-            console.error('Error fetching user:', err);
-            res.status(500).send('Server Error');
-            return;
-        }
-        return res.status(200).json(results)
-    });
-})
-Router.delete("/admin/:id",isSuperAdmin,async(req,res)=>{
-    const { id } = req.params;
-    const query = "delete FROM fleetadmin WHERE aid = ?;";
-    db.query(query, [id], (err, results) => {
-        if (err) {
-            console.error('Error fetching user:', err);
-            res.status(500).send('Server Error');
-            return;
-        }
-        return res.status(200).json({message:"delte doene",res:results})
-    });
-})
-
-Router.patch('/admin/:id', isSuperAdmin,(req, res) => {
-    const { id } = req.params;
-    const { aname, email } = req.body;
-    const query = 'UPDATE fleetadmin SET aname = ?, email = ? WHERE aid = ?';
-    db.query(query, [aname, email, id], (err, results) => {
-        if (err) {
-            console.error('Error updating user:', err);
-            res.status(500).send('Server Error');
-            return;
-        }
-        return res.status(200).json({message:"update doene",res:results})
-    });
+Router.get('/admins', isSuperAdmin, async (req, res) => {
+  try {
+    const rows = await Admin.find({ role: 'admin' }).lean();
+    return res.status(200).json(rows);
+  } catch (err) {
+    console.error('Error during retrieve:', err);
+    return res.status(500).send('Server Error');
+  }
 });
-Router.patch("/admin/:id",isSuperAdmin,(req,res)=>{
-    const {pass}=req.body
-    const{id}=req.params
-    const q="UPDATE fleetadmin SET aname = ?, email = ? WHERE aid = ?"
-})
 
-Router.get("/monthly-report/:year/:month", async (req, res) => {
-    try {
-      const { year, month } = req.params;
-  
-      // Format month to ensure it's always two digits (e.g., "03" for March)
-      const formattedMonth = month.padStart(2, "0");
-  
-      // Get first and last day of the given month
-      const startDate = `${year}-${formattedMonth}-01`;
-      const endDate = `${year}-${formattedMonth}-31`;
-  
-      // Query to get total fuel cost for the month
-      const fuelCostQuery = `
-        SELECT SUM(COST) AS total_fuel_cost
-        FROM fuel_consumption
-        WHERE DATE BETWEEN ? AND ?
-      `;
-  
-      // Query to get fuel cost per vehicle
-      const fuelPerVehicleQuery = `
-        SELECT f.CAR_ID, c.CAR_NO, c.MODEL_NAME, SUM(f.COST) AS fuel_cost
-        FROM fuel_consumption f
-        JOIN cars c ON f.CAR_ID = c.CAR_ID
-        WHERE f.DATE BETWEEN ? AND ?
-        GROUP BY f.CAR_ID
-      `;
-  
-      // Query to count total bookings for the month
-      const totalBookingsQuery = `
-        SELECT COUNT(*) AS total_bookings
-        FROM booking
-        WHERE DATE BETWEEN ? AND ?
-      `;
-  
-      // Query to count total trips completed in the month
-      const totalTripsQuery = `
-        SELECT COUNT(*) AS total_trips
-        FROM trip
-        WHERE date BETWEEN ? AND ? AND STAT = 'COMPLETED'
-      `;
-  
-      // Query to get trips per vehicle
-      const tripsPerVehicleQuery = `
-        SELECT b.CAR_ID, c.CAR_NO, c.MODEL_NAME, COUNT(t.TRIP_ID) AS trips_completed
-        FROM trip t
-        JOIN booking b ON t.BOOK_ID = b.BOOK_ID
-        JOIN cars c ON b.CAR_ID = c.CAR_ID
-        WHERE t.date BETWEEN ? AND ? AND t.STAT = 'COMPLETED'
-        GROUP BY b.CAR_ID
-      `;
-  
-      // Query to get trips per driver
-      const tripsPerDriverQuery = `
-        SELECT d.DRIVER_ID, d.NAME, COUNT(t.TRIP_ID) AS trips_completed, SUM(f.COST) AS total_fuel_cost
-        FROM trip t
-        JOIN driver d ON t.DRIVER_ID = d.DRIVER_ID
-        LEFT JOIN fuel_consumption f ON t.DRIVER_ID = f.DRIVER_ID AND f.DATE BETWEEN ? AND ?
-        WHERE t.date BETWEEN ? AND ? AND t.STAT = 'COMPLETED'
-        GROUP BY d.DRIVER_ID
-      `;
-  
-      // Execute queries
-      db.query(fuelCostQuery, [startDate, endDate], (err, fuelCostResult) => {
-        if (err) {
-          console.error("Fuel Cost Query Error:", err);
-          return res.status(500).json({ error: "Database Error" });
-        }
-  
-        db.query(fuelPerVehicleQuery, [startDate, endDate], (err, fuelPerVehicleResult) => {
-          if (err) {
-            console.error("Fuel Per Vehicle Query Error:", err);
-            return res.status(500).json({ error: "Database Error" });
-          }
-  
-          db.query(totalBookingsQuery, [startDate, endDate], (err, totalBookingsResult) => {
-            if (err) {
-              console.error("Total Bookings Query Error:", err);
-              return res.status(500).json({ error: "Database Error" });
-            }
-  
-            db.query(totalTripsQuery, [startDate, endDate], (err, totalTripsResult) => {
-              if (err) {
-                console.error("Total Trips Query Error:", err);
-                return res.status(500).json({ error: "Database Error" });
-              }
-  
-              db.query(tripsPerVehicleQuery, [startDate, endDate], (err, tripsPerVehicleResult) => {
-                if (err) {
-                  console.error("Trips Per Vehicle Query Error:", err);
-                  return res.status(500).json({ error: "Database Error" });
-                }
-  
-                db.query(
-                  tripsPerDriverQuery,
-                  [startDate, endDate, startDate, endDate],
-                  (err, tripsPerDriverResult) => {
-                    if (err) {
-                      console.error("Trips Per Driver Query Error:", err);
-                      return res.status(500).json({ error: "Database Error" });
-                    }
-  
-                    // Send final report response
-                    return res.status(200).json({
-                      month: `${year}-${formattedMonth}`,
-                      total_fuel_cost: fuelCostResult[0]?.total_fuel_cost || 0,
-                      total_bookings: totalBookingsResult[0]?.total_bookings || 0,
-                      total_trips: totalTripsResult[0]?.total_trips || 0,
-                      fuel_per_vehicle: fuelPerVehicleResult,
-                      trips_per_vehicle: tripsPerVehicleResult,
-                      trips_per_driver: tripsPerDriverResult,
-                    });
-                  }
-                );
-              });
-            });
-          });
-        });
-      });
-    } catch (error) {
-      console.error("Unexpected Error:", error);
-      return res.status(500).json({ error: "Internal Server Error" });
-    }
-  });
+Router.get('/admin/:id', isSuperAdmin, async (req, res) => {
+  const { id } = req.params;
+  try {
+    const admin = await Admin.findOne({ aid: id }).lean();
+    if (!admin) return res.status(404).json({ message: 'Admin not found' });
+    return res.status(200).json(admin);
+  } catch (err) {
+    console.error('Error fetching user:', err);
+    return res.status(500).send('Server Error');
+  }
+});
+Router.delete('/admin/:id', isSuperAdmin, async (req, res) => {
+  const { id } = req.params;
+  try {
+    const deleted = await Admin.findOneAndDelete({ aid: id }).lean();
+    if (!deleted) return res.status(404).json({ message: 'Admin not found' });
+    return res.status(200).json({ message: 'delete done', res: deleted });
+  } catch (err) {
+    console.error('Error deleting admin:', err);
+    return res.status(500).send('Server Error');
+  }
+});
+
+Router.patch('/admin/:id', isSuperAdmin, async (req, res) => {
+  const { id } = req.params;
+  const { aname, email } = req.body;
+  try {
+    const updated = await Admin.findOneAndUpdate({ aid: id }, { aname, email }, { new: true }).lean();
+    if (!updated) return res.status(404).json({ message: 'Admin not found' });
+    return res.status(200).json({ message: 'update done', res: updated });
+  } catch (err) {
+    console.error('Error updating admin:', err);
+    return res.status(500).send('Server Error');
+  }
+});
+
+Router.get('/monthly-report/:year/:month', async (req, res) => {
+  try {
+    const { year, month } = req.params;
+    const formattedMonth = month.padStart(2, '0');
+    const startDate = new Date(`${year}-${formattedMonth}-01T00:00:00.000Z`);
+    const endDate = new Date(`${year}-${formattedMonth}-31T23:59:59.999Z`);
+
+    const fuelCostRes = await FuelConsumption.aggregate([
+      { $match: { DATE: { $gte: startDate, $lte: endDate } } },
+      { $group: { _id: null, total_fuel_cost: { $sum: '$COST' } } }
+    ]).exec();
+
+    const fuelPerVehicle = await FuelConsumption.aggregate([
+      { $match: { DATE: { $gte: startDate, $lte: endDate } } },
+      { $group: { _id: '$CAR_ID', fuel_cost: { $sum: '$COST' } } },
+      { $lookup: { from: 'cars', localField: '_id', foreignField: 'CAR_ID', as: 'car' } },
+      { $unwind: { path: '$car', preserveNullAndEmptyArrays: true } },
+      { $project: { CAR_ID: '$_id', CAR_NO: '$car.CAR_NO', MODEL_NAME: '$car.MODEL_NAME', fuel_cost: 1 } }
+    ]).exec();
+
+    const totalBookingsRes = await BookingEntry.countDocuments({ DATE: { $gte: startDate, $lte: endDate } }).exec();
+
+    const totalTripsRes = await Trip.countDocuments({ date: { $gte: startDate, $lte: endDate }, STAT: 'COMPLETED' }).exec();
+
+    const tripsPerVehicle = await Trip.aggregate([
+      { $match: { date: { $gte: startDate, $lte: endDate }, STAT: 'COMPLETED' } },
+      { $lookup: { from: 'bookingentries', localField: 'BOOK_ID', foreignField: 'BOOK_ID', as: 'booking' } },
+      { $unwind: '$booking' },
+      { $group: { _id: '$booking.CAR_ID', trips_completed: { $sum: 1 } } },
+      { $lookup: { from: 'cars', localField: '_id', foreignField: 'CAR_ID', as: 'car' } },
+      { $unwind: { path: '$car', preserveNullAndEmptyArrays: true } },
+      { $project: { CAR_ID: '$_id', CAR_NO: '$car.CAR_NO', MODEL_NAME: '$car.MODEL_NAME', trips_completed: 1 } }
+    ]).exec();
+
+    const tripsPerDriver = await Trip.aggregate([
+      { $match: { date: { $gte: startDate, $lte: endDate }, STAT: 'COMPLETED' } },
+      { $group: { _id: '$DRIVER_ID', trips_completed: { $sum: 1 } } },
+      { $lookup: { from: 'drivers', localField: '_id', foreignField: 'DRIVER_ID', as: 'driver' } },
+      { $unwind: { path: '$driver', preserveNullAndEmptyArrays: true } },
+      { $project: { DRIVER_ID: '$_id', NAME: '$driver.NAME', trips_completed: 1 } }
+    ]).exec();
+
+    // Enrich drivers with fuel cost
+    const driverIds = tripsPerDriver.map(d => d.DRIVER_ID).filter(Boolean);
+    const fuelByDriver = await FuelConsumption.aggregate([
+      { $match: { DRIVER_ID: { $in: driverIds }, DATE: { $gte: startDate, $lte: endDate } } },
+      { $group: { _id: '$DRIVER_ID', total_fuel_cost: { $sum: '$COST' } } }
+    ]).exec();
+
+    const fuelMap = fuelByDriver.reduce((acc, cur) => { acc[cur._id] = cur.total_fuel_cost; return acc; }, {});
+
+    const tripsPerDriverEnriched = tripsPerDriver.map(d => ({ ...d, total_fuel_cost: fuelMap[d.DRIVER_ID] || 0 }));
+
+    return res.status(200).json({
+      month: `${year}-${formattedMonth}`,
+      total_fuel_cost: fuelCostRes[0]?.total_fuel_cost || 0,
+      total_bookings: totalBookingsRes || 0,
+      total_trips: totalTripsRes || 0,
+      fuel_per_vehicle: fuelPerVehicle,
+      trips_per_vehicle: tripsPerVehicle,
+      trips_per_driver: tripsPerDriverEnriched
+    });
+  } catch (error) {
+    console.error('Unexpected Error:', error);
+    return res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
   Router.post("/generate-pdf", (req, res) => {
     const { reportData } = req.body;
   

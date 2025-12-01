@@ -1,52 +1,17 @@
-const mysql = require('mysql2');
+// Temporary shim for legacy `db.query` calls during migration to MongoDB.
+// This allows the server to start and produces clear errors for endpoints
+// that haven't yet been migrated. Replace usages with Mongoose models.
 
-
-
-// const db = mysql.createPool({
-//     host: 'fleet.lindatours.in',     
-//      user: 'u820563802_Linda_fleet',          // Replace with your username
-//     password: 'Fleet@1234',  // Replace with your password
-//     database: 'u820563802_Linda_fleet',
-//     waitForConnections: true,
-//     connectionLimit: 10,
-//     queueLimit: 0,
-//     connectTimeout: 10000,
-//   });
-
-
-    
-const db = mysql.createPool({
-  host: '193.203.184.214',     // Replace with your host
-   user: 'u422792073_Fleet',          // Replace with your username
-  password: 'MaqsadAli@911',  // Replace with your password
-  database: 'u422792073_Fleet',
-  waitForConnections: true,
-  connectionLimit: 10,
-  queueLimit: 0,
-  connectTimeout: 10000,
-});
-
-
-
-  
-// const db = mysql.createPool({
-//     host: 'fleet.lindatours.in',     
-//      user: 'u820563802_Linda_fleet',          // Replace with your username
-//     password: 'Fleet@1234',  // Replace with your password
-//     database: 'u820563802_Linda_fleet',
-//     waitForConnections: true,
-//     connectionLimit: 10,
-//     queueLimit: 0,
-//     connectTimeout: 10000,
-//   });
-
-  
-  db.getConnection((err, connection) => {
-    if (err) {
-      console.error('Error connecting to the database:', err);
-    } else {
-      console.log('Connected to the database!');
-      connection.release(); // Release connection back to the pool
+module.exports = {
+  query: function () {
+    const args = Array.from(arguments);
+    const last = args[args.length - 1];
+    const err = new Error('Legacy SQL access attempted. This backend has been migrated to MongoDB — please convert this route to use Mongoose models.');
+    if (typeof last === 'function') {
+      // callback style: call callback with error
+      return process.nextTick(() => last(err));
     }
-  });
-  module.exports=db
+    // promise style
+    return Promise.reject(err);
+  }
+};

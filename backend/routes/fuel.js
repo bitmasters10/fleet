@@ -1,28 +1,15 @@
-const express = require("express");
+const express = require('express');
 const Router = express.Router();
-const db = require("../db");
-const { v4: uuidv4 } = require("uuid");
+require('../mongo');
+const FuelConsumption = require('../models/FuelConsumption');
+const { v4: uuidv4 } = require('uuid');
 const multer = require('multer');
 
 async function idmake(table, column) {
   let id = uuidv4();
-
-  const query = `SELECT * FROM ${table} WHERE ${column} = ?`;
-
-  return new Promise((resolve, reject) => {
-    db.query(query, [id], (err, rows) => {
-      if (err) {
-        console.error("Error executing query:", err);
-        return reject(err);
-      }
-
-      if (rows.length === 0) {
-        return resolve(id);
-      } else {
-        idmake(table, column).then(resolve).catch(reject);
-      }
-    });
-  });
+  const exists = await FuelConsumption.findOne({ F_ID: id }).lean();
+  if (!exists) return id;
+  return idmake(table, column);
 }
 
 const path = require("path"); 
@@ -35,7 +22,7 @@ const upload = multer({ storage });
 
 
 
-Router.post("/create-fuel", upload.single("photo"), async (req, res) => {
+Router.post('/create-fuel', upload.single('photo'), async (req, res) => {
   try {
     
     // Generate a unique F_ID
@@ -53,86 +40,57 @@ Router.post("/create-fuel", upload.single("photo"), async (req, res) => {
     // Convert the photo file to a buffer
     const PHOTO = req.file.buffer;
 
-    // Create the fuel consumption record
-    const query =
-      "INSERT INTO fuel_consumption (F_ID, CAR_ID, DRIVER_ID, DATE, COST, PHOTO) VALUES (?, ?, ?, ?, ?, ?)";
-    const values = [F_ID, CAR_ID, DRIVER_ID, DATE, COST, PHOTO];
-
-    db.query(query, values, (err, results) => {
-      if (err) {
-        console.error("Error executing query:", err);
-        return res.status(500).json({ error: "Database insertion failed" });
-      }
-
-      // Respond with the created record's ID and status
-      return res.status(201).json({ message: "Fuel consumption record created", F_ID });
-    });
+    const doc = new FuelConsumption({ F_ID, CAR_ID, DRIVER_ID, DATE: DATE ? new Date(DATE) : new Date(), COST, PHOTO });
+    await doc.save();
+    return res.status(201).json({ message: 'Fuel consumption record created', F_ID });
   } catch (error) {
     console.error("Error in /create-fuel:", error);
     return res.status(500).json({ error: "Internal server error" });
   }
 });
-Router.patch("/accept/:id",(req,res)=>{
-    const {id}=req.params
-    const q="update fuel_consumption set stat=? where F_ID=?"
-    db.query(q,["accepted",id], (err, results) => {
-        if (err) {
-          console.error("Error executing query:", err);
-          return res.status(500).json({ error: "Database query failed" });
-        }
-    
-        // Sending the results back to the client
-        res.json(results);
-      })
-})
-Router.patch("/reject/:id",(req,res)=>{
-    const {id}=req.params
-    const q="update fuel_consumption set stat=? where F_ID=?"
-    db.query(q,["rejected",id], (err, results) => {
-        if (err) {
-          console.error("Error executing query:", err);
-          return res.status(500).json({ error: "Database query failed" });
-        }
-    
-        // Sending the results back to the client
-        res.json(results);
-      })
-})
-Router.get("/fuels",(req,res)=>{
+Router.patch('/accept/:id', async (req, res) => {
+  const { id } = req.params;
   try {
-    db.query("SELECT * FROM fuel_consumption ", (err, rows) => {
-      if (err) {
-        console.error("Error executing query:", err);
-        return res.status(500).send("Server Error");
-      }
-      return res.status(200).json(rows);
-    });
+    const updated = await FuelConsumption.findOneAndUpdate({ F_ID: id }, { stat: 'accepted' }, { new: true }).lean();
+    if (!updated) return res.status(404).json({ message: 'Record not found' });
+    return res.json(updated);
   } catch (err) {
-    console.error("Error during retrive:", err);
+    console.error('Error executing query:', err);
+    return res.status(500).json({ error: 'Database query failed' });
   }
-})
-Router.get("/fuel-cost-per-month", async (req, res) => {
+});
+Router.patch('/reject/:id', async (req, res) => {
+  const { id } = req.params;
   try {
-      const query = `
-          SELECT 
-              DATE_FORMAT(STR_TO_DATE(DATE, '%Y-%m-%d'), '%Y-%m') AS month,
-              SUM(COST) AS total_cost
-          FROM fuel_consumption
-          WHERE stat = 'accepted' -- Only include accepted fuel costs
-          GROUP BY month
-          ORDER BY month ASC;
-      `;
-
-      db.query(query, (err, results) => {
-          if (err) {
-              console.error("Error fetching fuel costs:", err);
-              return res.status(500).json({ error: "Internal Server Error" });
-          }
-          res.json(results);
-      });
+    const updated = await FuelConsumption.findOneAndUpdate({ F_ID: id }, { stat: 'rejected' }, { new: true }).lean();
+    if (!updated) return res.status(404).json({ message: 'Record not found' });
+    return res.json(updated);
+  } catch (err) {
+    console.error('Error executing query:', err);
+    return res.status(500).json({ error: 'Database query failed' });
+  }
+});
+Router.get('/fuels', async (req, res) => {
+  try {
+    const rows = await FuelConsumption.find().lean();
+    return res.status(200).json(rows);
+  } catch (err) {
+    console.error('Error during retrieve:', err);
+    return res.status(500).send('Server Error');
+  }
+});
+Router.get('/fuel-cost-per-month', async (req, res) => {
+  try {
+    const results = await FuelConsumption.aggregate([
+      { $match: { stat: 'accepted' } },
+      { $group: { _id: { $dateToString: { format: '%Y-%m', date: '$DATE' } }, total_cost: { $sum: '$COST' } } },
+      { $project: { month: '$_id', total_cost: 1, _id: 0 } },
+      { $sort: { month: 1 } }
+    ]).exec();
+    return res.json(results);
   } catch (error) {
-      console.error("Unexpected error:", error);
-      res.status(500).json({ error: "Internal Server Error" });
+    console.error('Unexpected error:', error);
+    return res.status(500).json({ error: 'Internal Server Error' });
   }
 });
 module.exports = Router;

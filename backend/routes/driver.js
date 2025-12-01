@@ -1,7 +1,9 @@
 const express = require("express");
 const Router = express.Router();
-const db = require("../db");
 const { v4: uuidv4 } = require("uuid");
+require('../mongo');
+const Driver = require('../models/Driver');
+const BookingEntry = require('../models/BookingEntry');
 
 function isAdmin(req, res, next) {
   // console.log("Session:", req.session); // Log session data
@@ -25,81 +27,58 @@ function isAdmin(req, res, next) {
 
 async function idmake(table, column) {
   let id = uuidv4();
-
-  const query = `SELECT * FROM ${table} WHERE ${column} = ?`;
-
-  return new Promise((resolve, reject) => {
-    db.query(query, [id], (err, rows) => {
-      if (err) {
-        console.error("Error executing query:", err);
-        return reject(err);
-      }
-
-      if (rows.length === 0) {
-        return resolve(id);
-      } else {
-        idmake(table, column).then(resolve).catch(reject);
-      }
-    });
-  });
+  // ensure uniqueness against Driver.DRIVER_ID
+  const exists = await Driver.findOne({ DRIVER_ID: id }).lean();
+  if (!exists) return id;
+  return idmake(table, column);
 }
 
-Router.get("/drivers", isAdmin, async (req, res) => {
+Router.get('/drivers', isAdmin, async (req, res) => {
   try {
-    db.query(
-      "SELECT DRIVER_ID,NAME, EMAIL_ID, LICENSE_NO,GENDER FROM driver ",
-      (err, rows) => {
-        if (err) {
-          console.error("Error executing query:", err);
-          return res.status(500).send("Server Error");
-        }
-        return res.status(200).json(rows);
-      }
-    );
+    const rows = await Driver.find({}, 'DRIVER_ID NAME EMAIL_ID LICENSE_NO GENDER').lean();
+    return res.status(200).json(rows);
   } catch (err) {
-    console.error("Error during retrive:", err);
+    console.error('Error during retrieve:', err);
+    return res.status(500).send('Server Error');
   }
 });
-Router.get("/driver/:id", isAdmin, async (req, res) => {
+Router.get('/driver/:id', isAdmin, async (req, res) => {
   const { id } = req.params;
-  const query = "SELECT * FROM driver WHERE DRIVER_ID = ?;";
-  db.query(query, [id], (err, results) => {
-    if (err) {
-      console.error("Error fetching user:", err);
-      res.status(500).send("Server Error");
-      return;
-    }
-    return res.status(200).json(results);
-  });
+  try {
+    const driver = await Driver.findOne({ DRIVER_ID: id }).lean();
+    if (!driver) return res.status(404).json({ message: 'Driver not found' });
+    return res.status(200).json(driver);
+  } catch (err) {
+    console.error('Error fetching user:', err);
+    return res.status(500).send('Server Error');
+  }
 });
-Router.delete("/driver/:id", isAdmin, async (req, res) => {
+Router.delete('/driver/:id', isAdmin, async (req, res) => {
   const { id } = req.params;
-  const query = "delete FROM driver WHERE DRIVER_ID = ?;";
-  db.query(query, [id], (err, results) => {
-    if (err) {
-      console.error("Error fetching user:", err);
-      res.status(500).send("Server Error");
-      return;
-    }
-    return res.status(200).json({ message: "delte doene", res: results });
-  });
+  try {
+    const deleted = await Driver.findOneAndDelete({ DRIVER_ID: id }).lean();
+    if (!deleted) return res.status(404).json({ message: 'Driver not found' });
+    return res.status(200).json({ message: 'delete done', res: deleted });
+  } catch (err) {
+    console.error('Error deleting user:', err);
+    return res.status(500).send('Server Error');
+  }
 });
 
-Router.patch("/driver/:id", isAdmin, (req, res) => {
+Router.patch('/driver/:id', isAdmin, (req, res) => {
   const { id } = req.params;
   const { NAME, EMAIL_ID, LICENSE_NO } = req.body;
-  const query =
-    "UPDATE driver SET NAME =?, EMAIL_ID=?, LICENSE_NO=?	WHERE DRIVER_ID = ?";
-  db.query(query, [NAME, EMAIL_ID, LICENSE_NO, id], (err, results) => {
-    if (err) {
-      console.error("Error updating user:", err);
-      res.status(500).send("Server Error");
-      return;
-    }
-    return res.status(200).json({ message: "update doene", res: results });
-  });
+  Driver.findOneAndUpdate({ DRIVER_ID: id }, { NAME, EMAIL_ID, LICENSE_NO }, { new: true }).lean()
+    .then(updated => {
+      if (!updated) return res.status(404).json({ message: 'Driver not found' });
+      return res.status(200).json({ message: 'update done', res: updated });
+    })
+    .catch(err => {
+      console.error('Error updating user:', err);
+      return res.status(500).send('Server Error');
+    });
 });
-Router.post("/avail-drivers", isAdmin, (req, res) => {
+Router.post("/avail-drivers", isAdmin, async (req, res) => {
   const { date, start_time, end_time } = req.body;
 
   if (!date || !start_time || !end_time) {
@@ -108,53 +87,35 @@ Router.post("/avail-drivers", isAdmin, (req, res) => {
       .send("All parameters (date, start_time, end_time) are required.");
   }
 
-  const q = `
-    SELECT DISTINCT d.DRIVER_ID, 
-                    d.NAME 
-    FROM driver d 
-    LEFT JOIN booking b 
-    ON d.DRIVER_ID = b.DRIVER_ID 
-    AND b.DATE = ? 
-    AND (
-        (b.TIMING < ? AND b.END_TIME > ?) OR  
-        (b.TIMING < ? AND b.END_TIME > ?) OR  
-        (b.TIMING >= ? AND b.END_TIME <= ?)   
-    )
-    WHERE b.DRIVER_ID IS NULL;
-  `;
-
   try {
-    db.query(
-      q,
-      [date, start_time, end_time, start_time, end_time, start_time, end_time],
-      (err, rows) => {
-        if (err) {
-          console.error("Error executing query:", err);
-          return res.status(500).send("Server Error");
-        }
-        return res.status(200).json(rows);
-      }
-    );
+    // Find bookings on the date that conflict with requested slot
+    const conflicts = await BookingEntry.find({
+      DATE: date,
+      $or: [
+        { TIMING: { $lt: start_time }, END_TIME: { $gt: end_time } },
+        { TIMING: { $lt: end_time }, END_TIME: { $gt: start_time } },
+        { TIMING: { $gte: start_time }, END_TIME: { $lte: end_time } }
+      ]
+    }).lean();
+
+    const busyDriverIds = conflicts.map(c => c.DRIVER_ID).filter(Boolean);
+    const available = await Driver.find({ DRIVER_ID: { $nin: busyDriverIds } }, 'DRIVER_ID NAME').lean();
+    return res.status(200).json(available);
   } catch (err) {
-    console.error("Error during retrieve:", err);
-    return res.status(500).send("Unexpected Server Error");
+    console.error('Error during retrieve:', err);
+    return res.status(500).send('Unexpected Server Error');
   }
 });
-Router.post("/myloc",(req,res)=>{
+Router.post('/myloc',(req,res)=>{
   const {lat,long}=req.body
-  const id=req.user.DRIVER_ID;
-  const q="UPDATE driver SET LATITUDE=?,LONGITUDE=? where DRIVER_ID=?"
-  try {
-    db.query(q,[lat,long,id], (err, rows) => {
-      if (err) {
-        console.error("Error executing query:", err);
-        return res.status(500).send("Server Error");
-      }
-      return res.status(200).json(rows);
+  const id = req.user && req.user.DRIVER_ID;
+  if (!id) return res.status(401).json({ message: 'Unauthorized' });
+  Driver.findOneAndUpdate({ DRIVER_ID: id }, { LATITUDE: lat, LONGITUDE: long }, { new: true }).lean()
+    .then(rows => res.status(200).json(rows))
+    .catch(err => {
+      console.error('Error executing query:', err);
+      return res.status(500).send('Server Error');
     });
-  } catch (err) {
-    console.error("Error during retive:", err);
-  }
 
 })
 module.exports = Router;

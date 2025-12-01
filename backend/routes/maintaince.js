@@ -1,7 +1,8 @@
-const express = require("express");
+const express = require('express');
 const Router = express.Router();
-const db = require("../db");
-const { v4: uuidv4 } = require("uuid");
+require('../mongo');
+const Maintenance = require('../models/Maintenance');
+const { v4: uuidv4 } = require('uuid');
 
 // Middleware to check if user is admin
 function isAdmin(req, res, next) {
@@ -19,15 +20,9 @@ function isAdmin(req, res, next) {
 // Function to generate a unique ID
 async function idmake(table, column) {
   let id = uuidv4();
-  const query = `SELECT * FROM ${table} WHERE ${column} = ?`;
-
-  return new Promise((resolve, reject) => {
-    db.query(query, [id], (err, rows) => {
-      if (err) return reject(err);
-      if (rows.length === 0) return resolve(id);
-      else idmake(table, column).then(resolve).catch(reject);
-    });
-  });
+  const exists = await Maintenance.findOne({ M_ID: id }).lean();
+  if (!exists) return id;
+  return idmake(table, column);
 }
 
 
@@ -38,13 +33,10 @@ Router.post("/", isAdmin, async (req, res) => {
       return res.status(400).json({ message: "All fields are required." });
     }
 
-    const M_ID = await idmake("maintenance", "M_ID");
-    const query = "INSERT INTO maintenance (M_ID, CAR_ID, DATE, DESCRIPTION) VALUES (?, ?, ?, ?)";
-    
-    db.query(query, [M_ID, CAR_ID, DATE, DESCRIPTION], (err, result) => {
-      if (err) return res.status(500).json({ message: "Database error", error: err });
-      res.status(201).json({ message: "Maintenance record added", M_ID });
-    });
+    const M_ID = await idmake('maintenance', 'M_ID');
+    const doc = new Maintenance({ M_ID, CAR_ID, DATE: new Date(DATE), DESCRIPTION });
+    await doc.save();
+    res.status(201).json({ message: 'Maintenance record added', M_ID });
 
   } catch (error) {
     res.status(500).json({ message: "Internal server error", error });
@@ -52,29 +44,29 @@ Router.post("/", isAdmin, async (req, res) => {
 });
 
 
-Router.get("/", isAdmin, (req, res) => {
-  const query = "SELECT * FROM maintenance";
-  
-  db.query(query, (err, results) => {
-    if (err) return res.status(500).json({ message: "Database error", error: err });
+Router.get("/", isAdmin, async (req, res) => {
+  try {
+    const results = await Maintenance.find().lean();
     res.status(200).json(results);
-  });
+  } catch (err) {
+    return res.status(500).json({ message: 'Database error', error: err });
+  }
 });
 
 
-Router.get("/:id", isAdmin, (req, res) => {
+Router.get("/:id", isAdmin, async (req, res) => {
   const { id } = req.params;
-  const query = "SELECT * FROM maintenance WHERE M_ID = ?";
-  
-  db.query(query, [id], (err, results) => {
-    if (err) return res.status(500).json({ message: "Database error", error: err });
-    if (results.length === 0) return res.status(404).json({ message: "Record not found" });
-    res.status(200).json(results[0]);
-  });
+  try {
+    const record = await Maintenance.findOne({ M_ID: id }).lean();
+    if (!record) return res.status(404).json({ message: 'Record not found' });
+    res.status(200).json(record);
+  } catch (err) {
+    return res.status(500).json({ message: 'Database error', error: err });
+  }
 });
 
 
-Router.put("/:id", isAdmin, (req, res) => {
+Router.put("/:id", isAdmin, async (req, res) => {
   const { id } = req.params;
   const { CAR_ID, DATE, DESCRIPTION } = req.body;
 
@@ -82,24 +74,24 @@ Router.put("/:id", isAdmin, (req, res) => {
     return res.status(400).json({ message: "All fields are required." });
   }
 
-  const query = "UPDATE maintenance SET CAR_ID = ?, DATE = ?, DESCRIPTION = ? WHERE M_ID = ?";
-  
-  db.query(query, [CAR_ID, DATE, DESCRIPTION, id], (err, result) => {
-    if (err) return res.status(500).json({ message: "Database error", error: err });
-    if (result.affectedRows === 0) return res.status(404).json({ message: "Record not found" });
-    res.status(200).json({ message: "Maintenance record updated" });
-  });
+  try {
+    const updated = await Maintenance.findOneAndUpdate({ M_ID: id }, { CAR_ID, DATE: new Date(DATE), DESCRIPTION }, { new: true }).lean();
+    if (!updated) return res.status(404).json({ message: 'Record not found' });
+    res.status(200).json({ message: 'Maintenance record updated', record: updated });
+  } catch (err) {
+    return res.status(500).json({ message: 'Database error', error: err });
+  }
 });
 
-Router.delete("/:id", isAdmin, (req, res) => {
+Router.delete("/:id", isAdmin, async (req, res) => {
   const { id } = req.params;
-  const query = "DELETE FROM maintenance WHERE M_ID = ?";
-  
-  db.query(query, [id], (err, result) => {
-    if (err) return res.status(500).json({ message: "Database error", error: err });
-    if (result.affectedRows === 0) return res.status(404).json({ message: "Record not found" });
-    res.status(200).json({ message: "Maintenance record deleted" });
-  });
+  try {
+    const deleted = await Maintenance.findOneAndDelete({ M_ID: id }).lean();
+    if (!deleted) return res.status(404).json({ message: 'Record not found' });
+    res.status(200).json({ message: 'Maintenance record deleted', record: deleted });
+  } catch (err) {
+    return res.status(500).json({ message: 'Database error', error: err });
+  }
 });
 
 module.exports = Router;

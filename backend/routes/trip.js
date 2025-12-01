@@ -1,27 +1,15 @@
-const express = require("express");
+const express = require('express');
 const Router = express.Router();
-const db = require("../db");
-const { v4: uuidv4 } = require("uuid");
+require('../mongo');
+const Trip = require('../models/Trip');
+const BookingEntry = require('../models/BookingEntry');
+const { v4: uuidv4 } = require('uuid');
 
 async function idmake(table, column) {
   let id = uuidv4();
-
-  const query = `SELECT * FROM ${table} WHERE ${column} = ?`;
-
-  return new Promise((resolve, reject) => {
-    db.query(query, [id], (err, rows) => {
-      if (err) {
-        console.error("Error executing query:", err);
-        return reject(err);
-      } 
-
-      if (rows.length === 0) {
-        return resolve(id);
-      } else {
-        idmake(table, column).then(resolve).catch(reject);
-      }
-    });
-  });
+  const exists = await Trip.findOne({ TRIP_ID: id }).lean();
+  if (!exists) return id;
+  return idmake(table, column);
 }
 
 function isAdmin(req, res, next) {
@@ -42,125 +30,71 @@ function isAdmin(req, res, next) {
 }
 
 
-Router.post("/create-trip", async (req, res) => {
+Router.post('/create-trip', async (req, res) => {
   try {
-    let ID = await idmake("trip", "TRIP_ID");
+    let ID = await idmake('trip', 'TRIP_ID');
     const { BOOK_NO, BOOK_ID, ROUTE, date } = req.body;
-    const id = req.user.DRIVER_ID;
-    const otp = Math.floor(1000 + Math.random() * 9000); // Generate a random OTP
-    const START_TIME = new Date().getHours() + "" + new Date().getMinutes(); // Get current time
+    const id = req.user?.DRIVER_ID || null;
+    const otp = Math.floor(1000 + Math.random() * 9000);
+    const now = new Date();
+    const START_TIME = `${now.getHours()}${now.getMinutes()}`;
 
-    // Trip object to insert
-    const trip = {
+    const tripDoc = {
       START_TIME,
       TRIP_ID: ID,
       BOOK_ID,
       BOOK_NO,
       ROUTE,
       OTP: otp,
-      STAT: "JUST",
+      STAT: 'JUST',
       ROOM_ID: BOOK_ID,
-      date,
+      date: date ? new Date(date) : now,
       DRIVER_ID: id,
     };
 
-    // Update the BOOKING table
-    const updateBookingQuery = "UPDATE booking SET stat = ? WHERE BOOK_ID = ?";
-    db.query(updateBookingQuery, ["TRIP", BOOK_ID], (err) => {
-      if (err) {
-        console.error("Error updating BOOKING:", err);
-        return res.status(500).json({ error: "Database update failed" });
-      }
+    // Update related booking entry stat
+    await BookingEntry.findOneAndUpdate({ BOOK_ID }, { stat: 'TRIP' }).exec();
 
-      // Insert into TRIP table
-      const insertTripQuery = "INSERT INTO trip SET ?";
-      db.query(insertTripQuery, trip, (err) => {
-        if (err) {
-          console.error("Error inserting into TRIP:", err);
-          return res.status(500).json({ error: "Database insertion failed" });
-        }
-
-        // Retrieve the newly created trip record
-        const selectTripQuery = "SELECT * FROM trip WHERE TRIP_ID = ?";
-        db.query(selectTripQuery, [ID], (err, results) => {
-          if (err) {
-            console.error("Error retrieving trip record:", err);
-            return res.status(500).json({ error: "Failed to retrieve trip record" });
-          }
-
-          // Send the created trip record back to the client
-          return res.status(201).json({ message: "Trip created successfully", trip: results[0] });
-        });
-      });
-    });
+    // Create trip
+    const created = await Trip.create(tripDoc);
+    return res.status(201).json({ message: 'Trip created successfully', trip: created });
   } catch (error) {
-    console.error("Error in trip creation:", error);
-    return res.status(500).json({ error: "Internal server error" });
+    console.error('Error in trip creation:', error);
+    return res.status(500).json({ error: 'Internal server error' });
   }
 });
  
-Router.get("/trips", isAdmin, (req, res) => {
+Router.get('/trips', isAdmin, async (req, res) => {
   try {
-    db.query("SELECT * FROM trip ", (err, rows) => {
-      if (err) {
-        console.error("Error executing query:", err);
-        return res.status(500).send("Server Error");
-      }
-      return res.status(200).json(rows);
-    });
+    const rows = await Trip.find().lean();
+    return res.status(200).json(rows);
   } catch (err) {
-    console.error("Error during retive:", err);
+    console.error('Error during retrieve:', err);
+    return res.status(500).send('Server Error');
   }
 });
 
 
-Router.get("/location",(req,res)=>{
-  function formatDate() {
-    date=new Date();
-    const day = String(date.getDate()).padStart(2, '0'); 
-    const month = String(date.getMonth() + 1).padStart(2, '0'); 
-    const year = date.getFullYear(); 
-  
-    return `${year}-${month}-${day}`;
-  }
-  
-  const currentDate = formatDate()
-const q="select ROOM_ID FROM trip where date=?"
-try {
-  db.query(q,[currentDate], (err, rows) => {
-    if (err) {
-      console.error("Error executing query:", err);
-      return res.status(500).send("Server Error");
-    }
-    return res.status(200).json(rows);
-  });
-} catch (err) {
-  console.error("Error during retive:", err);
-}
-  
-})
-Router.get("/curr-trips", async (req, res) => {
+Router.get('/location', async (req, res) => {
   try {
-  
-      const todayDate = new Date().toISOString().split("T")[0]; // Get today's date in YYYY-MM-DD format
-
-      const query = `
-          SELECT * FROM trip
-       
-          WHERE STAT IN ('JUST', 'ONGOING') 
-          AND date = ?;
-      `;
-
-      db.query(query, [ todayDate], (err, results) => {
-          if (err) {
-              console.error("Error fetching trips:", err);
-              return res.status(500).json({ error: "Internal Server Error" });
-          }
-          res.json(results);
-      });
+    const start = new Date(); start.setHours(0,0,0,0);
+    const end = new Date(); end.setHours(23,59,59,999);
+    const rows = await Trip.find({ date: { $gte: start, $lte: end } }, 'ROOM_ID').lean();
+    return res.status(200).json(rows);
+  } catch (err) {
+    console.error('Error during retrieve:', err);
+    return res.status(500).send('Server Error');
+  }
+});
+Router.get('/curr-trips', async (req, res) => {
+  try {
+    const start = new Date(); start.setHours(0,0,0,0);
+    const end = new Date(); end.setHours(23,59,59,999);
+    const results = await Trip.find({ STAT: { $in: ['JUST','ONGOING'] }, date: { $gte: start, $lte: end } }).lean();
+    return res.json(results);
   } catch (error) {
-      console.error("Unexpected error:", error);
-      res.status(500).json({ error: "Internal Server Error" });
+    console.error('Unexpected error:', error);
+    return res.status(500).json({ error: 'Internal Server Error' });
   }
 });
 

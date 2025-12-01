@@ -1,60 +1,25 @@
-const express = require("express");
+const express = require('express');
 const Router = express.Router();
-const db = require("../db");
-const { v4: uuidv4 } = require("uuid");
-async function idmake(table, column) {
-  let id = uuidv4();
+require('../mongo');
+const Trip = require('../models/Trip');
 
-  const query = `SELECT * FROM ${table} WHERE ${column} = ?`;
-
-  return new Promise((resolve, reject) => {
-    db.query(query, [id], (err, rows) => {
-      if (err) {
-        console.error("Error executing query:", err);
-        return reject(err);
-      }
-
-      if (rows.length === 0) {
-        return resolve(id);
-      } else {
-        idmake(table, column).then(resolve).catch(reject);
-      }
-    });
-  });
-}
 function isDriver(req, res, next) {
- 
-
-  if (!req.isAuthenticated() || !req.user) {
-    console.log("User is not authenticated");
-    return res.status(401).json({ message: "Unauthorized access." });
-  }
-
-  if (req.user. role !== 'driver') {
-    console.log("User role is not driver:", req.user.role);
-    return res
-      .status(403)
-      .json({ message: "Forbidden: You are not a helo"+req.user.role });
-  }
+  if (!req.isAuthenticated() || !req.user) return res.status(401).json({ message: 'Unauthorized access.' });
+  if (req.user.role !== 'driver') return res.status(403).json({ message: `Forbidden: You are not a driver (${req.user.role})` });
   return next();
 }
-Router.get("/book/:id/:date", (req, res) => {
-  
-  const { id ,date} = req.params;
 
-  console.log(id)
-
-  const q = "SELECT OTP FROM trip WHERE DATE = ? AND BOOK_ID = ? ";
-
-  db.query(q, [date, id,], (err, results) => {
-    if (err) {
-      console.error("Error executing query:", err);
-      return res.status(500).json({ error: "Database query failed" });
-    }
-
-    res.json(results);
-  });
+Router.get('/book/:id/:date', async (req, res) => {
+  const { id, date } = req.params;
+  try {
+    const dayStart = new Date(date); dayStart.setHours(0,0,0,0);
+    const dayEnd = new Date(date); dayEnd.setHours(23,59,59,999);
+    const trips = await Trip.find({ BOOK_ID: id, date: { $gte: dayStart, $lte: dayEnd } }, 'OTP').lean();
+    return res.json(trips);
+  } catch (err) {
+    console.error('Error executing query:', err);
+    return res.status(500).json({ error: 'Database query failed' });
+  }
 });
-
 
 module.exports = Router;

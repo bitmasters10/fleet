@@ -1,301 +1,149 @@
-const express = require("express");
+const express = require('express');
 const Router = express.Router();
-const db = require("../db");
-const { v4: uuidv4 } = require("uuid");
+require('../mongo');
+const { v4: uuidv4 } = require('uuid');
+const BookingEntry = require('../models/BookingEntry');
+const Trip = require('../models/Trip');
+const Car = require('../models/Car');
+const FuelConsumption = require('../models/FuelConsumption');
+const Driver = require('../models/Driver');
+
 async function idmake(table, column) {
   let id = uuidv4();
-
-  const query = `SELECT * FROM ${table} WHERE ${column} = ?`;
-
-  return new Promise((resolve, reject) => {
-    db.query(query, [id], (err, rows) => {
-      if (err) {
-        console.error("Error executing query:", err);
-        return reject(err);
-      }
-
-      if (rows.length === 0) {
-        return resolve(id);
-      } else {
-        idmake(table, column).then(resolve).catch(reject);
-      }
-    });
-  });
+  const exists = await Trip.findOne({ TRIP_ID: id }).lean();
+  if (!exists) return id;
+  return idmake(table, column);
 }
+
 function isDriver(req, res, next) {
-
-  if (!req.isAuthenticated() || !req.user) {
-    console.log("User is not authenticated");
-    return res.status(401).json({ message: "Unauthorized access." });
-  }
-
-  if (req.user. role !== 'driver') {
-    console.log("User role is not driver:", req.user.role);
-    return res
-      .status(403)
-      .json({ message: "Forbidden: You are not a helo"+req.user.role });
-  }
+  if (!req.isAuthenticated() || !req.user) return res.status(401).json({ message: 'Unauthorized access.' });
+  if (req.user.role !== 'driver') return res.status(403).json({ message: `Forbidden: You are not a driver (${req.user.role})` });
   return next();
 }
-Router.get("/book/:date",isDriver, (req, res) => {
+Router.get('/book/:date', isDriver, async (req, res) => {
   const id = req.user.DRIVER_ID;
   const { date } = req.params;
- 
-
-  const q = "SELECT * FROM booking WHERE DATE = ? AND DRIVER_ID = ? and stat=?";
-
-  db.query(q, [date, id, "READY"], (err, results) => {
-    if (err) {
-      console.error("Error executing query:", err);
-      return res.status(500).json({ error: "Database query failed" });
-    }
-
-    res.json(results);
-  });
-});
-Router.patch("/trip-complete", isDriver, (req, res) => {
-  const id = req.user.DRIVER_ID; // Get the driver's ID from the authenticated user
-  const { BOOK_ID } = req.body;
-
-  // Get the current date and time
-  const now = new Date();
-
-  // Format the time as HH:MM
-  const hours = now.getHours(); // Get the current hour (0-23)
-  const minutes = now.getMinutes();
-  const formattedHours = String(hours).padStart(2, "0");
-  const formattedMinutes = String(minutes).padStart(2, "0");
-  const formattedTime = `${formattedHours}:${formattedMinutes}`;
-
-  // Format the date as yyyy-mm-dd
-  const year = now.getFullYear();
-  const month = String(now.getMonth() + 1).padStart(2, "0"); // Months are 0-indexed
-  const day = String(now.getDate()).padStart(2, "0");
-  const formattedDate = `${year}-${month}-${day}`;
-
- 
-  // Update the TRIP table
-  const q = "UPDATE trip SET STAT=?, END_TIME=?, date=? WHERE DRIVER_ID=? AND BOOK_ID=?";
-  db.query(
-    q,
-    ["COMPLETED", formattedTime, formattedDate, id, BOOK_ID],
-    (err, results) => {
-      if (err) {
-        console.error("Error executing query:", err);
-        return res.status(500).json({ error: "Database query failed" });
-      }
-
-      // Check if any rows were affected
-      if (results.affectedRows === 0) {
-        return res.status(404).json({ error: "No matching trip found" });
-      }
-
-      res.json({ message: "Trip marked as completed", results });
-    }
-  );
-});
-Router.post("/otp", isDriver, (req, res) => {
-  const { otp, BOOK_ID } = req.body;
-  const id = req.user?.DRIVER_ID; // Ensure DRIVER_ID exists
-
-  if (!otp || !BOOK_ID || !id) {
-    return res.status(400).json({ error: "Missing required fields" });
-  }
-
-  console.log("OTP verification attempt:", { otp, BOOK_ID, driverId: id });
-
-  const query =
-    "SELECT OTP FROM trip WHERE DRIVER_ID = ? AND OTP = ? AND BOOK_ID = ?";
-  
-  db.query(query, [id, otp, BOOK_ID], (err, results) => {
-    if (err) {
-      console.error("Database error during OTP check:", err);
-      return res.status(500).json({ error: "Database query failed" });
-    }
-
-    if (results.length === 0) {
-      console.warn("Invalid OTP attempt for BOOK_ID:", BOOK_ID, "Driver ID:", id);
-      return res.status(404).json({ message: "Incorrect OTP" });
-    }
-
-    console.log("OTP Matched! Updating trip status to ONGOING...");
-
-    const updateQuery =
-      "UPDATE trip SET STAT = ? WHERE DRIVER_ID = ? AND BOOK_ID = ?";
-    
-    db.query(updateQuery, ["ONGOING", id, BOOK_ID], (err, updateResults) => {
-      if (err) {
-        console.error("Database error during trip update:", err);
-        return res.status(500).json({ error: "Database update failed" });
-      }
-
-      if (updateResults.affectedRows === 0) {
-        return res.status(400).json({ error: "Trip status update failed" });
-      }
-
-      console.log("Trip status updated to ONGOING. Fetching updated trip...");
-
-      const selectUpdatedQuery =
-        "SELECT * FROM trip WHERE DRIVER_ID = ? AND BOOK_ID = ?";
-      
-      db.query(selectUpdatedQuery, [id, BOOK_ID], (err, updatedResults) => {
-        if (err) {
-          console.error("Database error while retrieving updated record:", err);
-          return res.status(500).json({ error: "Failed to retrieve updated record" });
-        }
-
-        return res.status(200).json({ message: "OTP verified", record: updatedResults[0] });
-      });
-    });
-  });
-});
-
-
-
-Router.get("/all/book", (req, res) => {
-
-
-  const id = req.user.DRIVER_ID;
-  const q = "select * from booking where DRIVER_ID=? AND stat=? ";
-  db.query(q, [id, "READY"], (err, results) => {
-    if (err) {
-      console.error("Error executing query:", err);
-      return res.status(500).json({ error: "Database query failed" });
-    }
-
-    res.json(results);
-  });
-});
-Router.get("/cars", isDriver,async (req, res) => {
   try {
-    db.query("SELECT * FROM cars ", (err, rows) => {
-      if (err) {
-        console.error("Error executing query:", err);
-        return res.status(500).send("Server Error");
-      }
-      return res.status(200).json(rows);
-    });
+    const dayStart = new Date(date); dayStart.setHours(0,0,0,0);
+    const dayEnd = new Date(date); dayEnd.setHours(23,59,59,999);
+    const results = await BookingEntry.find({ DRIVER_ID: id, DATE: { $gte: dayStart, $lte: dayEnd }, stat: 'READY' }).lean();
+    res.json(results);
   } catch (err) {
-    console.error("Error during retrive:", err);
+    console.error('Error executing query:', err);
+    return res.status(500).json({ error: 'Database query failed' });
   }
 });
-Router.post("/create-trip", isDriver,async (req, res) => {
+Router.patch('/trip-complete', isDriver, async (req, res) => {
+  const id = req.user.DRIVER_ID;
+  const { BOOK_ID } = req.body;
+  const now = new Date();
+  const formattedTime = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+  const formattedDate = new Date();
   try {
-    let ID = await idmake("trip", "TRIP_ID");
+    const updated = await Trip.findOneAndUpdate({ DRIVER_ID: id, BOOK_ID }, { STAT: 'COMPLETED', END_TIME: formattedTime, date: formattedDate }, { new: true }).lean();
+    if (!updated) return res.status(404).json({ error: 'No matching trip found' });
+    return res.json({ message: 'Trip marked as completed', results: updated });
+  } catch (err) {
+    console.error('Error executing query:', err);
+    return res.status(500).json({ error: 'Database query failed' });
+  }
+});
+Router.post('/otp', isDriver, async (req, res) => {
+  const { otp, BOOK_ID } = req.body;
+  const id = req.user?.DRIVER_ID;
+  if (!otp || !BOOK_ID || !id) return res.status(400).json({ error: 'Missing required fields' });
+  try {
+    const trip = await Trip.findOne({ DRIVER_ID: id, OTP: otp, BOOK_ID }).lean();
+    if (!trip) return res.status(404).json({ message: 'Incorrect OTP' });
+    const updated = await Trip.findOneAndUpdate({ DRIVER_ID: id, BOOK_ID }, { STAT: 'ONGOING' }, { new: true }).lean();
+    return res.status(200).json({ message: 'OTP verified', record: updated });
+  } catch (err) {
+    console.error('Database error during OTP check:', err);
+    return res.status(500).json({ error: 'Database query failed' });
+  }
+});
+
+
+
+Router.get('/all/book', isDriver, async (req, res) => {
+  const id = req.user.DRIVER_ID;
+  try {
+    const results = await BookingEntry.find({ DRIVER_ID: id, stat: 'READY' }).lean();
+    res.json(results);
+  } catch (err) {
+    console.error('Error executing query:', err);
+    return res.status(500).json({ error: 'Database query failed' });
+  }
+});
+Router.get('/cars', isDriver, async (req, res) => {
+  try {
+    const rows = await Car.find().lean();
+    return res.status(200).json(rows);
+  } catch (err) {
+    console.error('Error during retrieve:', err);
+    return res.status(500).send('Server Error');
+  }
+});
+Router.post('/create-trip', isDriver, async (req, res) => {
+  try {
+    let ID = await idmake('trip', 'TRIP_ID');
     const { BOOK_NO, BOOK_ID, ROUTE, date } = req.body;
     const id = req.user.DRIVER_ID;
-    const otp = Math.floor(1000 + Math.random() * 9000); // Generate a random OTP
-    const START_TIME = new Date().getHours() + "" + new Date().getMinutes(); // Get current time
-
-    // Trip object to insert
-    const trip = {
-      START_TIME,
-      TRIP_ID: ID,
-      BOOK_ID,
-      BOOK_NO,
-      ROUTE,
-      OTP: otp,
-      STAT: "JUST",
-      ROOM_ID: BOOK_ID,
-      date,
-      DRIVER_ID: id,
-    };
-
-    // Update the BOOKING table
-    const updateBookingQuery = "UPDATE booking SET stat = ? WHERE BOOK_ID = ?";
-    db.query(updateBookingQuery, ["TRIP", BOOK_ID], (err) => {
-      if (err) {
-        console.error("Error updating BOOKING:", err);
-        return res.status(500).json({ error: "Database update failed" });
-      }
-
-      // Insert into TRIP table
-      const insertTripQuery = "INSERT INTO trip SET ?";
-      db.query(insertTripQuery, trip, (err) => {
-        if (err) {
-          console.error("Error inserting into TRIP:", err);
-          return res.status(500).json({ error: "Database insertion failed" });
-        }
-
-        // Retrieve the newly created trip record
-        const selectTripQuery = "SELECT * FROM trip WHERE TRIP_ID = ?";
-        db.query(selectTripQuery, [ID], (err, results) => {
-          if (err) {
-            console.error("Error retrieving trip record:", err);
-            return res
-              .status(500)
-              .json({ error: "Failed to retrieve trip record" });
-          }
-
-          // Send the created trip record back to the client
-          return res
-            .status(201)
-            .json({ message: "Trip created successfully", trip: results[0] });
-        });
-      });
-    });
+    const otp = Math.floor(1000 + Math.random() * 9000);
+    const now = new Date();
+    const START_TIME = `${now.getHours()}${now.getMinutes()}`;
+    const tripDoc = { START_TIME, TRIP_ID: ID, BOOK_ID, BOOK_NO, ROUTE, OTP: otp, STAT: 'JUST', ROOM_ID: BOOK_ID, date: date ? new Date(date) : now, DRIVER_ID: id };
+    await BookingEntry.findOneAndUpdate({ BOOK_ID }, { stat: 'TRIP' }).exec();
+    const created = await Trip.create(tripDoc);
+    return res.status(201).json({ message: 'Trip created successfully', trip: created });
   } catch (error) {
-    console.error("Error in trip creation:", error);
-    return res.status(500).json({ error: "Internal server error" });
+    console.error('Error in trip creation:', error);
+    return res.status(500).json({ error: 'Internal server error' });
   }
 });
-Router.get("/test", (req, res) => {
-  db.query("select otp from trip", (err, results) => {
-    if (err) {
-      console.error("Error executing query:", err);
-      return res.status(500).json({ error: "Database query failed" });
-    }
-
-    res.json(results);
-  });
-});
-Router.get("/history",isDriver, (req, res) => {
-  const id = req.user.DRIVER_ID;
-
-  if (!id) {
-    res.status(505).json({ error: "driver not ready " });
-  }
-  const q = "select * from trip where DRIVER_ID=? AND stat=? ";
-  db.query(q, [id, "COMPLETED"], (err, results) => {
-    if (err) {
-      console.error("Error executing query:", err);
-      return res.status(500).json({ error: "Database query failed" });
-    }
-    res.json(results);
-  });
-});
-Router.get("drive/fuel",isDriver,(req,res)=>{
-  const id = req.user.DRIVER_ID;
-  if (!id) {
-    res.status(505).json({ error: "driver not ready " });
-  }
-  const q = "select * from fuel_consumption where DRIVER_ID=?  ";
-  db.query(q, [id], (err, results) => {
-    if (err) {
-      console.error("Error executing query:", err);
-      return res.status(500).json({ error: "Database query failed" });
-    }
-
-    res.json(results);
-  });
-})
-Router.post("/myloc",(req,res)=>{
-  const {lat,long}=req.body
-  const id=req.user.DRIVER_ID;
-  const q="UPDATE driver SET LATITUDE=?,LONGITUDE=? where DRIVER_ID=?"
+Router.get('/test', async (req, res) => {
   try {
-    db.query(q,[lat,long,id], (err, rows) => {
-      if (err) {
-        console.error("Error executing query:", err);
-        return res.status(500).send("Server Error");
-      }
-      return res.status(200).json(rows);
-    });
+    const results = await Trip.find({}, 'OTP').lean();
+    res.json(results);
   } catch (err) {
-    console.error("Error during retive:", err);
+    console.error('Error executing query:', err);
+    return res.status(500).json({ error: 'Database query failed' });
+  }
+});
+Router.get('/history', isDriver, async (req, res) => {
+  const id = req.user.DRIVER_ID;
+  if (!id) return res.status(505).json({ error: 'driver not ready' });
+  try {
+    const results = await Trip.find({ DRIVER_ID: id, STAT: 'COMPLETED' }).lean();
+    res.json(results);
+  } catch (err) {
+    console.error('Error executing query:', err);
+    return res.status(500).json({ error: 'Database query failed' });
+  }
+});
+Router.get('/drive/fuel', isDriver, async (req, res) => {
+  const id = req.user.DRIVER_ID;
+  if (!id) return res.status(505).json({ error: 'driver not ready' });
+  try {
+    const results = await FuelConsumption.find({ DRIVER_ID: id }).lean();
+    res.json(results);
+  } catch (err) {
+    console.error('Error executing query:', err);
+    return res.status(500).json({ error: 'Database query failed' });
+  }
+});
+Router.post('/myloc', async (req, res) => {
+  const { lat, long } = req.body;
+  const id = req.user.DRIVER_ID;
+  try {
+    const updated = await Driver.findOneAndUpdate({ DRIVER_ID: id }, { LATITUDE: lat, LONGITUDE: long }, { new: true }).lean();
+    return res.status(200).json(updated);
+  } catch (err) {
+    console.error('Error during update:', err);
+    return res.status(500).send('Server Error');
   }
 
-})
+});
 // Router.post("/create-fuel", upload.single("photo"), async (req, res) => {
 //   try {
 //     // Generate a unique F_ID
@@ -331,42 +179,26 @@ Router.post("/myloc",(req,res)=>{
 //     return res.status(500).json({ error: "Internal server error" });
 //   }
 // });
-Router.get("/fuels",(req,res)=>{
-  const DRIVER_ID=req.user.DRIVER_ID;
+Router.get('/fuels', async (req, res) => {
+  const DRIVER_ID = req.user.DRIVER_ID;
   try {
-    db.query("SELECT * FROM fuel_consumption where DRIVER_ID=? ",DRIVER_ID, (err, rows) => {
-      if (err) {
-        console.error("Error executing query:", err);
-        return res.status(500).send("Server Error");
-      }
-      return res.status(200).json(rows);
-    });
+    const rows = await FuelConsumption.find({ DRIVER_ID }).lean();
+    return res.status(200).json(rows);
   } catch (err) {
-    console.error("Error during retrive:", err);
+    console.error('Error during retrieve:', err);
+    return res.status(500).send('Server Error');
   }
-})
-Router.get("/curr-trips", async (req, res) => {
+});
+Router.get('/curr-trips', async (req, res) => {
   try {
-      const driverId = req.user.DRIVER_ID; // Extract the DRIVER_ID from the authenticated user
-      const todayDate = new Date().toISOString().split("T")[0]; // Get today's date in YYYY-MM-DD format
-
-      const query = `
-          SELECT * FROM trip 
-          WHERE DRIVER_ID = ? 
-          AND STAT IN ('JUST', 'ONGOING') 
-          AND date = ?;
-      `;
-
-      db.query(query, [driverId, todayDate], (err, results) => {
-          if (err) {
-              console.error("Error fetching trips:", err);
-              return res.status(500).json({ error: "Internal Server Error" });
-          }
-          res.json(results);
-      });
+    const driverId = req.user.DRIVER_ID;
+    const start = new Date(); start.setHours(0,0,0,0);
+    const end = new Date(); end.setHours(23,59,59,999);
+    const results = await Trip.find({ DRIVER_ID: driverId, STAT: { $in: ['JUST','ONGOING'] }, date: { $gte: start, $lte: end } }).lean();
+    return res.json(results);
   } catch (error) {
-      console.error("Unexpected error:", error);
-      res.status(500).json({ error: "Internal Server Error" });
+    console.error('Unexpected error:', error);
+    return res.status(500).json({ error: 'Internal Server Error' });
   }
 });
 

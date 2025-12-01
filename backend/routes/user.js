@@ -1,30 +1,17 @@
-const express = require("express");
+const express = require('express');
 const Router = express.Router();
-const db = require("../db");
-const { v4: uuidv4 } = require("uuid");
-const passport = require("passport");
-const LocalStrategy = require("passport-local").Strategy;
-const bcrypt = require("bcryptjs");
+require('../mongo');
+const User = require('../models/User');
+const { v4: uuidv4 } = require('uuid');
+const passport = require('passport');
+const LocalStrategy = require('passport-local').Strategy;
+const bcrypt = require('bcryptjs');
 
 async function idmake(table, column) {
   let id = uuidv4();
-
-  const query = `SELECT * FROM ${table} WHERE ${column} = ?`;
-
-  return new Promise((resolve, reject) => {
-    db.query(query, [id], (err, rows) => {
-      if (err) {
-        console.error("Error executing query:", err);
-        return reject(err);
-      }
-
-      if (rows.length === 0) {
-        return resolve(id);
-      } else {
-        idmake(table, column).then(resolve).catch(reject);
-      }
-    });
-  });
+  const exists = await User.findOne({ id }).lean();
+  if (!exists) return id;
+  return idmake(table, column);
 }
 
 function isAdmin(req, res, next) {
@@ -53,55 +40,22 @@ passport.use(
       passReqToCallback: true,
     },
     async (req, email, password, done) => {
-      const { first_name, last_name, mobile_no, sex,age } = req.body;
-
+      const { first_name, last_name, mobile_no, sex, age } = req.body;
       try {
         const hashedPassword = await bcrypt.hash(password, 10);
-
-        const newUser = {
-          first_name,
-          last_name,
-          mobile_no,
-          sex,
-          email: email,
-          age,
-          password: hashedPassword,
-        };
-
-        // Insert new user into the database
-        db.query("INSERT INTO users SET ?", newUser, (err, results) => {
-          if (err) return done(err);
-
-          // Fetch the id of the last inserted user
-          const insertedId = results.insertId; // Get the auto-increment ID from the results
-          db.query(
-            "SELECT id FROM users WHERE id = ?",
-            [insertedId],
-            (err, rows) => {
-              if (err) return done(err);
-
-              const userId = rows[0].id;
-              return done(null, {
-                id: userId,
-                first_name,
-                last_name,
-                mobile_no,
-                sex,
-                email: email,
-                age
-              });
-            }
-          );
-        });
+        const newId = await idmake('users', 'id');
+        const userDoc = new User({ id: newId, mobile_no, name: `${first_name} ${last_name}`, email });
+        await userDoc.save();
+        return done(null, userDoc.toObject());
       } catch (err) {
-        console.error("Error during registration:", err);
+        console.error('Error during registration:', err);
         return done(err);
       }
     }
   )
 );
 
-Router.post("/register",isAdmin, (req, res, next) => {
+Router.post('/register', isAdmin, (req, res, next) => {
   passport.authenticate("user-local-register", (err, user, info) => {
     if (err) {
       console.error(err);
@@ -125,17 +79,13 @@ Router.post("/register",isAdmin, (req, res, next) => {
     });
   })(req, res, next);
 });
-Router.get("/users", isAdmin , (req, res) => {
+Router.get('/users', isAdmin, async (req, res) => {
   try {
-    db.query("SELECT * FROM users ", (err, rows) => {
-      if (err) {
-        console.error("Error executing query:", err);
-        return res.status(500).send("Server Error");
-      }
-      return res.status(200).json(rows);
-    });
+    const rows = await User.find().lean();
+    return res.status(200).json(rows);
   } catch (err) {
-    console.error("Error during retrive:", err);
+    console.error('Error during retrieve:', err);
+    return res.status(500).send('Server Error');
   }
 });
 module.exports = Router;
