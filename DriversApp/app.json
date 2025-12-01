@@ -12,7 +12,8 @@
       "backgroundColor": "#ffffff"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.bitfyp2025.DriversApp"
     },
     "android": {
       "adaptiveIcon": {
@@ -33,10 +34,12 @@
     "web": {
       "favicon": "./assets/favicon.png"
     },
+    "newArchEnabled": true,
     "extra": {
       "eas": {
-        "projectId": "f1350127-4d5b-4c64-b841-babe7ca1e7c6"
+        "projectId": "6af87bdc-2fd7-45b9-8e29-641d8fac28e1"
       }
-    }
+    },
+    "owner": "rayyanshk"
   }
 }
